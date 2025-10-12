@@ -491,7 +491,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             {loading ? (
                 <LinearProgress />
             ) : (
-                <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', width: '100%', overflow: 'hidden' }}>
+                <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', width: '100%', overflow: 'hidden', justifyContent: 'space-between' }}>
                     {/* Левая колонка - Таблица номенклатуры */}
                     <Box sx={{ flex: '0 0 70%', overflow: 'auto', minWidth: 0 }}>
                         <TableContainer component={Paper}>
@@ -558,10 +558,10 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell 
+                                        <TableCell
                                             onClick={() => setRightPanelMode('groups')}
-                                            sx={{ 
-                                                fontWeight: 'bold', 
+                                            sx={{
+                                                fontWeight: 'bold',
                                                 fontSize: '12px',
                                                 color: rightPanelMode === 'groups' ? '#1976d2' : 'black',
                                                 textAlign: 'center',
@@ -579,10 +579,10 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                         >
                                             Группы
                                         </TableCell>
-                                        <TableCell 
+                                        <TableCell
                                             onClick={() => setRightPanelMode('kinds')}
-                                            sx={{ 
-                                                fontWeight: 'bold', 
+                                            sx={{
+                                                fontWeight: 'bold',
                                                 fontSize: '12px',
                                                 color: rightPanelMode === 'kinds' ? '#1976d2' : 'black',
                                                 textAlign: 'center',
