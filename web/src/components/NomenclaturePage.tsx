@@ -493,7 +493,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             ) : (
                 <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', width: '100%', overflow: 'hidden', justifyContent: 'space-between' }}>
                     {/* Левая колонка - Таблица номенклатуры */}
-                    <Box sx={{ flex: '0 0 70%', overflow: 'auto', minWidth: 0 }}>
+                    <Box sx={{ flex: '0 0 78%', overflow: 'auto', minWidth: '232px' }}>
                         <TableContainer component={Paper}>
                             <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                                 <TableHead>
