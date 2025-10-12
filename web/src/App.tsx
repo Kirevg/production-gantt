@@ -1697,6 +1697,8 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
       // Отправляем обновленный порядок на сервер
       try {
         const token = localStorage.getItem('token');
+        console.log('🔑 Токен найден:', token ? 'Да' : 'Нет');
+
         if (!token) {
           setError('Токен авторизации не найден');
           setProjects(originalProjects);
@@ -1709,6 +1711,9 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
           orderIndex: index
         }));
 
+        console.log('📤 Отправляем данные:', { projectOrders });
+        console.log('🌐 URL:', `${import.meta.env.VITE_API_BASE_URL}/projects/reorder`);
+
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/reorder`, {
           method: 'PUT',
           headers: {
@@ -1717,6 +1722,8 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
           },
           body: JSON.stringify({ projectOrders })
         });
+
+        console.log('📥 Ответ сервера:', response.status, response.statusText);
 
         if (!response.ok) {
           // Если обновление не удалось, возвращаем исходный порядок
@@ -1727,6 +1734,9 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
         } else {
           // Очищаем ошибки при успешном обновлении
           setError(null);
+          console.log('✅ Порядок успешно обновлен на сервере');
+          console.log('📊 Текущее состояние projects:', projects.map(p => ({ id: p.id, name: p.name, orderIndex: p.orderIndex })));
+          console.log('🔄 Отфильтрованные проекты:', getFilteredProjects().map(p => ({ id: p.id, name: p.name, orderIndex: p.orderIndex })));
         }
       } catch (error) {
         // При ошибке возвращаем исходный порядок
