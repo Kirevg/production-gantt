@@ -5,7 +5,7 @@
 **ВСЕГДА** при перезапуске API и/или фронтенда использовать ТОЛЬКО эту команду:
 
 ```powershell
-Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Get-Process | Where-Object {$_.MainWindowTitle -match "npm run dev" -and $_.MainWindowTitle -notmatch "Git Auto-Commit"} | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\api && npm run dev' -WindowStyle Normal; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\web && npm run dev' -WindowStyle Normal
+Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Get-Process | Where-Object {$_.MainWindowTitle -match "Backend Server|Frontend Server" -and $_.MainWindowTitle -notmatch "Git Auto-Commit"} | ForEach-Object {Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue}; Start-Sleep -Seconds 2; start "Backend Server" cmd /k "cd /d C:\Projects\production-gantt\api && npm run dev"; start "Frontend Server" cmd /k "cd /d C:\Projects\production-gantt\web && npm run dev"
 ```
 
 **НИКОГДА** не пытаться перезапускать только один сервер отдельно!
