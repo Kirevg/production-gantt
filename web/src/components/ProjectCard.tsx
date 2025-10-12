@@ -855,27 +855,27 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>
                                             <DragIndicator sx={{ color: 'action.main' }} />
                                         </TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '250px', fontSize: '12px' }}>Изделие</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. номер</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Ссылка</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
-                                        <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                <SortableContext items={products.map(p => p.id)} strategy={verticalListSortingStrategy}>
-                                    {products.map((product, index) => (
-                                        <SortableProductTableRow key={product.id} product={product} index={index} />
-                                    ))}
-                                </SortableContext>
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '250px', fontSize: '12px' }}>Изделие</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. номер</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Ссылка</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
+                                            <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <SortableContext items={products.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                                        {products.map((product, index) => (
+                                            <SortableProductTableRow key={product.id} product={product} index={index} />
+                                        ))}
+                                    </SortableContext>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                     </DndContext>
 
                     {products.length === 0 && (
