@@ -48,6 +48,40 @@ const formatPhoneDisplay = (phone: string): string => {
   return phone;
 };
 
+// Функция для форматирования телефона при вводе
+const formatPhoneInput = (value: string): string => {
+  // Удаляем все символы кроме цифр и +
+  const cleaned = value.replace(/[^\d+]/g, '');
+
+  // Если пустая строка, возвращаем пустую
+  if (!cleaned) return '';
+
+  // Если начинается с 8, заменяем на +7
+  if (cleaned.startsWith('8')) {
+    const digits = cleaned.substring(1);
+    return `+7 ${digits.substring(0, 3)} ${digits.substring(3, 6)}-${digits.substring(6, 8)}-${digits.substring(8, 10)}`.trim();
+  }
+
+  // Если начинается с 7, заменяем на +7
+  if (cleaned.startsWith('7')) {
+    const digits = cleaned.substring(1);
+    return `+7 ${digits.substring(0, 3)} ${digits.substring(3, 6)}-${digits.substring(6, 8)}-${digits.substring(8, 10)}`.trim();
+  }
+
+  // Если уже начинается с +7
+  if (cleaned.startsWith('+7')) {
+    const digits = cleaned.substring(2);
+    return `+7 ${digits.substring(0, 3)} ${digits.substring(3, 6)}-${digits.substring(6, 8)}-${digits.substring(8, 10)}`.trim();
+  }
+
+  // Если начинается не с +7, 7 или 8, добавляем +7
+  const digits = cleaned.replace(/[^\d]/g, '');
+  if (digits.length > 0) {
+    return `+7 ${digits.substring(0, 3)} ${digits.substring(3, 6)}-${digits.substring(6, 8)}-${digits.substring(8, 10)}`.trim();
+  }
+  return '+7 ';
+};
+
 // Интерфейс для физического лица
 interface Person {
     id: string;
@@ -268,7 +302,15 @@ const PersonsPage: React.FC<PersonsPageProps> = ({ canEdit, canCreate, canDelete
                     </Box>
                     <TextField fullWidth label="Должность" value={personForm.position} onChange={(e) => setPersonForm({ ...personForm, position: e.target.value })} margin="dense" sx={{ mb: 2 }} InputLabelProps={{ shrink: true }} />
                     <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                        <TextField fullWidth label="Телефон" value={personForm.phone} onChange={(e) => setPersonForm({ ...personForm, phone: e.target.value })} margin="dense" InputLabelProps={{ shrink: true }} />
+                        <TextField 
+                            fullWidth 
+                            label="Телефон" 
+                            value={personForm.phone} 
+                            onChange={(e) => setPersonForm({ ...personForm, phone: formatPhoneInput(e.target.value) })} 
+                            margin="dense" 
+                            InputLabelProps={{ shrink: true }}
+                            placeholder="+7 ___ ___-__-__"
+                        />
                         <TextField fullWidth label="Email" type="email" value={personForm.email} onChange={(e) => setPersonForm({ ...personForm, email: e.target.value })} margin="dense" InputLabelProps={{ shrink: true }} />
                     </Box>
                     <Box sx={{ display: 'flex', gap: 3 }}>
