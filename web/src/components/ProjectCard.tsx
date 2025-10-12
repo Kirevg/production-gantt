@@ -342,7 +342,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     workStages: workStages
                 };
             }));
-            setProducts(productsData);
+            // Сортируем продукты по orderIndex
+            const sortedProducts = productsData.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+            setProducts(sortedProducts);
         } catch (error) {
             console.error('Ошибка загрузки изделий:', error);
         } finally {
@@ -658,17 +660,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 }}
             >
                 <TableCell
+                    {...attributes}
+                    {...listeners}
+                    onClick={(e) => e.stopPropagation()}
                     sx={{
                         width: '40px',
                         minWidth: '40px',
                         maxWidth: '40px',
+                        cursor: (loading || isReordering) ? 'default' : 'grab',
+                        opacity: (loading || isReordering) ? 0.5 : 1,
                         py: 0.5,
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        '&:active': {
+                            cursor: (loading || isReordering) ? 'default' : 'grabbing',
+                        },
                     }}
                 >
-                    <Typography sx={{ fontSize: '18px', fontWeight: 900 }}>
-                        ↑↓
-                    </Typography>
+                    <DragIndicator color="action" />
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                 <TableCell sx={{ py: 0.5, minWidth: '250px' }}>
@@ -830,18 +838,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 <LinearProgress />
             ) : (
                 <>
-                    <TableContainer component={Paper}>
-                        <Table sx={{
-                            '& .MuiTableCell-root': {
-                                borderRight: '1px solid #e0e0e0',
-                                padding: '4px !important'
-                            }
-                        }}>
-                            <TableHead>
-                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>
-                                        ↑↓
-                                    </TableCell>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <TableContainer component={Paper}>
+                            <Table sx={{
+                                '& .MuiTableCell-root': {
+                                    borderRight: '1px solid #e0e0e0',
+                                    padding: '4px !important'
+                                }
+                            }}>
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>
+                                            <DragIndicator sx={{ color: 'action.main' }} />
+                                        </TableCell>
                                     <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
                                     <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '250px', fontSize: '12px' }}>Изделие</TableCell>
                                     <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. номер</TableCell>
@@ -855,12 +868,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {products.map((product, index) => (
-                                    <ProductTableRow key={product.id} product={product} index={index} />
-                                ))}
+                                <SortableContext items={products.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                                    {products.map((product, index) => (
+                                        <SortableProductTableRow key={product.id} product={product} index={index} />
+                                    ))}
+                                </SortableContext>
                             </TableBody>
                         </Table>
                     </TableContainer>
+                    </DndContext>
 
                     {products.length === 0 && (
                         <Card sx={{ mt: 2 }}>
