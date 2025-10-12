@@ -23,6 +23,31 @@ import {
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 
+// Функция для форматирования телефона для отображения
+const formatPhoneDisplay = (phone: string): string => {
+  if (!phone) return '-';
+
+  // Если телефон уже в нужном формате, возвращаем как есть
+  if (phone.match(/^\+\d \d{3} \d{3}-\d{2}-\d{2}$/)) {
+    return phone;
+  }
+
+  // Удаляем все символы кроме цифр и +
+  const cleaned = phone.replace(/[^\d+]/g, '');
+
+  // Если начинается с +7 или 7, форматируем как российский номер
+  if (cleaned.startsWith('+7') && cleaned.length === 12) {
+    const digits = cleaned.substring(2);
+    return `+7 ${digits.substring(0, 3)} ${digits.substring(3, 6)}-${digits.substring(6, 8)}-${digits.substring(8, 10)}`;
+  } else if (cleaned.startsWith('7') && cleaned.length === 11) {
+    const digits = cleaned.substring(1);
+    return `+7 ${digits.substring(0, 3)} ${digits.substring(3, 6)}-${digits.substring(6, 8)}-${digits.substring(8, 10)}`;
+  }
+
+  // Для других форматов возвращаем как есть
+  return phone;
+};
+
 // Интерфейс для физического лица
 interface Person {
     id: string;
@@ -213,7 +238,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({ canEdit, canCreate, canDelete
                                     <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{index + 1}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{`${person.lastName} ${person.firstName} ${person.middleName || ''}`}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{person.position || '-'}</TableCell>
-                                    <TableCell sx={{ py: 0.5 }}>{person.phone || '-'}</TableCell>
+                                    <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{formatPhoneDisplay(person.phone || '')}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{person.email || '-'}</TableCell>
                                     <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{person.isProjectManager ? '✓' : ''}</TableCell>
                                     <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>

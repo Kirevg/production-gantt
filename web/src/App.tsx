@@ -132,7 +132,6 @@ import {
 
 // Импорт иконок из Material-UI
 import {
-  Edit,
   Delete,
   DragIndicator,
   Delete as DeleteIcon,
@@ -1605,11 +1604,10 @@ function UsersList({ currentUser, canEdit, canCreate, canDelete }: {
 }
 
 // Компонент для отображения списка проектов
-function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, canEdit, canCreate, canDelete }: {
+function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, canCreate, canDelete }: {
   onOpenProjectComposition: (project: Project) => void;
   onOpenCreateProject: () => void;
   user: User;
-  canEdit: () => boolean;
   canCreate: () => boolean;
   canDelete: () => boolean;
 }) {
@@ -1621,10 +1619,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
   const [error, setError] = useState<string | null>(null);
   // Состояние для показа/скрытия формы создания проекта
   const [showCreateForm, setShowCreateForm] = useState(false);
-  // Состояние для показа/скрытия формы редактирования проекта
-  const [showEditProjectForm, setShowEditProjectForm] = useState(false);
-  // Состояние для хранения проекта, который редактируется
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
   // Состояние для показа/скрытия диалога удаления
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   // Состояние для хранения проекта, который удаляется
@@ -2020,7 +2014,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
           )}
         </TableCell>
         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-          {project.projectManager?.phone || '-'}
+          {formatPhoneDisplay(project.projectManager?.phone || '')}
         </TableCell>
         <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
           {canDelete() && (
@@ -2082,50 +2076,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
       }
     } catch (err) {
       // При ошибке сети показываем соответствующее сообщение
-      setError(`Ошибка сети: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
-    }
-  };
-
-  // Обработчик для начала редактирования проекта
-  const handleEditProject = (project: Project) => {
-    setEditingProject(project); // Устанавливаем проект для редактирования
-    setShowEditProjectForm(true);      // Показываем форму редактирования
-  };
-
-  // Обработчик обновления проекта
-  const handleUpdateProject = async (e: React.FormEvent) => {
-    e.preventDefault(); // Предотвращаем стандартное поведение формы
-    if (!editingProject) return; // Если нет проекта для редактирования, выходим
-
-    try {
-      // Получаем токен авторизации
-      const token = localStorage.getItem('token');
-      // Отправляем PUT запрос для обновления проекта
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${editingProject.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: editingProject.name,
-          status: editingProject.status,
-          managerId: editingProject.managerId || null
-        })
-      });
-
-      if (response.ok) {
-        // Если обновление успешно
-        setShowEditProjectForm(false);    // Скрываем форму
-        setEditingProject(null);   // Очищаем редактируемый проект
-        fetchProjects();           // Обновляем список
-      } else {
-        // Если произошла ошибка
-        const errorData = await response.json();
-        setError(`Ошибка обновления проекта: ${errorData.error || 'Неизвестная ошибка'}`);
-      }
-    } catch (err) {
-      // При ошибке сети
       setError(`Ошибка сети: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
     }
   };
@@ -2503,74 +2453,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
           </Table>
         </TableContainer>
       </DndContext>
-
-      {/* Диалог редактирования проекта */}
-      <Dialog
-        open={showEditProjectForm}
-        onClose={() => { }}
-        maxWidth="sm"
-        fullWidth
-        hideBackdrop={true}
-        disablePortal={true}
-        disableScrollLock={true}
-        keepMounted={false}
-        disableEnforceFocus={true}
-        disableAutoFocus={true}
-        disableEscapeKeyDown={true}
-      >
-        <DialogTitle sx={{ pb: 1 }}>Редактировать проект</DialogTitle>
-        <DialogContent>
-          {editingProject && (
-            <Box component="form" sx={{ mt: 2, width: '100%' }}>
-              {/* Поле для названия проекта */}
-              <TextField
-                fullWidth
-                label="Название проекта"
-                value={editingProject.name}
-                onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })}
-                margin="normal"
-                required
-              />
-              {/* Выпадающий список для выбора руководителя проекта */}
-              <TextField
-                fullWidth
-                select
-                label="Руководитель проекта"
-                value={editingProject.managerId || ''}
-                onChange={(e) => setEditingProject({ ...editingProject, managerId: e.target.value })}
-                margin="normal"
-                SelectProps={{ native: true }}
-              >
-                <option value=""></option>
-                {managers.map((manager) => (
-                  <option key={manager.id} value={manager.id}>
-                    {manager.lastName} {manager.firstName} {manager.middleName || ''}
-                  </option>
-                ))}
-              </TextField>
-              {/* Выпадающий список для статуса */}
-              <TextField
-                fullWidth
-                select
-                label="Статус"
-                value={editingProject.status}
-                onChange={(e) => setEditingProject({ ...editingProject, status: e.target.value as 'Planned' | 'InProgress' | 'Done' | 'HasProblems' })}
-                margin="normal"
-                SelectProps={{ native: true }}
-              >
-                <option value="Planned">Запланирован</option>
-                <option value="InProgress">В работе</option>
-                <option value="Done">Завершен</option>
-                <option value="HasProblems">Есть проблемы</option>
-              </TextField>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowEditProjectForm(false)} size="large">Отмена</Button>
-          <Button onClick={handleUpdateProject} variant="contained" size="large">Сохранить</Button>
-        </DialogActions>
-      </Dialog>
 
       {/* Диалог удаления проекта */}
       <Dialog
@@ -3135,7 +3017,7 @@ export default function App() {
           </Box>
         );
       case 1: // Страница проектов
-        return user && <ProjectsList onOpenProjectComposition={handleOpenProjectComposition} onOpenCreateProject={handleOpenCreateProject} user={user} canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
+        return user && <ProjectsList onOpenProjectComposition={handleOpenProjectComposition} onOpenCreateProject={handleOpenCreateProject} user={user} canCreate={canCreate} canDelete={canDelete} />;
       case 2: // Страница справочников
         return <ReferencesPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
       case 3: // Страница руководителей проектов
