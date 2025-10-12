@@ -244,7 +244,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // Загрузка данных изделия
     const fetchProductData = async () => {
-        if (!productId) return;
+        if (!productId || !projectId) return;
 
         // Если это временное изделие, не загружаем данные с сервера
         if (productId.startsWith('temp-')) {
@@ -254,7 +254,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -264,17 +264,41 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 const data = await response.json();
                 console.log('Product data loaded:', data);
                 setProductData(data);
+            } else {
+                console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
             console.error('Ошибка загрузки данных изделия:', error);
         }
     };
 
-    // Загрузка номенклатуры
+    // Загрузка номенклатуры - только товары из группы "Изделия"
     const fetchNomenclature = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature`, {
+
+            // Сначала получаем все группы, чтобы найти группу "Изделия"
+            const groupsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!groupsResponse.ok) {
+                console.error('Ошибка загрузки групп номенклатуры');
+                return;
+            }
+
+            const groups = await groupsResponse.json();
+            const productsGroup = groups.find((group: any) => group.name === 'Изделия');
+
+            if (!productsGroup) {
+                console.error('Группа "Изделия" не найдена');
+                return;
+            }
+
+            // Получаем только товары из группы "Изделия"
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature?type=Product&groupId=${productsGroup.id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -297,11 +321,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         // Если данные еще не загружены, загружаем их
         let currentProductData = productData;
-        if (!currentProductData && productId && !productId.startsWith('temp-')) {
+        if (!currentProductData && productId && !productId.startsWith('temp-') && projectId) {
             console.log('Loading product data...');
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -311,6 +335,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     currentProductData = await response.json();
                     console.log('Product data loaded:', currentProductData);
                     setProductData(currentProductData);
+                } else {
+                    console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Ошибка загрузки данных изделия:', error);
