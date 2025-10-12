@@ -1657,11 +1657,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
 
   // Настройка сенсоров для drag-and-drop
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, // Начинать перетаскивание после сдвига на 5px
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -1970,7 +1966,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
         <TableCell
           {...attributes}
           {...listeners}
-          onDoubleClick={(e) => e.stopPropagation()}
           sx={{
             width: '40px',
             minWidth: '40px',

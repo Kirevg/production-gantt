@@ -416,48 +416,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         // Создаем временную пустую строку
         const emptyProduct: Product = {
             id: `temp-${Date.now()}`, // Временный ID
-            name: '',
             serialNumber: '',
             description: '',
             nomenclatureItem: undefined,
             quantity: 1,
-            startDate: null,
-            endDate: null,
-            progress: 0,
-            productSum: 0,
             version: 0,
             orderIndex: products.length,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            workStages: []
+            updatedAt: new Date().toISOString()
         };
 
         // Добавляем в конец списка
         setProducts([...products, emptyProduct]);
     };
 
-    const handleOpenProductDialog = (product?: Product) => {
-        if (product) {
-            console.log('Editing product:', product);
-            console.log('Product version:', product.version);
-            setEditingProduct(product);
-            setProductForm({
-                nomenclatureItemId: product.nomenclatureItem?.id || '',
-                serialNumber: product.serialNumber || '',
-                quantity: product.quantity || 1,
-                link: product.description || ''
-            });
-        } else {
-            setEditingProduct(null);
-            setProductForm({
-                nomenclatureItemId: '',
-                serialNumber: '',
-                quantity: 1,
-                link: ''
-            });
-        }
-        setOpenProductDialog(true);
-    };
 
     const handleCloseProductDialog = () => {
         setOpenProductDialog(false);
