@@ -658,11 +658,11 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     <Box sx={{ flex: '0 0 78%', overflow: 'auto', minWidth: '232px' }}>
                         <TableContainer component={Paper}>
                             <Table sx={{
-                                '& .MuiTableCell-root': { border: '1px solid #e0e0e0' },
+                                '& .MuiTableCell-root': { border: '1px solid #e0e0e0', padding: '0 4px !important' },
                                 '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '0 !important' },
-                                '& .MuiTableHead-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' },
+                                '& .MuiTableHead-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' },
                                 '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '0 !important' },
-                                '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' }
+                                '& .MuiTableBody-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' }
                             }}>
                                 <TableHead>
                                     <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
@@ -721,11 +721,11 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     <Box sx={{ flex: '0 0 20%', overflow: 'auto', minWidth: 0 }}>
                         <TableContainer component={Paper}>
                             <Table sx={{
-                                '& .MuiTableCell-root': { border: '1px solid #e0e0e0' },
+                                '& .MuiTableCell-root': { border: '1px solid #e0e0e0', padding: '0 4px !important' },
                                 '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '0 !important' },
-                                '& .MuiTableHead-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' },
+                                '& .MuiTableHead-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' },
                                 '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '0 !important' },
-                                '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' }
+                                '& .MuiTableBody-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' }
                             }}>
                                 <TableHead>
                                     <TableRow>
