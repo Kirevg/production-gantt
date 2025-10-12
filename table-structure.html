@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сопоставление колонок Excel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .dialog-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            width: auto;
+            min-width: 1050px;
+            /* 7 columns * 150px */
+        }
+
+        .content-container {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-content: flex-start;
+        }
+
+        .controls-text {
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        .controls-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .button-primary {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .table-container {
+            width: auto;
+        }
+
+        table {
+            table-layout: fixed;
+            width: auto;
+            border-collapse: collapse;
+        }
+
+        td {
+            width: 150px;
+            max-width: 150px;
+            font-size: 12px;
+            padding: 2px 4px;
+            border: 2px solid #333;
+            border-left: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: normal;
+            vertical-align: top;
+        }
+
+        td:first-child {
+            border-left: 2px solid #333;
+        }
+
+        td:last-child {
+            border-right: 2px solid #333;
+        }
+
+        .header-row td {
+            font-weight: bold;
+            text-align: center;
+            padding: 4px;
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+        }
+
+        .header-row td:first-child {
+            border-left: 2px solid #333;
+        }
+
+        .header-row td:last-child {
+            border-right: 2px solid #333;
+        }
+
+        .mapping-row td {
+            text-align: center;
+            padding: 4px;
+        }
+
+        .data-row td {
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .data-row:last-child td {
+            border-bottom: 2px solid #333;
+        }
+
+        .select-control {
+            width: 100%;
+            height: 32px;
+            padding: 6px 14px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .mapping-row td {
+            border-top: none;
+            border-bottom: none;
+            border-left: none;
+            border-right: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- DialogTitle -->
+    <h2 class="dialog-title">Сопоставление колонок Excel</h2>
+
+    <!-- DialogContent -->
+    <div>
+        <div class="content-container">
+            <!-- Первый Box (контейнер с кнопками) -->
+            <div class="controls-container">
+                <div class="controls-text">
+                    Сопоставьте колонки из Excel файла с полями спецификации:
+                </div>
+                <div class="controls-buttons">
+                    <button class="button button-primary">Импортировать</button>
+                    <button class="button">Отмена</button>
+                </div>
+            </div>
+
+            <!-- Второй Box (контейнер с таблицей) -->
+            <div class="table-container">
+                <table>
+                    <tbody>
+                        <!-- Строка сопоставления колонок -->
+                        <tr class="mapping-row">
+                            <td style="border: none; text-align: center; padding: 4px;">
+                                <select class="select-control">
+                                    <option>Не выбрано</option>
+                                    <option>Обозначение</option>
+                                    <option>Наименование</option>
+                                    <option>Артикул</option>
+                                    <option>Код 1С</option>
+                                    <option>Группа</option>
+                                    <option>Производитель</option>
+                                    <option>Описание</option>
+                                    <option>Кол-во</option>
+                                    <option>Ед.</option>
+                                    <option>Цена за ед. (руб)</option>
+                                </select>
+                            </td>
+                            <td style="border: none; text-align: center; padding: 4px;">
+                                <select class="select-control">
+                                    <option>Не выбрано</option>
+                                    <option>Обозначение</option>
+                                    <option>Наименование</option>
+                                    <option>Артикул</option>
+                                    <option>Код 1С</option>
+                                    <option>Группа</option>
+                                    <option>Производитель</option>
+                                    <option>Описание</option>
+                                    <option>Кол-во</option>
+                                    <option>Ед.</option>
+                                    <option>Цена за ед. (руб)</option>
+                                </select>
+                            </td>
+                            <td style="border: none; text-align: center; padding: 4px;">
+                                <select class="select-control">
+                                    <option>Не выбрано</option>
+                                    <option>Обозначение</option>
+                                    <option>Наименование</option>
+                                    <option>Артикул</option>
+                                    <option>Код 1С</option>
+                                    <option>Группа</option>
+                                    <option>Производитель</option>
+                                    <option>Описание</option>
+                                    <option>Кол-во</option>
+                                    <option>Ед.</option>
+                                    <option>Цена за ед. (руб)</option>
+                                </select>
+                            </td>
+                            <td style="border: none; text-align: center; padding: 4px;">
+                                <select class="select-control">
+                                    <option>Не выбрано</option>
+                                    <option>Обозначение</option>
+                                    <option>Наименование</option>
+                                    <option>Артикул</option>
+                                    <option>Код 1С</option>
+                                    <option>Группа</option>
+                                    <option>Производитель</option>
+                                    <option>Описание</option>
+                                    <option>Кол-во</option>
+                                    <option>Ед.</option>
+                                    <option>Цена за ед. (руб)</option>
+                                </select>
+                            </td>
+                            <td style="border: none; text-align: center; padding: 4px;">
+                                <select class="select-control">
+                                    <option>Не выбрано</option>
+                                    <option>Обозначение</option>
+                                    <option>Наименование</option>
+                                    <option>Артикул</option>
+                                    <option>Код 1С</option>
+                                    <option>Группа</option>
+                                    <option>Производитель</option>
+                                    <option>Описание</option>
+                                    <option>Кол-во</option>
+                                    <option>Ед.</option>
+                                    <option>Цена за ед. (руб)</option>
+                                </select>
+                            </td>
+                            <td style="border: none; text-align: center; padding: 4px;">
+                                <select class="select-control">
+                                    <option>Не выбрано</option>
+                                    <option>Обозначение</option>
+                                    <option>Наименование</option>
+                                    <option>Артикул</option>
+                                    <option>Код 1С</option>
+                                    <option>Группа</option>
+                                    <option>Производитель</option>
+                                    <option>Описание</option>
+                                    <option>Кол-во</option>
+                                    <option>Ед.</option>
+                                    <option>Цена за ед. (руб)</option>
+                                </select>
+                            </td>
+                            <td style="border: none; text-align: center; padding: 4px;">
+                                <select class="select-control">
+                                    <option>Не выбрано</option>
+                                    <option>Обозначение</option>
+                                    <option>Наименование</option>
+                                    <option>Артикул</option>
+                                    <option>Код 1С</option>
+                                    <option>Группа</option>
+                                    <option>Производитель</option>
+                                    <option>Описание</option>
+                                    <option>Кол-во</option>
+                                    <option>Ед.</option>
+                                    <option>Цена за ед. (руб)</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                        <!-- Заголовки Excel -->
+                        <tr class="header-row">
+                            <td>Код</td>
+                            <td>Наименование</td>
+                            <td>Артикул</td>
+                            <td>Группа</td>
+                            <td>Производитель</td>
+                            <td>Количество</td>
+                            <td>Единица хранения</td>
+                        </tr>
+
+                        <!-- Превью данных -->
+                        <tr class="data-row">
+                            <td>ΗΦ-00001348</td>
+                            <td>Ниппель 1" НН латунь</td>
+                            <td></td>
+                            <td>Арматура латунная</td>
+                            <td></td>
+                            <td>3.0</td>
+                            <td>ШТ.</td>
+                        </tr>
+
+                        <tr class="data-row">
+                            <td>ΗΦ-00003072</td>
+                            <td>Сгон разъемный (американка) 1/2" HP латунь ник.</td>
+                            <td>VTr.728.N.0004</td>
+                            <td>Арматура латунная</td>
+                            <td></td>
+                            <td>1.0</td>
+                            <td>ШТ.</td>
+                        </tr>
+
+                        <tr class="data-row">
+                            <td>Не указан</td>
+                            <td>Болт М16х50 DIN 933 8,8 оц</td>
+                            <td></td>
+                            <td>Болты</td>
+                            <td></td>
+                            <td>32.0</td>
+                            <td>ШТ.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div> <!-- Конец второго Box (контейнер с таблицей) -->
+        </div>
+    </div> <!-- Конец DialogContent -->
+</body>
+
+</html>

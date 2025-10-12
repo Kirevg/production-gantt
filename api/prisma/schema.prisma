@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  role         Role           @default(user)
+  isActive     Boolean        @default(true)
+  personId     String?        @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  person       Person?        @relation(fields: [personId], references: [id])
+  auditLogs    AuditLog[]
+  projects     Project[]      @relation("ProjectOwner")
+  tokens       RefreshToken[]
+
+  @@index([personId])
+}
+
+// Физические лица (сотрудники, РП)
+model Person {
+  id                String    @id @default(uuid())
+  lastName          String
+  firstName         String
+  middleName        String?
+  position          String?
+  phone             String?
+  email             String?
+  isProjectManager  Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User?
+  projectsAsManager Project[] @relation("ProjectManager")
+
+  @@index([isProjectManager])
+  @@index([isActive])
+}
+
+// Контрагенты (поставщики, производители, подрядчики)
+model Counterparty {
+  id             String      @id @default(uuid())
+  name           String
+  fullName       String?
+  inn            String?
+  kpp            String?
+  legalAddress   String?
+  contactName    String?
+  phone          String?
+  email          String?
+  isSupplier     Boolean     @default(false)
+  isManufacturer Boolean     @default(false)
+  isContractor   Boolean     @default(false)
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  workStages     WorkStage[]
+
+  @@index([isSupplier])
+  @@index([isManufacturer])
+  @@index([isContractor])
+  @@index([isActive])
+}
+
+// Единицы измерения
+model Unit {
+  id                 String             @id @default(uuid())
+  code               String             @unique
+  name               String
+  fullName           String?
+  internationalCode  String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  nomenclatureItems  NomenclatureItem[]
+  specifications     Specification[]
+
+  @@index([code])
+}
+
+model Project {
+  id                String           @id @default(uuid())
+  name              String
+  status            ProjectStatus    @default(Planned)
+  startDate         DateTime?
+  endDate           DateTime?
+  ownerId           String
+  projectManagerId  String?
+  orderIndex        Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  products          ProjectProduct[]
+  projectManager    Person?          @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  owner             User             @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  @@index([status])
+  @@index([ownerId])
+  @@index([projectManagerId])
+  @@index([orderIndex])
+  @@index([startDate, endDate])
+}
+
+model ProjectProduct {
+  id                    String                 @id @default(uuid())
+  projectId             String
+  nomenclatureItemId    String
+  serialNumber          String?
+  description           String?
+  quantity              Int                    @default(1)
+  productSum            Float?
+  orderIndex            Int                    @default(0)
+  version               Int                    @default(1)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  nomenclatureItem      NomenclatureItem       @relation(fields: [nomenclatureItemId], references: [id])
+  productSpecifications ProductSpecification[]
+  workStages            WorkStage[]
+
+  @@index([projectId])
+  @@index([nomenclatureItemId])
+  @@index([orderIndex])
+}
+
+model WorkStage {
+  id                 String            @id @default(uuid())
+  productId          String
+  sum                String
+  hours              String?
+  nomenclatureItemId String?
+  assigneeId         String?
+  startDate          DateTime?
+  endDate            DateTime?
+  duration           Int               @default(1)
+  progress           Int               @default(0)
+  orderIndex         Int               @default(0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  assignee           Counterparty?     @relation(fields: [assigneeId], references: [id])
+  product            ProjectProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  nomenclatureItem   NomenclatureItem? @relation("WorkStageNomenclature", fields: [nomenclatureItemId], references: [id])
+
+  @@index([productId])
+  @@index([nomenclatureItemId])
+  @@index([assigneeId])
+  @@index([startDate, endDate])
+}
+
+model ProductSpecification {
+  id             String          @id @default(uuid())
+  productId      String
+  name           String
+  description    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  product        ProjectProduct  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  specifications Specification[]
+
+  @@index([productId])
+}
+
+model Specification {
+  id                     String               @id @default(uuid())
+  productSpecificationId String
+  nomenclatureItemId     String?
+  unitId                 String?
+  designation            String?
+  name                   String
+  article                String?
+  code1c                 String?
+  group                  String?
+  manufacturer           String?
+  description            String?
+  quantity               Int                  @default(1)
+  price                  Float?
+  totalPrice             Float?
+  orderIndex             Int                  @default(0)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  productSpecification   ProductSpecification @relation(fields: [productSpecificationId], references: [id], onDelete: Cascade)
+  nomenclatureItem       NomenclatureItem?    @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
+  unit                   Unit?                @relation(fields: [unitId], references: [id])
+
+  @@index([productSpecificationId])
+  @@index([nomenclatureItemId])
+  @@index([unitId])
+  @@index([orderIndex])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  entityType String
+  entityId   String
+  action     String
+  diff       Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model NomenclatureKind {
+  id          String             @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  items       NomenclatureItem[]
+}
+
+model NomenclatureGroup {
+  id          String              @id @default(uuid())
+  name        String
+  description String?
+  parentId    String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  parent      NomenclatureGroup?  @relation("GroupHierarchy", fields: [parentId], references: [id])
+  children    NomenclatureGroup[] @relation("GroupHierarchy")
+  items       NomenclatureItem[]
+
+  @@index([parentId])
+}
+
+model NomenclatureItem {
+  id              String              @id @default(uuid())
+  groupId         String?
+  kindId          String?
+  unitId          String?
+  type            NomenclatureType    @default(Product)
+  designation     String?
+  name            String
+  article         String?
+  code1c          String?
+  manufacturer    String?
+  description     String?
+  price           Float?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  group           NomenclatureGroup?  @relation(fields: [groupId], references: [id])
+  kind            NomenclatureKind?   @relation(fields: [kindId], references: [id])
+  unit            Unit?               @relation(fields: [unitId], references: [id])
+  projectProducts ProjectProduct[]
+  workStages      WorkStage[]         @relation("WorkStageNomenclature")
+  specifications  Specification[]     @relation("SpecificationNomenclature")
+
+  @@index([groupId])
+  @@index([kindId])
+  @@index([unitId])
+  @@index([code1c])
+  @@index([article])
+  @@index([type])
+}
+
+enum Role {
+  admin
+  manager
+  user
+}
+
+enum ProjectStatus {
+  Planned
+  InProgress
+  Done
+  HasProblems
+}
+
+enum NomenclatureType {
+  Product
+  Service
+  Work
+}

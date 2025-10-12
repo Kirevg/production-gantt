@@ -1,0 +1,570 @@
+/* Единый стиль для всех кнопок в проекте */
+.MuiButtonBase-root.MuiButton-root {
+    padding: 8px 8px !important;
+}
+
+/* Переопределение для кнопок с size="large" */
+.MuiButtonBase-root.MuiButton-root.MuiButton-sizeLarge {
+    padding: 8px 8px !important;
+}
+
+/* Переопределение для кнопок с size="medium" */
+.MuiButtonBase-root.MuiButton-root.MuiButton-sizeMedium {
+    padding: 8px 8px !important;
+}
+
+/* Переопределение для кнопок с size="small" */
+.MuiButtonBase-root.MuiButton-root.MuiButton-sizeSmall {
+    padding: 8px 8px !important;
+}
+
+/* Стиль для заголовков таблицы */
+.MuiTableCell-root.MuiTableCell-head.MuiTableCell-sizeMedium {
+    padding: 4px !important;
+}
+
+/* Глобальный стиль для всех ячеек таблиц - изменяем горизонтальный padding с 16px на 4px */
+.MuiTableCell-root {
+    padding: 4px 4px !important;
+}
+
+/* Стиль для заголовков страниц */
+.css-q5wswh-MuiTypography-root {
+    margin: 0 !important;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
+    line-height: 1.334 !important;
+    letter-spacing: 0em !important;
+    font-weight: 700 !important;
+    font-size: 1.4rem !important;
+}
+
+/* ===== ИМЕНОВАННЫЕ КОНТЕЙНЕРЫ ===== */
+
+/* Основной контейнер страницы */
+.page-container {
+    min-width: 900px !important;
+    max-width: 1200px !important;
+}
+
+/* Заголовок страницы с кнопкой */
+.page-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-top: 16px !important;
+    margin-bottom: 8px !important;
+    width: 100% !important;
+}
+
+/* Контейнер фильтров */
+.filters-container {
+    display: flex !important;
+    justify-content: space-evenly !important;
+    align-items: center !important;
+    height: 56px !important;
+    overflow: hidden !important;
+    width: 100% !important;
+}
+
+/* Контейнер таблицы */
+.table-container {
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+/* Заголовок таблицы */
+.table-header {
+    background-color: #f5f5f5 !important;
+    height: 56px !important;
+}
+
+/* Строка таблицы */
+.table-row {
+    height: 35px !important;
+    cursor: grab !important;
+}
+
+.table-row:hover {
+    background-color: #f5f5f5 !important;
+}
+
+.table-row:active {
+    cursor: grabbing !important;
+}
+
+/* Ячейка таблицы - заголовок */
+.table-cell-header {
+    font-weight: bold !important;
+    font-size: 16px !important;
+    text-align: center !important;
+    padding: 4px !important;
+}
+
+/* Ячейка таблицы - обычная */
+.table-cell {
+    font-weight: medium !important;
+    font-size: 14px !important;
+    padding: 4px 0 !important;
+}
+
+/* Ячейка таблицы - дата */
+.table-cell-date {
+    font-size: 14px !important;
+    padding: 4px 0 !important;
+}
+
+/* Ячейка таблицы - действия */
+.table-cell-actions {
+    text-align: center !important;
+    padding: 4px 0 !important;
+}
+
+/* Контейнер содержимого страницы */
+.page-content-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+}
+
+/* Основной контейнер приложения */
+.MuiBox-root.app {
+    min-width: 900px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    align-items: center !important;
+}
+
+/* Header контейнер */
+.MuiPaper-root.header {
+    width: 100% !important;
+}
+
+/* Tabs контейнер */
+.MuiTabs-root.tabs {
+    width: 100% !important;
+}
+
+/* Дополнительные стили для именованных классов */
+
+/* Стиль для контейнера авторизации */
+.css-ix0dze {
+    display: flex !important;
+    -webkit-box-pack: center !important;
+    justify-content: flex-start !important;
+    -webkit-box-align: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    position: fixed !important;
+    left: 0px !important;
+    right: 0 !important;
+    bottom: 0px !important;
+    flex-direction: column !important;
+}
+
+/* Стиль для Toolbar */
+.MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.css-1utjr9y-MuiToolbar-root {
+    padding-left: 4px !important;
+}
+
+/* Стили для DatePicker */
+.date-picker-input {
+    width: 100% !important;
+    padding: 8px 12px !important;
+    border: 1px solid #c4c4c4 !important;
+    border-radius: 4px !important;
+    font-size: 1rem !important;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
+    background-color: #fff !important;
+    min-height: 40px !important;
+}
+
+.date-picker-input:focus {
+    border-color: #1976d2 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2) !important;
+}
+
+.date-picker-input::placeholder {
+    color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Стили для Material-UI TextField с типом date */
+.date-picker-input input[type="date"] {
+    width: 100% !important;
+    padding: 8px 12px !important;
+    border: 1px solid #c4c4c4 !important;
+    border-radius: 4px !important;
+    font-size: 1rem !important;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
+    background-color: #fff !important;
+    min-height: 40px !important;
+    cursor: pointer !important;
+}
+
+.date-picker-input input[type="date"]:focus {
+    border-color: #1976d2 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2) !important;
+}
+
+/* Убираем стили Material-UI для date input */
+.date-picker-input .MuiOutlinedInput-root {
+    border: none !important;
+}
+
+.date-picker-input .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+    border: none !important;
+}
+
+.date-picker-input .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border: none !important;
+}
+
+.date-picker-input .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border: none !important;
+}
+
+/* Стили для нативного HTML input date */
+.native-date-input {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    padding: 8px 12px !important;
+    border: 1px solid #c4c4c4 !important;
+    border-radius: 4px !important;
+    font-size: 1rem !important;
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif !important;
+    height: 40px !important;
+    width: 100% !important;
+    background-color: #fff !important;
+    color: #000 !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+}
+
+.native-date-input:hover {
+    border-color: #1976d2 !important;
+}
+
+.native-date-input:focus {
+    outline: none !important;
+    border-color: #1976d2 !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2) !important;
+}
+
+.native-date-input::-webkit-calendar-picker-indicator {
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-left: auto !important;
+    opacity: 0.7 !important;
+}
+
+.native-date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1 !important;
+}
+
+.native-date-input::-webkit-calendar-picker-indicator:focus {
+    opacity: 1 !important;
+}
+
+/* Специальные стили для Material-UI TextField с типом date */
+.MuiTextField-root input[type="date"] {
+    cursor: pointer !important;
+}
+
+.MuiTextField-root input[type="date"]::-webkit-calendar-picker-indicator {
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-left: auto !important;
+    opacity: 0.7 !important;
+}
+
+.MuiTextField-root input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1 !important;
+}
+
+.MuiTextField-root input[type="date"]::-webkit-calendar-picker-indicator:focus {
+    opacity: 1 !important;
+}
+
+/* Убираем стили Material-UI, которые могут блокировать календарь */
+.MuiTextField-root input[type="date"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Размеры шрифтов для всех таблиц Material-UI */
+/* Заголовки таблиц - 16px */
+.MuiTableHead-root .MuiTableCell-head {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.MuiTableHead-root .MuiTableCell-head .MuiTypography-root {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+/* Строки таблиц - 14px */
+.MuiTableBody-root .MuiTableCell-root {
+    font-size: 14px !important;
+}
+
+.MuiTableBody-root .MuiTableCell-root .MuiTypography-root {
+    font-size: 14px !important;
+}
+
+/* Альтернативные селекторы для заголовков */
+.MuiTableCell-root.MuiTableCell-head {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.MuiTableCell-root.MuiTableCell-head .MuiTypography-root {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+/* Альтернативные селекторы для обычных ячеек */
+.MuiTableCell-root:not(.MuiTableCell-head) {
+    font-size: 14px !important;
+}
+
+.MuiTableCell-root:not(.MuiTableCell-head) .MuiTypography-root {
+    font-size: 14px !important;
+}
+
+/* Дополнительные селекторы для Typography в таблицах */
+.MuiTable-root .MuiTableBody-root .MuiTypography-root {
+    font-size: 14px !important;
+}
+
+.MuiTable-root .MuiTableHead-root .MuiTypography-root {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+
+/* Эффект глубины для всех кнопок создания/добавления */
+.depth-button {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    border: 2px solid #0d47a1 !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+.depth-button:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-1px) !important;
+}
+
+.depth-button:active {
+    transform: translateY(1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ===== ОБЪЕМНЫЕ КНОПКИ ===== */
+
+/* Глобальное ограничение высоты для всех VolumeButton */
+.MuiButtonBase-root.MuiButton-root.volume-button {
+    height: 40px !important;
+}
+
+/* Базовый стиль для объемных кнопок */
+.volume-button {
+    text-transform: none !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 8px !important;
+    min-width: 120px !important;
+    height: 40px !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.volume-button:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-1px) !important;
+}
+
+.volume-button:active {
+    transform: translateY(0px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Цветовые варианты объемных кнопок */
+.volume-button-green {
+    background-color: #4caf50 !important;
+    color: white !important;
+    border: 2px solid #388e3c !important;
+}
+
+.volume-button-green:hover {
+    background-color: #45a049 !important;
+}
+
+.volume-button-red {
+    background-color: #f44336 !important;
+    color: white !important;
+    border: 2px solid #d32f2f !important;
+}
+
+.volume-button-red:hover {
+    background-color: #e53935 !important;
+}
+
+.volume-button-blue {
+    background-color: #1976d2 !important;
+    color: white !important;
+    border: 2px solid #1565c0 !important;
+}
+
+.volume-button-blue:hover {
+    background-color: #1565c0 !important;
+}
+
+.volume-button-orange {
+    background-color: #ff9800 !important;
+    color: white !important;
+    border: 2px solid #f57c00 !important;
+}
+
+.volume-button-orange:hover {
+    background-color: #f57c00 !important;
+}
+
+/* ===== СИСТЕМНЫЕ КНОПКИ ===== */
+
+/* Базовый стиль для системных кнопок */
+.system-button {
+    font-size: 14px !important;
+    text-transform: none !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 8px !important;
+    min-width: 120px !important;
+    height: 48px !important;
+    padding: 8px 16px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.system-button:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-1px) !important;
+}
+
+.system-button:active {
+    transform: translateY(0px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Цветовые варианты системных кнопок */
+.system-button-blue {
+    background-color: #1976d2 !important;
+    color: white !important;
+    border: 2px solid #1565c0 !important;
+}
+
+.system-button-blue:hover {
+    background-color: #1565c0 !important;
+}
+
+.system-button-purple {
+    background-color: #9c27b0 !important;
+    color: white !important;
+    border: 2px solid #7b1fa2 !important;
+}
+
+.system-button-purple:hover {
+    background-color: #7b1fa2 !important;
+}
+
+.system-button-cyan {
+    background-color: #00bcd4 !important;
+    color: white !important;
+    border: 2px solid #0097a7 !important;
+}
+
+.system-button-cyan:hover {
+    background-color: #0097a7 !important;
+}
+
+.system-button-orange {
+    background-color: #ff9800 !important;
+    color: white !important;
+    border: 2px solid #f57c00 !important;
+}
+
+.system-button-orange:hover {
+    background-color: #f57c00 !important;
+}
+
+.system-button-green {
+    background-color: #4caf50 !important;
+    color: white !important;
+    border: 2px solid #388e3c !important;
+}
+
+.system-button-green:hover {
+    background-color: #45a049 !important;
+}
+
+.system-button-red {
+    background-color: #f44336 !important;
+    color: white !important;
+    border: 2px solid #d32f2f !important;
+}
+
+.system-button-red:hover {
+    background-color: #e53935 !important;
+}
+
+/* ===== ПОЛЯ ВВОДА ===== */
+
+/* Padding для полей ввода */
+.MuiInputBase-input.MuiOutlinedInput-input {
+    padding: 12px 8px !important;
+    line-height: 1.2 !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
+}
+
+/* Margin для полей ввода */
+.MuiFormControl-root.MuiFormControl-marginNormal.MuiFormControl-fullWidth.MuiTextField-root {
+    margin-top: 6px !important;
+}
+
+/* Line-height для лейблов полей ввода */
+.MuiFormLabel-root.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-outlined {
+    line-height: 1.2 !important;
+}
+
+/* ===== МЕДИА-ЗАПРОСЫ ===== */
+
+/* Максимальная ширина контейнера для средних экранов */
+@media (min-width: 600px) {
+    .css-yve736-MuiContainer-root {
+        max-width: 400px !important;
+    }
+}
+
+/* Убираем margin-bottom у MuiBox-root с классом css-gdel2o */
+.MuiBox-root.css-gdel2o {
+    margin-bottom: 0 !important;
+}
+
+/* Устанавливаем margin-bottom у класса css-15fmfb5 */
+.css-15fmfb5 {
+    margin-bottom: 8px !important;
+}

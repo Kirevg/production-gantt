@@ -1,0 +1,27 @@
+# Правила для AI-ассистента
+
+## Перезапуск серверов (КРИТИЧЕСКИ ВАЖНО!)
+
+**ВСЕГДА** при перезапуске API и/или фронтенда использовать ТОЛЬКО эту команду:
+
+```powershell
+Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\api && npm run dev' -WindowStyle Normal; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\web && npm run dev' -WindowStyle Normal
+```
+
+**НИКОГДА** не пытаться перезапускать только один сервер отдельно!
+**ВСЕГДА** перезапускать оба сервера (API + фронтенд) одновременно!
+
+Причина: это гарантирует чистый перезапуск всех node процессов без конфликтов портов.
+
+## Управление терминалами
+
+- Не оставлять висячие терминалы
+- Закрывать неиспользуемые терминалы в VS Code
+- Не создавать множественные фоновые процессы
+
+## Работа с файлами
+
+- Всегда читать ASSISTANT_RULES.md перед началом работы
+- Следовать правилам из PROJECT_CONTEXT.md
+- Соблюдать STYLE_GUIDE.md при написании кода
+

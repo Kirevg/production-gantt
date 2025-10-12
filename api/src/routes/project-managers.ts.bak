@@ -1,0 +1,207 @@
+import express from 'express';
+import { z } from 'zod';
+import prisma from '../lib/prisma';
+import { authenticateToken, requireRole } from '../middleware/auth';
+
+const router = express.Router();
+
+// Схема валидации для создания руководителя
+const createManagerSchema = z.object({
+  firstName: z.string().min(1, 'Имя обязательно'),
+  lastName: z.string().min(1, 'Фамилия обязательна'),
+  middleName: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  isActive: z.boolean().default(true)
+});
+
+// Схема валидации для обновления руководителя
+const updateManagerSchema = z.object({
+  firstName: z.string().min(1, 'Имя обязательно').optional(),
+  lastName: z.string().min(1, 'Фамилия обязательна').optional(),
+  middleName: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  isActive: z.boolean().optional()
+});
+
+// GET /project-managers - получить всех руководителей
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const managers = await prisma.projectManager.findMany({
+      orderBy: [
+        { lastName: 'asc' },
+        { firstName: 'asc' }
+      ]
+    });
+
+    res.json(managers);
+  } catch (error) {
+    console.error('Ошибка получения руководителей:', error);
+    res.status(500).json({ error: 'Ошибка получения руководителей' });
+  }
+});
+
+// GET /project-managers/:id - получить руководителя по ID
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Manager ID is required' });
+    }
+
+    const manager = await prisma.projectManager.findUnique({
+      where: { id },
+      include: {
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            startDate: true,
+            endDate: true
+          }
+        }
+      }
+    });
+
+    if (!manager) {
+      return res.status(404).json({ error: 'Руководитель не найден' });
+    }
+
+    res.json(manager);
+  } catch (error) {
+    console.error('Ошибка получения руководителя:', error);
+    res.status(500).json({ error: 'Ошибка получения руководителя' });
+  }
+});
+
+// POST /project-managers - создать руководителя (только для админов и менеджеров)
+router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
+  try {
+    const data = createManagerSchema.parse(req.body);
+
+    // Проверяем уникальность email, если он указан
+    if (data.email && data.email !== '') {
+      const existingManager = await prisma.projectManager.findUnique({
+        where: { email: data.email }
+      });
+
+      if (existingManager) {
+        return res.status(400).json({ error: 'Руководитель с таким email уже существует' });
+      }
+    }
+
+    const manager = await prisma.projectManager.create({
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName || null,
+        email: data.email && data.email !== '' ? data.email : null,
+        phone: data.phone || null
+      }
+    });
+
+    res.status(201).json(manager);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Неверные данные', details: error.issues });
+    }
+    console.error('Ошибка создания руководителя:', error);
+    res.status(500).json({ error: 'Ошибка создания руководителя' });
+  }
+});
+
+// PUT /project-managers/:id - обновить руководителя (только для админов и менеджеров)
+router.put('/:id', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = updateManagerSchema.parse(req.body);
+
+    if (!id) {
+      return res.status(400).json({ error: 'Manager ID is required' });
+    }
+
+    // Проверяем, что руководитель существует
+    const existingManager = await prisma.projectManager.findUnique({
+      where: { id }
+    });
+
+    if (!existingManager) {
+      return res.status(404).json({ error: 'Руководитель не найден' });
+    }
+
+    // Проверяем уникальность email, если он указан и изменился
+    if (data.email && data.email !== '' && data.email !== existingManager.email) {
+      const emailExists = await prisma.projectManager.findUnique({
+        where: { email: data.email }
+      });
+
+      if (emailExists) {
+        return res.status(400).json({ error: 'Руководитель с таким email уже существует' });
+      }
+    }
+
+    const manager = await prisma.projectManager.update({
+      where: { id },
+      data: {
+        ...(data.firstName && { firstName: data.firstName }),
+        ...(data.lastName && { lastName: data.lastName }),
+        ...(data.middleName !== undefined && { middleName: data.middleName || null }),
+        ...(data.email !== undefined && { email: data.email && data.email !== '' ? data.email : null }),
+        ...(data.phone !== undefined && { phone: data.phone || null }),
+        ...(data.isActive !== undefined && { isActive: data.isActive })
+      }
+    });
+
+    res.json(manager);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Неверные данные', details: error.issues });
+    }
+    console.error('Ошибка обновления руководителя:', error);
+    res.status(500).json({ error: 'Ошибка обновления руководителя' });
+  }
+});
+
+// DELETE /project-managers/:id - удалить руководителя (только для админов)
+router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Manager ID is required' });
+    }
+
+    // Проверяем, что руководитель существует
+    const existingManager = await prisma.projectManager.findUnique({
+      where: { id },
+      include: {
+        projects: true
+      }
+    });
+
+    if (!existingManager) {
+      return res.status(404).json({ error: 'Руководитель не найден' });
+    }
+
+    // Проверяем, есть ли проекты у руководителя
+    if (existingManager.projects.length > 0) {
+      return res.status(400).json({
+        error: 'Нельзя удалить руководителя, у которого есть проекты. Сначала переназначьте проекты другим руководителям.'
+      });
+    }
+
+    await prisma.projectManager.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Руководитель удален' });
+  } catch (error) {
+    console.error('Ошибка удаления руководителя:', error);
+    res.status(500).json({ error: 'Ошибка удаления руководителя' });
+  }
+});
+
+export default router;

@@ -1,0 +1,28 @@
+{
+    "markdownlint.ignore": [
+        "../cursor_.md",
+        "../README.md"
+    ],
+    "files.exclude": {
+        "../cursor_.md": true,
+        "../README.md": true
+    },
+    "search.exclude": {
+        "../cursor_.md": true,
+        "../README.md": true
+    },
+    "markdownlint.config": {
+        "MD022": false,
+        "MD032": false,
+        "MD036": false,
+        "MD010": false,
+        "MD029": false,
+        "MD033": false,
+        "MD001": false,
+        "MD031": false,
+        "MD040": false,
+        "MD009": false,
+        "MD034": false,
+        "MD025": false
+    }
+}

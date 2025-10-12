@@ -1,0 +1,868 @@
+import React, { useState, useEffect } from 'react';
+import '../styles/buttons.css';
+import {
+    Box,
+    Typography,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    IconButton,
+    LinearProgress,
+    Chip,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
+} from '@mui/material';
+import {
+    Delete as DeleteIcon,
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon,
+    Folder as FolderIcon,
+    Description as DescriptionIcon,
+    Upload as UploadIcon
+} from '@mui/icons-material';
+import VolumeButton from './VolumeButton';
+
+// Интерфейс для единицы измерения
+interface Unit {
+    id: string;
+    code: string;
+    name: string;
+    fullName?: string;
+    internationalCode?: string;
+}
+
+// Интерфейс для вида номенклатуры
+interface NomenclatureKind {
+    id: string;
+    name: string;
+    description?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Интерфейс для группы номенклатуры
+interface NomenclatureGroup {
+    id: string;
+    name: string;
+    description?: string;
+    parentId?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Интерфейс для позиции номенклатуры
+interface NomenclatureItem {
+    id: string;
+    groupId?: string;
+    kindId?: string;
+    designation?: string;
+    name: string;
+    article?: string;
+    code1c?: string;
+    manufacturer?: string;
+    description?: string;
+    unit?: string;
+    price?: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface NomenclaturePageProps {
+    canEdit: () => boolean;
+    canCreate: () => boolean;
+    canDelete: () => boolean;
+}
+
+const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
+    canEdit,
+    canCreate,
+    canDelete
+}) => {
+    const [groups, setGroups] = useState<NomenclatureGroup[]>([]);
+    const [kinds, setKinds] = useState<NomenclatureKind[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
+    const [items, setItems] = useState<NomenclatureItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null); // Фильтр по группе
+
+    // Состояние для диалога группы
+    const [openGroupDialog, setOpenGroupDialog] = useState(false);
+    const [editingGroup, setEditingGroup] = useState<NomenclatureGroup | null>(null);
+    const [groupForm, setGroupForm] = useState({
+        name: '',
+        description: ''
+    });
+
+    // Состояние для диалога позиции
+    const [openItemDialog, setOpenItemDialog] = useState(false);
+    const [editingItem, setEditingItem] = useState<NomenclatureItem | null>(null);
+    const [itemForm, setItemForm] = useState({
+        groupId: '',
+        kindId: '',
+        unitId: '',
+        type: 'Product',
+        designation: '',
+        name: '',
+        article: '',
+        code1c: '',
+        manufacturer: '',
+        description: '',
+        price: ''
+    });
+
+    // Состояние для диалога импорта
+    const [openImportDialog, setOpenImportDialog] = useState(false);
+    const [importFile, setImportFile] = useState<File | null>(null);
+
+    // Функция форматирования даты
+
+    // Загрузка групп, видов, единиц и позиций
+    const fetchNomenclature = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            // Загружаем единицы измерения
+            const unitsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/units`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (unitsResponse.ok) {
+                const unitsData = await unitsResponse.json();
+                setUnits(unitsData);
+            }
+
+            // Загружаем виды номенклатуры
+            const kindsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature-kinds`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (kindsResponse.ok) {
+                const kindsData = await kindsResponse.json();
+                setKinds(kindsData);
+            }
+
+            // Загружаем группы
+            const groupsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (groupsResponse.ok) {
+                const groupsData = await groupsResponse.json();
+                setGroups(groupsData);
+            }
+
+            // Загружаем позиции
+            const itemsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/items`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (itemsResponse.ok) {
+                const itemsData = await itemsResponse.json();
+                setItems(itemsData);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки номенклатуры:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNomenclature();
+    }, []);
+
+    // Переключение раскрытия группы
+    const toggleGroup = (groupId: string) => {
+        const newExpanded = new Set(expandedGroups);
+        if (newExpanded.has(groupId)) {
+            newExpanded.delete(groupId);
+        } else {
+            newExpanded.add(groupId);
+        }
+        setExpandedGroups(newExpanded);
+    };
+
+    // Обработчики для групп
+    const handleOpenGroupDialog = (group?: NomenclatureGroup) => {
+        if (group) {
+            setEditingGroup(group);
+            setGroupForm({
+                name: group.name,
+                description: group.description || ''
+            });
+        } else {
+            setEditingGroup(null);
+            setGroupForm({
+                name: '',
+                description: ''
+            });
+        }
+        setOpenGroupDialog(true);
+    };
+
+    const handleCloseGroupDialog = () => {
+        setOpenGroupDialog(false);
+        setEditingGroup(null);
+        setGroupForm({
+            name: '',
+            description: ''
+        });
+    };
+
+    const handleSaveGroup = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const url = editingGroup
+                ? `${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups/${editingGroup.id}`
+                : `${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`;
+
+            const method = editingGroup ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(groupForm)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await fetchNomenclature();
+            handleCloseGroupDialog();
+        } catch (error) {
+            console.error('Ошибка сохранения группы:', error);
+        }
+    };
+
+    const handleDeleteGroup = async (groupId: string) => {
+        if (!window.confirm('Вы уверены, что хотите удалить эту группу?')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups/${groupId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await fetchNomenclature();
+        } catch (error) {
+            console.error('Ошибка удаления группы:', error);
+        }
+    };
+
+    // Обработчики для позиций
+    const handleOpenItemDialog = (item?: NomenclatureItem, groupId?: string) => {
+        if (item) {
+            setEditingItem(item);
+            setItemForm({
+                groupId: item.groupId || '',
+                kindId: item.kindId || '',
+                unitId: (item as any).unitId || '',
+                type: (item as any).type || 'Product',
+                designation: item.designation || '',
+                name: item.name,
+                article: item.article || '',
+                code1c: item.code1c || '',
+                manufacturer: item.manufacturer || '',
+                description: item.description || '',
+                price: item.price?.toString() || ''
+            });
+        } else {
+            setEditingItem(null);
+            setItemForm({
+                groupId: groupId || '',
+                kindId: '',
+                unitId: '',
+                type: 'Product',
+                designation: '',
+                name: '',
+                article: '',
+                code1c: '',
+                manufacturer: '',
+                description: '',
+                price: ''
+            });
+        }
+        setOpenItemDialog(true);
+    };
+
+    const handleCloseItemDialog = () => {
+        setOpenItemDialog(false);
+        setEditingItem(null);
+        setItemForm({
+            groupId: '',
+            kindId: '',
+            unitId: '',
+            type: 'Product',
+            designation: '',
+            name: '',
+            article: '',
+            code1c: '',
+            manufacturer: '',
+            description: '',
+            price: ''
+        });
+    };
+
+    const handleSaveItem = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const url = editingItem
+                ? `${import.meta.env.VITE_API_BASE_URL}/nomenclature/items/${editingItem.id}`
+                : `${import.meta.env.VITE_API_BASE_URL}/nomenclature/items`;
+
+            const method = editingItem ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    ...itemForm,
+                    price: itemForm.price ? parseFloat(itemForm.price) : undefined
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await fetchNomenclature();
+            handleCloseItemDialog();
+        } catch (error) {
+            console.error('Ошибка сохранения позиции:', error);
+        }
+    };
+
+    const handleDeleteItem = async (itemId: string) => {
+        if (!window.confirm('Вы уверены, что хотите удалить эту позицию?')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/items/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await fetchNomenclature();
+        } catch (error) {
+            console.error('Ошибка удаления позиции:', error);
+        }
+    };
+
+    // Получение позиций для группы
+    const getItemsForGroup = (groupId: string) => {
+        return items.filter(item => item.groupId === groupId);
+    };
+
+    // Получение позиций без группы
+    const getItemsWithoutGroup = () => {
+        return items.filter(item => !item.groupId);
+    };
+
+    // Получение отфильтрованных позиций (по выбранной группе или все)
+    const getFilteredItems = () => {
+        if (selectedGroupId === null) {
+            return items; // Показываем все позиции
+        } else if (selectedGroupId === '') {
+            return getItemsWithoutGroup(); // Показываем позиции без группы
+        } else {
+            return getItemsForGroup(selectedGroupId); // Показываем позиции выбранной группы
+        }
+    };
+
+    return (
+        <Box className="page-container">
+            {/* Заголовок */}
+            <Box className="page-header">
+                <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
+                    Номенклатура
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    {canCreate() && (
+                        <>
+                            <VolumeButton
+                                variant="contained"
+                                onClick={() => handleOpenGroupDialog()}
+                                color="purple"
+                            >
+                                Добавить группу
+                            </VolumeButton>
+                            <VolumeButton
+                                variant="contained"
+                                onClick={() => handleOpenItemDialog()}
+                                color="blue"
+                            >
+                                Создать
+                            </VolumeButton>
+                            <VolumeButton
+                                variant="contained"
+                                onClick={() => setOpenImportDialog(true)}
+                                color="green"
+                                startIcon={<UploadIcon />}
+                            >
+                                Импорт
+                            </VolumeButton>
+                        </>
+                    )}
+                </Box>
+            </Box>
+
+            {/* Двухколоночный layout: слева номенклатура, справа группы */}
+            {loading ? (
+                <LinearProgress />
+            ) : (
+                <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', width: '100%', overflow: 'hidden' }}>
+                    {/* Левая колонка - Таблица номенклатуры */}
+                    <Box sx={{ flex: '0 0 80%', overflow: 'auto', minWidth: 0 }}>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px', whiteSpace: 'nowrap' }}>№</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Наименование</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Артикул</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Код 1С</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Производитель</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                                            <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {/* Отфильтрованные позиции */}
+                                    {getFilteredItems().map((item, index) => (
+                                        <TableRow
+                                            key={item.id}
+                                            sx={{ height: '35px', cursor: 'pointer' }}
+                                            onDoubleClick={() => canEdit() && handleOpenItemDialog(item)}
+                                        >
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{index + 1}</TableCell>
+                                            <TableCell sx={{ py: 0.5 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <DescriptionIcon fontSize="small" color="action" />
+                                                    {item.name}
+                                                </Box>
+                                            </TableCell>
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{item.article || '-'}</TableCell>
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{item.code1c || '-'}</TableCell>
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{item.manufacturer || '-'}</TableCell>
+                                            <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
+                                                {canDelete() && (
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleDeleteItem(item.id)}
+                                                        color="error"
+                                                        sx={{ minWidth: 'auto', padding: '4px' }}
+                                                    >
+                                                        <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {getFilteredItems().length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                                                Нет позиций
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+
+                    {/* Правая колонка - Таблица групп */}
+                    <Box sx={{ flex: '0 0 20%', overflow: 'auto', minWidth: 0 }}>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>Группы</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {/* Кнопка "Все" для сброса фильтра */}
+                                    <TableRow
+                                        sx={{
+                                            height: '35px',
+                                            cursor: 'pointer',
+                                            backgroundColor: selectedGroupId === null ? '#e3f2fd' : 'transparent',
+                                            '&:hover': { backgroundColor: '#f5f5f5' }
+                                        }}
+                                        onClick={() => setSelectedGroupId(null)}
+                                    >
+                                        <TableCell sx={{ py: 0.5 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <strong>Все</strong>
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                    {/* Кнопка "Без группы" */}
+                                    <TableRow
+                                        sx={{
+                                            height: '35px',
+                                            cursor: 'pointer',
+                                            backgroundColor: selectedGroupId === '' ? '#e3f2fd' : 'transparent',
+                                            '&:hover': { backgroundColor: '#f5f5f5' }
+                                        }}
+                                        onClick={() => setSelectedGroupId('')}
+                                    >
+                                        <TableCell sx={{ py: 0.5 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                Без группы
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                    {groups.map((group) => (
+                                        <TableRow
+                                            key={group.id}
+                                            sx={{
+                                                height: '35px',
+                                                cursor: 'pointer',
+                                                backgroundColor: selectedGroupId === group.id ? '#e3f2fd' : 'transparent',
+                                                '&:hover': { backgroundColor: '#f5f5f5' }
+                                            }}
+                                            onClick={() => setSelectedGroupId(group.id)}
+                                            onDoubleClick={() => canEdit() && handleOpenGroupDialog(group)}
+                                        >
+                                            <TableCell sx={{ py: 0.5 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <FolderIcon fontSize="small" color="action" />
+                                                    {group.name}
+                                                </Box>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {groups.length === 0 && (
+                                        <TableRow>
+                                            <TableCell sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                                                Нет групп
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+                </Box>
+            )}
+
+            {/* Диалог создания/редактирования группы */}
+            <Dialog open={openGroupDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
+                <DialogTitle>
+                    {editingGroup ? 'Редактировать группу' : 'Создать группу'}
+                </DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Название группы"
+                        fullWidth
+                        variant="outlined"
+                        value={groupForm.name}
+                        onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
+                        sx={{ mb: 2 }}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Описание"
+                        fullWidth
+                        multiline
+                        rows={3}
+                        variant="outlined"
+                        value={groupForm.description}
+                        onChange={(e) => setGroupForm({ ...groupForm, description: e.target.value })}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <VolumeButton onClick={handleSaveGroup} color="blue">
+                        {editingGroup ? 'Сохранить' : 'Создать'}
+                    </VolumeButton>
+                    <VolumeButton onClick={handleCloseGroupDialog} color="orange">
+                        Отмена
+                    </VolumeButton>
+                </DialogActions>
+            </Dialog>
+
+            {/* Диалог создания/редактирования позиции */}
+            <Dialog open={openItemDialog} onClose={() => { }} maxWidth="md" fullWidth disableEscapeKeyDown>
+                <DialogTitle>
+                    Карточка номенклатуры
+                </DialogTitle>
+                <DialogContent>
+                    {/* Строка 1: Обозначение | Наименование */}
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                        <TextField
+                            label="Обозначение"
+                            value={itemForm.designation}
+                            onChange={(e) => setItemForm({ ...itemForm, designation: e.target.value })}
+                            margin="dense"
+                            sx={{ width: '40%' }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            autoFocus
+                            label="Наименование"
+                            value={itemForm.name}
+                            onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
+                            margin="dense"
+                            required
+                            sx={{ width: '60%' }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Box>
+
+                    {/* Строка 2: Описание */}
+                    <TextField
+                        fullWidth
+                        label="Описание"
+                        value={itemForm.description}
+                        onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })}
+                        margin="dense"
+                        multiline
+                        rows={3}
+                        sx={{ mb: 2 }}
+                        InputLabelProps={{ shrink: true }}
+                    />
+
+                    {/* Строка 3: Артикул | Код 1С | Производитель */}
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                        <TextField
+                            label="Артикул"
+                            value={itemForm.article}
+                            onChange={(e) => setItemForm({ ...itemForm, article: e.target.value })}
+                            margin="dense"
+                            sx={{ flex: 1 }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Код 1С"
+                            value={itemForm.code1c}
+                            onChange={(e) => setItemForm({ ...itemForm, code1c: e.target.value })}
+                            margin="dense"
+                            sx={{ flex: 1 }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Производитель"
+                            value={itemForm.manufacturer}
+                            onChange={(e) => setItemForm({ ...itemForm, manufacturer: e.target.value })}
+                            margin="dense"
+                            sx={{ flex: 1 }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Box>
+
+                    {/* Строка 4: Тип | Вид | Группа */}
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                        <FormControl margin="dense" sx={{ flex: 1 }}>
+                            <InputLabel shrink>Тип</InputLabel>
+                            <Select
+                                value={itemForm.type}
+                                onChange={(e) => setItemForm({ ...itemForm, type: e.target.value })}
+                                label="Тип"
+                                notched
+                            >
+                                <MenuItem value="Product">Товар</MenuItem>
+                                <MenuItem value="Service">Услуга</MenuItem>
+                                <MenuItem value="Work">Работа</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl margin="dense" sx={{ flex: 1 }}>
+                            <InputLabel shrink>Вид</InputLabel>
+                            <Select
+                                value={itemForm.kindId}
+                                onChange={(e) => setItemForm({ ...itemForm, kindId: e.target.value })}
+                                label="Вид"
+                                notched
+                            >
+                                <MenuItem value="">Не указан</MenuItem>
+                                {kinds.map((kind) => (
+                                    <MenuItem key={kind.id} value={kind.id}>
+                                        {kind.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl margin="dense" sx={{ flex: 1 }}>
+                            <InputLabel shrink>Группа</InputLabel>
+                            <Select
+                                value={itemForm.groupId}
+                                onChange={(e) => setItemForm({ ...itemForm, groupId: e.target.value })}
+                                label="Группа"
+                                notched
+                            >
+                                <MenuItem value="">Без группы</MenuItem>
+                                {groups.map((group) => (
+                                    <MenuItem key={group.id} value={group.id}>
+                                        {group.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+
+                    {/* Строка 5: Единица измерения | Цена */}
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <FormControl margin="dense" sx={{ flex: 1 }}>
+                            <InputLabel shrink>Единица измерения</InputLabel>
+                            <Select
+                                value={itemForm.unitId}
+                                onChange={(e) => setItemForm({ ...itemForm, unitId: e.target.value })}
+                                label="Единица измерения"
+                                notched
+                            >
+                                <MenuItem value="">Не указана</MenuItem>
+                                {units.map((unit) => (
+                                    <MenuItem key={unit.id} value={unit.id}>
+                                        {unit.code} - {unit.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            label="Цена (руб)"
+                            type="number"
+                            value={itemForm.price}
+                            onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })}
+                            margin="dense"
+                            inputProps={{ min: 0, step: 0.01 }}
+                            sx={{ flex: 1 }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <VolumeButton onClick={handleSaveItem} color="blue">
+                        Сохранить
+                    </VolumeButton>
+                    <VolumeButton onClick={handleCloseItemDialog} color="orange">
+                        Отмена
+                    </VolumeButton>
+                </DialogActions>
+            </Dialog>
+
+            {/* Диалог импорта */}
+            <Dialog open={openImportDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
+                <DialogTitle>
+                    Импорт номенклатуры
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Выберите файл для импорта номенклатуры (Excel или CSV)
+                        </Typography>
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    setImportFile(e.target.files[0]);
+                                }
+                            }}
+                            style={{ width: '100%' }}
+                        />
+                        {importFile && (
+                            <Typography variant="body2" sx={{ mt: 2 }}>
+                                Выбран файл: {importFile.name}
+                            </Typography>
+                        )}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <VolumeButton
+                        onClick={() => {
+                            // TODO: Реализовать логику импорта
+                            console.log('Импорт файла:', importFile);
+                            setOpenImportDialog(false);
+                            setImportFile(null);
+                        }}
+                        color="green"
+                        disabled={!importFile}
+                    >
+                        Импортировать
+                    </VolumeButton>
+                    <VolumeButton
+                        onClick={() => {
+                            setOpenImportDialog(false);
+                            setImportFile(null);
+                        }}
+                        color="orange"
+                    >
+                        Отмена
+                    </VolumeButton>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    );
+};
+
+export default NomenclaturePage;
+
