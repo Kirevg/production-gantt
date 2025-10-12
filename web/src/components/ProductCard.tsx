@@ -26,7 +26,8 @@ import {
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
-    List as ListIcon
+    List as ListIcon,
+    CalendarToday as CalendarIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 
@@ -394,8 +395,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (response.ok) {
                 setOpenProductEditDialog(false);
-                // Перезагружаем страницу для обновления всех данных
-                window.location.reload();
+                // Обновляем данные изделия вместо перезагрузки страницы
+                await fetchProductData();
             } else {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
                 console.error('API Error:', errorData);
@@ -969,6 +970,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
                                 InputLabelProps={{ shrink: true }}
                                 sx={{ flex: 1 }}
+                                InputProps={{
+                                    inputProps: {
+                                        lang: 'ru-RU'
+                                    }
+                                }}
                             />
                             <TextField
                                 label="Срок (дни)"
