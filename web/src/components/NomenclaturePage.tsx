@@ -660,7 +660,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             <Table sx={{
                                 '& .MuiTableCell-root': { border: '1px solid #e0e0e0' },
                                 '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important' },
-                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' }
+                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' },
+                                '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' }
                             }}>
                                 <TableHead>
                                     <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
@@ -679,7 +680,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     {getFilteredItems().map((item, index) => (
                                         <TableRow
                                             key={item.id}
-                                            sx={{ height: '35px', cursor: 'pointer' }}
+                                            sx={{ height: '30px', cursor: 'pointer' }}
                                             onDoubleClick={() => canEdit() && handleOpenItemDialog(item)}
                                         >
                                             <TableCell sx={{ py: 0.5, textAlign: 'center', fontSize: '12px' }}>{index + 1}</TableCell>
