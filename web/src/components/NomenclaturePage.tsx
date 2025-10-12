@@ -659,8 +659,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         <TableContainer component={Paper}>
                             <Table sx={{
                                 '& .MuiTableCell-root': { border: '1px solid #e0e0e0' },
-                                '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important' },
-                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' },
+                                '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '1rem !important' },
+                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '1rem !important' },
                                 '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' }
                             }}>
                                 <TableHead>
@@ -696,7 +696,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                                         size="small"
                                                         onClick={() => handleDeleteItem(item.id)}
                                                         color="error"
-                                                        sx={{ minWidth: 'auto', padding: '4px' }}
+                                                        sx={{ minWidth: 'auto', padding: '0 !important' }}
                                                     >
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
