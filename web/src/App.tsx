@@ -2351,99 +2351,99 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
         onDragEnd={handleDragEnd}
       >
         <TableContainer
-        component={Paper}
-        sx={{
-          width: '100%',
-          p: 0,
-          '& .MuiTable-root': {
-            minWidth: 1200 // Минимальная ширина таблицы
-          }
-        }}
-      >
-        <Table sx={{
-          minWidth: 1200,
-          tableLayout: 'fixed',
-          '& .MuiTableCell-root': {
-            borderRight: '1px solid #e0e0e0',
-            '&:last-child': {
-              borderRight: 'none'
+          component={Paper}
+          sx={{
+            width: '100%',
+            p: 0,
+            '& .MuiTable-root': {
+              minWidth: 1200 // Минимальная ширина таблицы
             }
-          },
-          '& .MuiTableCell-root:first-of-type': {
-            width: '40px !important',
-            minWidth: '40px !important',
-            maxWidth: '40px !important',
-            flex: '0 0 40px !important'
-          },
-          '& .MuiTableBody-root .MuiTableCell-root': {
-            padding: '4px 4px !important'
-          },
-          '& .MuiTableBody-root .MuiTableCell-root:first-of-type': {
-            textAlign: 'center !important'
-          },
-          '& .MuiTableCell-root:nth-of-type(4)': {
-            width: '100px !important',
-            minWidth: '100px !important',
-            maxWidth: '100px !important'
-          },
-          '& .MuiTableCell-root:nth-of-type(5)': {
-            width: '100px !important',
-            minWidth: '100px !important',
-            maxWidth: '100px !important'
-          },
-          '& .MuiTableCell-root:nth-of-type(3)': {
-            width: '120px !important',
-            minWidth: '120px !important',
-            maxWidth: '120px !important'
-          },
-          '& .MuiTableCell-root:nth-of-type(7)': {
-            width: '140px !important',
-            minWidth: '140px !important',
-            maxWidth: '140px !important'
-          },
-          '& .MuiTableCell-root:nth-of-type(6)': {
-            width: '200px !important',
-            minWidth: '200px !important',
-            maxWidth: '200px !important',
-            whiteSpace: 'normal !important'
-          },
-          '& .MuiIconButton-root': {
-            '&:active': {
-              transform: 'none !important',
-              boxShadow: 'none !important',
-              backgroundColor: 'transparent !important'
+          }}
+        >
+          <Table sx={{
+            minWidth: 1200,
+            tableLayout: 'fixed',
+            '& .MuiTableCell-root': {
+              borderRight: '1px solid #e0e0e0',
+              '&:last-child': {
+                borderRight: 'none'
+              }
             },
-            '&:focus': {
-              outline: 'none !important',
-              backgroundColor: 'transparent !important'
+            '& .MuiTableCell-root:first-of-type': {
+              width: '40px !important',
+              minWidth: '40px !important',
+              maxWidth: '40px !important',
+              flex: '0 0 40px !important'
             },
-            '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.04) !important'
+            '& .MuiTableBody-root .MuiTableCell-root': {
+              padding: '4px 4px !important'
             },
-            '&:focus-visible': {
-              outline: 'none !important'
+            '& .MuiTableBody-root .MuiTableCell-root:first-of-type': {
+              textAlign: 'center !important'
+            },
+            '& .MuiTableCell-root:nth-of-type(4)': {
+              width: '100px !important',
+              minWidth: '100px !important',
+              maxWidth: '100px !important'
+            },
+            '& .MuiTableCell-root:nth-of-type(5)': {
+              width: '100px !important',
+              minWidth: '100px !important',
+              maxWidth: '100px !important'
+            },
+            '& .MuiTableCell-root:nth-of-type(3)': {
+              width: '120px !important',
+              minWidth: '120px !important',
+              maxWidth: '120px !important'
+            },
+            '& .MuiTableCell-root:nth-of-type(7)': {
+              width: '140px !important',
+              minWidth: '140px !important',
+              maxWidth: '140px !important'
+            },
+            '& .MuiTableCell-root:nth-of-type(6)': {
+              width: '200px !important',
+              minWidth: '200px !important',
+              maxWidth: '200px !important',
+              whiteSpace: 'normal !important'
+            },
+            '& .MuiIconButton-root': {
+              '&:active': {
+                transform: 'none !important',
+                boxShadow: 'none !important',
+                backgroundColor: 'transparent !important'
+              },
+              '&:focus': {
+                outline: 'none !important',
+                backgroundColor: 'transparent !important'
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04) !important'
+              },
+              '&:focus-visible': {
+                outline: 'none !important'
+              }
             }
-          }
-        }}>
-          {/* Заголовок таблицы */}
-          <TableHead>
-            <TableRow sx={{ backgroundColor: '#f5f5f5', height: '56px' }}>
-              <TableCell sx={{ fontWeight: 'bold', width: '40px', minWidth: '40px', maxWidth: '40px', textAlign: 'center', px: 0 }}>
-                <Typography sx={{ fontSize: '18px', fontWeight: 900 }}>
-                  ↑↓
-                </Typography>
-              </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0 }}>Название</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '120px' }}>Статус</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Старт</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Финиш</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '200px' }}>Руководитель проекта</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '140px' }}>Телефон</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '60px' }}>
-                <Delete sx={{ color: 'error.main' }} />
-              </TableCell>
-            </TableRow>
-          </TableHead>
+          }}>
+            {/* Заголовок таблицы */}
+            <TableHead>
+              <TableRow sx={{ backgroundColor: '#f5f5f5', height: '56px' }}>
+                <TableCell sx={{ fontWeight: 'bold', width: '40px', minWidth: '40px', maxWidth: '40px', textAlign: 'center', px: 0 }}>
+                  <Typography sx={{ fontSize: '18px', fontWeight: 900 }}>
+                    ↑↓
+                  </Typography>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0 }}>Название</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '120px' }}>Статус</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Старт</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Финиш</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '200px' }}>Руководитель проекта</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '140px' }}>Телефон</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '60px' }}>
+                  <Delete sx={{ color: 'error.main' }} />
+                </TableCell>
+              </TableRow>
+            </TableHead>
             {/* Тело таблицы с данными проектов */}
             <TableBody>
               <SortableContext items={getFilteredProjects().map(p => p.id)} strategy={verticalListSortingStrategy}>
