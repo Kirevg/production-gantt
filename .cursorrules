@@ -25,3 +25,32 @@ Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Start-Sleep -Secon
 - Следовать правилам из PROJECT_CONTEXT.md
 - Соблюдать STYLE_GUIDE.md при написании кода
 
+## Git и контроль версий (для AI-ассистента)
+
+**ПЕРЕД ЛЮБЫМИ ЗНАЧИТЕЛЬНЫМИ ИЗМЕНЕНИЯМИ:**
+```powershell
+ai-git-commands.bat save "описание того, что будешь делать"
+```
+
+**ПОСЛЕ ЗАВЕРШЕНИЯ ЗАДАЧИ:**
+```powershell
+ai-git-commands.bat save "описание сделанного"
+```
+
+**ЕСЛИ ЧТО-ТО ПОШЛО НЕ ТАК:**
+```powershell
+ai-git-commands.bat back
+```
+
+**ПОСМОТРЕТЬ ИСТОРИЮ:**
+```powershell
+ai-git-commands.bat history
+```
+
+**Доступные команды для отката:**
+- `ai-git-commands.bat save "message"` - сохранить снапшот
+- `ai-git-commands.bat back` - откатиться на 1 шаг
+- `ai-git-commands.bat history` - показать историю
+- `ai-git-commands.bat status` - показать статус
+- `ai-git-commands.bat diff` - показать изменения
+
