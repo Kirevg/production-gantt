@@ -20,7 +20,8 @@ import {
     Alert,
     FormControl,
     Select,
-    MenuItem
+    MenuItem,
+    Chip
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
@@ -81,6 +82,9 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [showColumnMapping, setShowColumnMapping] = useState(false);
     const [excelData, setExcelData] = useState<any[][]>([]);
     const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
+    const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+    const [previewData, setPreviewData] = useState<any[]>([]);
+    const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
     const [specificationForm, setSpecificationForm] = useState({
         designation: '',
         name: '',
@@ -307,19 +311,18 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         }
     };
 
-    const importFromExcel = async () => {
+    const analyzeImportData = async () => {
         try {
             setLoading(true);
             setError('');
 
             // Пропускаем заголовок (первую строку)
             const rows = excelData.slice(1);
-
-            let successCount = 0;
-            let errorCount = 0;
+            const analyzedData: any[] = [];
             let existingCount = 0;
+            let newCount = 0;
 
-            // Импортируем каждую строку
+            // Анализируем каждую строку
             for (const row of rows) {
                 if (row.length < 2) continue; // Пропускаем пустые строки
 
@@ -348,13 +351,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
                     // Проверяем обязательные поля
                     if (!specificationData.name) {
-                        errorCount++;
                         continue;
                     }
 
                     // Ищем существующую позицию в номенклатуре
-                    let nomenclatureItemId: string | null = null;
-
+                    let existingItem = null;
+                    
                     if (specificationData.article || specificationData.code1c || specificationData.name) {
                         const searchParams = new URLSearchParams();
                         if (specificationData.article) searchParams.append('article', specificationData.article);
@@ -368,25 +370,81 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         });
 
                         if (searchResponse.ok) {
-                            const existingItem = await searchResponse.json();
-                            if (existingItem) {
-                                nomenclatureItemId = existingItem.id;
-                                existingCount++;
-                                console.log(`Найдена существующая позиция: ${existingItem.name} (${existingItem.article || existingItem.code1c})`);
-                            }
+                            existingItem = await searchResponse.json();
                         }
                     }
 
-                    // Если позиция не найдена, создаем новую в номенклатуре
-                    if (!nomenclatureItemId) {
+                    analyzedData.push({
+                        ...specificationData,
+                        isExisting: !!existingItem,
+                        existingItem: existingItem,
+                        originalData: specificationData
+                    });
+
+                    if (existingItem) {
+                        existingCount++;
+                    } else {
+                        newCount++;
+                    }
+
+                } catch (error) {
+                    console.error('Ошибка анализа строки:', error);
+                }
+            }
+
+            setPreviewData(analyzedData);
+            setImportStats({
+                existing: existingCount,
+                new: newCount,
+                total: analyzedData.length
+            });
+            
+            setShowColumnMapping(false);
+            setShowPreviewDialog(true);
+
+        } catch (error) {
+            console.error('Ошибка анализа данных:', error);
+            setError('Ошибка при анализе данных');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const importFromExcel = async (includeNewItems = true) => {
+        try {
+            setLoading(true);
+            setError('');
+
+            let successCount = 0;
+            let errorCount = 0;
+            let existingCount = 0;
+            let skippedCount = 0;
+
+            // Импортируем каждую проанализированную позицию
+            for (const item of previewData) {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        setError('Токен авторизации не найден');
+                        return;
+                    }
+
+                    let nomenclatureItemId: string | null = null;
+
+                    if (item.isExisting) {
+                        // Используем существующую позицию
+                        nomenclatureItemId = item.existingItem.id;
+                        existingCount++;
+                    } else if (includeNewItems) {
+                        // Создаем новую позицию в номенклатуре
                         const nomenclatureData = {
-                            name: specificationData.name,
-                            article: specificationData.article || undefined,
-                            code1c: specificationData.code1c || undefined,
-                            manufacturer: specificationData.manufacturer || undefined,
-                            description: specificationData.description || undefined,
-                            unit: specificationData.unit || undefined,
-                            price: specificationData.price || undefined,
+                            name: item.name,
+                            article: item.article || undefined,
+                            code1c: item.code1c || undefined,
+                            manufacturer: item.manufacturer || undefined,
+                            description: item.description || undefined,
+                            unit: item.unit || undefined,
+                            price: item.price || undefined,
                             type: 'Product' // Позиции спецификации всегда товары
                         };
 
@@ -407,6 +465,10 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                             errorCount++;
                             continue;
                         }
+                    } else {
+                        // Пропускаем новые позиции
+                        skippedCount++;
+                        continue;
                     }
 
                     // Создаем позицию спецификации с ссылкой на номенклатуру
@@ -417,7 +479,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            ...specificationData,
+                            ...item.originalData,
                             nomenclatureItemId: nomenclatureItemId
                         })
                     });
@@ -428,7 +490,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         errorCount++;
                     }
                 } catch (error) {
-                    console.error('Ошибка импорта строки:', error);
+                    console.error('Ошибка импорта позиции:', error);
                     errorCount++;
                 }
             }
@@ -436,15 +498,17 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             // Обновляем список спецификаций
             await fetchSpecifications();
 
-            // Закрываем диалог сопоставления
-            setShowColumnMapping(false);
+            // Закрываем диалог предварительного просмотра
+            setShowPreviewDialog(false);
 
             // Показываем результат
             const message = `Импорт завершен:
 - Успешно импортировано: ${successCount} позиций
 - Использовано существующих: ${existingCount} позиций
+- Создано новых: ${includeNewItems ? successCount - existingCount : 0} позиций
+- Пропущено новых: ${skippedCount} позиций
 - Ошибок: ${errorCount}`;
-
+            
             alert(message);
 
         } catch (error) {
@@ -845,11 +909,11 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                                 </Typography>
                                 <Box sx={{ display: 'flex', gap: 1 }}>
                                     <Button
-                                        onClick={importFromExcel}
+                                        onClick={analyzeImportData}
                                         variant="contained"
                                         disabled={!Object.values(columnMapping).includes('name')}
                                     >
-                                        Импортировать
+                                        Анализировать
                                     </Button>
                                     <Button onClick={() => setShowColumnMapping(false)}>
                                         Отмена
@@ -953,6 +1017,98 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         </Box>
                     )}
                 </DialogContent>
+            </Dialog>
+
+            {/* Диалог предварительного просмотра импорта */}
+            <Dialog
+                open={showPreviewDialog}
+                maxWidth="lg"
+                fullWidth
+                hideBackdrop={true}
+                disablePortal={true}
+                sx={{
+                    '& .MuiDialog-paper': {
+                        width: '90vw',
+                        height: '80vh',
+                        maxWidth: 'none',
+                        maxHeight: 'none'
+                    }
+                }}
+            >
+                <DialogTitle>
+                    Предварительный просмотр импорта
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Всего позиций: {importStats.total} | 
+                        Существующих: {importStats.existing} | 
+                        Новых: {importStats.new}
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
+                        <TableContainer component={Paper} sx={{ maxHeight: '400px' }}>
+                            <Table size="small" sx={{
+                                '& .MuiTableCell-root': { fontSize: '12px', padding: '4px 8px' }
+                            }}>
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Статус</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Наименование</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Артикул</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Код 1С</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Производитель</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Количество</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {previewData.map((item, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>
+                                                <Chip
+                                                    label={item.isExisting ? 'Существующая' : 'Новая'}
+                                                    color={item.isExisting ? 'success' : 'warning'}
+                                                    size="small"
+                                                    variant="outlined"
+                                                />
+                                            </TableCell>
+                                            <TableCell>{item.name}</TableCell>
+                                            <TableCell>{item.article || '-'}</TableCell>
+                                            <TableCell>{item.code1c || '-'}</TableCell>
+                                            <TableCell>{item.manufacturer || '-'}</TableCell>
+                                            <TableCell>{item.quantity}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'space-between', p: 2 }}>
+                    <Box>
+                        <Typography variant="body2" color="text.secondary">
+                            Зеленые позиции будут использованы из номенклатуры, 
+                            желтые будут созданы как новые позиции
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button onClick={() => setShowPreviewDialog(false)}>
+                            Отмена
+                        </Button>
+                        <Button 
+                            onClick={() => importFromExcel(false)}
+                            variant="outlined"
+                            color="primary"
+                        >
+                            Импортировать только существующие
+                        </Button>
+                        <Button 
+                            onClick={() => importFromExcel(true)}
+                            variant="contained"
+                            color="primary"
+                        >
+                            Импортировать все
+                        </Button>
+                    </Box>
+                </DialogActions>
             </Dialog>
         </Box>
     );
