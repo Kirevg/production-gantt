@@ -135,6 +135,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
+    const [error, setError] = useState<string>('');
 
     // Функция форматирования даты
 
@@ -660,7 +661,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             <Table sx={{
                                 '& .MuiTableCell-root': { border: '1px solid #e0e0e0', padding: '0 4px !important' },
                                 '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '0 !important' },
-                                '& .MuiTableHead-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' },
+                                '& .MuiTableHead-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' },
                                 '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '0 !important' },
                                 '& .MuiTableBody-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' }
                             }}>
@@ -723,7 +724,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             <Table sx={{
                                 '& .MuiTableCell-root': { border: '1px solid #e0e0e0', padding: '0 4px !important' },
                                 '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '0 !important' },
-                                '& .MuiTableHead-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' },
+                                '& .MuiTableHead-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' },
                                 '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '0 !important' },
                                 '& .MuiTableBody-root .MuiTableRow-root': { height: '22px !important', maxHeight: '22px !important' }
                             }}>
