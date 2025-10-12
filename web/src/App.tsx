@@ -2840,7 +2840,7 @@ export default function App() {
       setSelectedProductName(null);
       setSelectedSpecificationId(null);
       setSelectedSpecificationName(null);
-      
+
       // Переключаем вкладку
       setCurrentTab(newValue);
     }
