@@ -133,7 +133,6 @@ import {
 // Импорт иконок из Material-UI
 import {
   Delete,
-  DragIndicator,
   Delete as DeleteIcon,
   Backup as BackupIcon,
   Restore as RestoreIcon,
@@ -142,26 +141,6 @@ import {
   CheckCircle as CheckCircleIcon,
   Clear as ClearIcon
 } from '@mui/icons-material';
-
-// Импорт библиотек для drag-and-drop функциональности
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 // Импорт компонентов
 import ProjectCard from './components/ProjectCard';
@@ -1637,8 +1616,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
     middleName?: string;
     email?: string;
   }>>([]);
-  // Состояние для отслеживания процесса перетаскивания
-  const [isReordering, setIsReordering] = useState(false);
   // Состояние для фильтров статусов
   const [statusFilters, setStatusFilters] = useState({
     Planned: true,
@@ -1649,17 +1626,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
   // Состояние для хранения данных о задачах проектов
   const [projectTasks, setProjectTasks] = useState<{ [projectId: string]: any[] }>({});
 
-  // Настройка сенсоров для drag-and-drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Начинаем перетаскивание только после движения на 8px
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // Функция для загрузки списка проектов с сервера
   const fetchProjects = async () => {
@@ -1796,85 +1762,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
     return latestDate.toISOString().split('T')[0];
   };
 
-  // Обработчик для drag-and-drop событий
-  const handleDragEnd = async (event: any) => {
-    const { active, over } = event;
-
-    if (active && over && active.id !== over.id) {
-      const filteredProjects = getFilteredProjects();
-
-      // Находим индексы перетаскиваемого и целевого элементов в отфильтрованном списке
-      const oldIndex = filteredProjects.findIndex((project) => project.id === active.id);
-      const newIndex = filteredProjects.findIndex((project) => project.id === over.id);
-
-      // Проверяем, что индексы найдены
-      if (oldIndex === -1 || newIndex === -1) {
-        console.error('Не удалось найти проекты для переупорядочивания');
-        return;
-      }
-
-      // Сохраняем исходный порядок на случай ошибки
-      const originalProjects = [...projects];
-
-      // Обновляем порядок в локальном состоянии
-      const reorderedFilteredProjects = arrayMove(filteredProjects, oldIndex, newIndex);
-
-      // Обновляем общий список проектов, сохраняя новый порядок для отфильтрованных проектов
-      const updatedProjects = [...projects];
-      reorderedFilteredProjects.forEach((project, index) => {
-        const projectIndex = updatedProjects.findIndex(p => p.id === project.id);
-        if (projectIndex !== -1) {
-          updatedProjects[projectIndex] = { ...project, orderIndex: index };
-        }
-      });
-
-      setProjects(updatedProjects);
-      setIsReordering(true);
-
-      // Отправляем обновленный порядок на сервер
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setError('Токен авторизации не найден');
-          setProjects(originalProjects);
-          setIsReordering(false);
-          return;
-        }
-
-        const projectOrders = updatedProjects.map((project, index) => ({
-          id: project.id,
-          orderIndex: index
-        }));
-
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/reorder`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ projectOrders })
-        });
-
-        if (!response.ok) {
-          // Если обновление не удалось, возвращаем исходный порядок
-          setProjects(originalProjects);
-          const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
-          setError(`Ошибка обновления порядка проектов: ${errorData.error}`);
-          console.error('Ошибка API:', response.status, errorData);
-        } else {
-          // Очищаем ошибки при успешном обновлении
-          setError(null);
-        }
-      } catch (error) {
-        // При ошибке возвращаем исходный порядок
-        setProjects(originalProjects);
-        setError(`Ошибка сети при обновлении порядка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
-        console.error('Ошибка сети:', error);
-      } finally {
-        setIsReordering(false);
-      }
-    }
-  };
 
   // Функция для загрузки списка руководителей
   const fetchManagers = async () => {
@@ -1930,53 +1817,29 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
   }, [projects]);
 
   // Компонент для перетаскиваемой строки таблицы
-  function SortableTableRow({ project }: { project: Project }) {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({
-      id: project.id,
-      disabled: loading || isReordering // Отключаем перетаскивание во время загрузки или переупорядочивания
-    });
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.5 : 1,
-    };
-
+  function ProjectTableRow({ project }: { project: Project }) {
     return (
       <TableRow
-        ref={setNodeRef}
-        style={style}
-        onDoubleClick={() => !loading && !isReordering && onOpenProjectComposition(project)}
+        onDoubleClick={() => !loading && onOpenProjectComposition(project)}
         sx={{
           height: '35px',
           '&:hover': {
-            backgroundColor: (loading || isReordering) ? 'transparent' : '#f5f5f5',
+            backgroundColor: loading ? 'transparent' : '#f5f5f5',
           },
         }}
       >
         <TableCell
-          {...attributes}
-          {...listeners}
           sx={{
             width: '40px',
             minWidth: '40px',
             maxWidth: '40px',
-            cursor: (loading || isReordering) ? 'default' : 'grab',
-            opacity: (loading || isReordering) ? 0.5 : 1,
+            textAlign: 'center',
             py: 0.5,
-            '&:active': {
-              cursor: (loading || isReordering) ? 'default' : 'grabbing',
-            },
           }}
         >
-          <DragIndicator color="action" />
+          <Typography sx={{ fontSize: '18px', fontWeight: 900 }}>
+            ↑↓
+          </Typography>
         </TableCell>
         <TableCell sx={{
           fontWeight: 'medium',
