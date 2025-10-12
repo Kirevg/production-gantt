@@ -5,13 +5,13 @@
 **ВСЕГДА** при перезапуске API и/или фронтенда использовать ТОЛЬКО эту команду:
 
 ```powershell
-Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\api && npm run dev' -WindowStyle Normal; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\web && npm run dev' -WindowStyle Normal
+Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Get-Process | Where-Object {$_.MainWindowTitle -match "npm run dev" -and $_.MainWindowTitle -notmatch "Git Auto-Commit"} | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\api && npm run dev' -WindowStyle Normal; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\web && npm run dev' -WindowStyle Normal
 ```
 
 **НИКОГДА** не пытаться перезапускать только один сервер отдельно!
 **ВСЕГДА** перезапускать оба сервера (API + фронтенд) одновременно!
 
-**ВАЖНО:** НЕ закрывать окна с автокоммитом (Git Auto-Commit) - они должны работать постоянно!
+**ВАЖНО:** НЕ трогать окна И ПРОЦЕССЫ с автокоммитом (Git Auto-Commit) - они должны работать постоянно!
 
 Причина: это гарантирует чистый перезапуск всех node процессов без конфликтов портов.
 
