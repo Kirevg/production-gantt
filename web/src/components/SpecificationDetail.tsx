@@ -317,6 +317,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
             let successCount = 0;
             let errorCount = 0;
+            let existingCount = 0;
 
             // Импортируем каждую строку
             for (const row of rows) {
@@ -351,14 +352,74 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         continue;
                     }
 
-                    // Создаем позицию спецификации
+                    // Ищем существующую позицию в номенклатуре
+                    let nomenclatureItemId: string | null = null;
+
+                    if (specificationData.article || specificationData.code1c || specificationData.name) {
+                        const searchParams = new URLSearchParams();
+                        if (specificationData.article) searchParams.append('article', specificationData.article);
+                        if (specificationData.code1c) searchParams.append('code1c', specificationData.code1c);
+                        if (specificationData.name) searchParams.append('name', specificationData.name);
+
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?${searchParams}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (searchResponse.ok) {
+                            const existingItem = await searchResponse.json();
+                            if (existingItem) {
+                                nomenclatureItemId = existingItem.id;
+                                existingCount++;
+                                console.log(`Найдена существующая позиция: ${existingItem.name} (${existingItem.article || existingItem.code1c})`);
+                            }
+                        }
+                    }
+
+                    // Если позиция не найдена, создаем новую в номенклатуре
+                    if (!nomenclatureItemId) {
+                        const nomenclatureData = {
+                            name: specificationData.name,
+                            article: specificationData.article || undefined,
+                            code1c: specificationData.code1c || undefined,
+                            manufacturer: specificationData.manufacturer || undefined,
+                            description: specificationData.description || undefined,
+                            unit: specificationData.unit || undefined,
+                            price: specificationData.price || undefined,
+                            type: 'Product' // Позиции спецификации всегда товары
+                        };
+
+                        const nomenclatureResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/items`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(nomenclatureData)
+                        });
+
+                        if (nomenclatureResponse.ok) {
+                            const newItem = await nomenclatureResponse.json();
+                            nomenclatureItemId = newItem.id;
+                            console.log(`Создана новая позиция в номенклатуре: ${newItem.name}`);
+                        } else {
+                            errorCount++;
+                            continue;
+                        }
+                    }
+
+                    // Создаем позицию спецификации с ссылкой на номенклатуру
                     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productId}/specifications`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(specificationData)
+                        body: JSON.stringify({
+                            ...specificationData,
+                            nomenclatureItemId: nomenclatureItemId
+                        })
                     });
 
                     if (response.ok) {
@@ -367,6 +428,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         errorCount++;
                     }
                 } catch (error) {
+                    console.error('Ошибка импорта строки:', error);
                     errorCount++;
                 }
             }
@@ -378,13 +440,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             setShowColumnMapping(false);
 
             // Показываем результат
-            if (successCount > 0 && errorCount === 0) {
-                alert(`Успешно импортировано ${successCount} позиций`);
-            } else if (successCount > 0 && errorCount > 0) {
-                alert(`Импортировано ${successCount} позиций, ошибок: ${errorCount}`);
-            } else {
-                alert(`Ошибка импорта. Не удалось импортировать ни одной позиции.`);
-            }
+            const message = `Импорт завершен:
+- Успешно импортировано: ${successCount} позиций
+- Использовано существующих: ${existingCount} позиций
+- Ошибок: ${errorCount}`;
+
+            alert(message);
 
         } catch (error) {
             console.error('Ошибка импорта:', error);

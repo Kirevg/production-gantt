@@ -176,7 +176,7 @@ router.delete('/groups/:id', authenticateToken, requireRole(['admin']), async (r
 // GET /nomenclature - получить все позиции (корневой роут, алиас для /items)
 router.get('/', authenticateToken, async (req, res) => {
     try {
-        const { groupId, type } = req.query;
+        const { groupId, type, article, code1c, name } = req.query;
 
         const where: any = {};
 
@@ -186,6 +186,30 @@ router.get('/', authenticateToken, async (req, res) => {
 
         if (type) {
             where.type = type as string;
+        }
+
+        // Поиск по артикулу
+        if (article) {
+            where.article = {
+                contains: article as string,
+                mode: 'insensitive'
+            };
+        }
+
+        // Поиск по коду 1С
+        if (code1c) {
+            where.code1c = {
+                contains: code1c as string,
+                mode: 'insensitive'
+            };
+        }
+
+        // Поиск по названию
+        if (name) {
+            where.name = {
+                contains: name as string,
+                mode: 'insensitive'
+            };
         }
 
         const items = await prisma.nomenclatureItem.findMany({
@@ -199,6 +223,55 @@ router.get('/', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Ошибка получения позиций:', error);
         res.status(500).json({ error: 'Ошибка загрузки позиций' });
+    }
+});
+
+// GET /nomenclature/find - найти существующие позиции по полям
+router.get('/find', authenticateToken, async (req, res) => {
+    try {
+        const { article, code1c, name } = req.query;
+
+        if (!article && !code1c && !name) {
+            return res.status(400).json({ error: 'Необходимо указать хотя бы одно поле для поиска' });
+        }
+
+        const where: any = {};
+
+        // Поиск по артикулу (точное совпадение)
+        if (article) {
+            where.article = {
+                equals: article as string,
+                mode: 'insensitive'
+            };
+        }
+
+        // Поиск по коду 1С (точное совпадение)
+        if (code1c) {
+            where.code1c = {
+                equals: code1c as string,
+                mode: 'insensitive'
+            };
+        }
+
+        // Поиск по названию (точное совпадение)
+        if (name) {
+            where.name = {
+                equals: name as string,
+                mode: 'insensitive'
+            };
+        }
+
+        const items = await prisma.nomenclatureItem.findFirst({
+            where,
+            include: {
+                group: true,
+            },
+        });
+
+        res.json(items);
+    } catch (error) {
+        console.error('Ошибка поиска позиции:', error);
+        res.status(500).json({ error: 'Ошибка поиска позиции' });
     }
 });
 
