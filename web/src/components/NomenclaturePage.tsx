@@ -97,6 +97,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null); // Фильтр по группе
     const [selectedKindId, setSelectedKindId] = useState<string | null>(null); // Фильтр по виду
+    const [rightPanelMode, setRightPanelMode] = useState<'groups' | 'kinds'>('groups'); // Режим правой панели
 
     // Состояние для диалога группы
     const [openGroupDialog, setOpenGroupDialog] = useState(false);
@@ -557,78 +558,174 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{
-                                            fontWeight: 'bold',
-                                            fontSize: '12px',
-                                            color: 'black',
-                                            textAlign: 'center',
-                                            padding: '12px 16px',
-                                            border: '1px solid #e0e0e0',
-                                            textDecoration: 'underline'
-                                        }}>
+                                        <TableCell 
+                                            onClick={() => setRightPanelMode('groups')}
+                                            sx={{ 
+                                                fontWeight: 'bold', 
+                                                fontSize: '12px',
+                                                color: rightPanelMode === 'groups' ? '#1976d2' : 'black',
+                                                textAlign: 'center',
+                                                padding: '12px 16px',
+                                                border: '1px solid #e0e0e0',
+                                                textDecoration: 'underline',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                width: '50%',
+                                                '&:hover': {
+                                                    backgroundColor: '#f5f5f5',
+                                                    color: '#1976d2'
+                                                }
+                                            }}
+                                        >
                                             Группы
+                                        </TableCell>
+                                        <TableCell 
+                                            onClick={() => setRightPanelMode('kinds')}
+                                            sx={{ 
+                                                fontWeight: 'bold', 
+                                                fontSize: '12px',
+                                                color: rightPanelMode === 'kinds' ? '#1976d2' : 'black',
+                                                textAlign: 'center',
+                                                padding: '12px 16px',
+                                                border: '1px solid #e0e0e0',
+                                                textDecoration: 'underline',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                width: '50%',
+                                                '&:hover': {
+                                                    backgroundColor: '#f5f5f5',
+                                                    color: '#1976d2'
+                                                }
+                                            }}
+                                        >
+                                            Виды
                                         </TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {/* Кнопка "Все" для сброса фильтра */}
-                                    <TableRow
-                                        sx={{
-                                            height: '35px',
-                                            cursor: 'pointer',
-                                            backgroundColor: selectedGroupId === null ? '#e3f2fd' : 'transparent',
-                                            '&:hover': { backgroundColor: '#f5f5f5' }
-                                        }}
-                                        onClick={() => setSelectedGroupId(null)}
-                                    >
-                                        <TableCell sx={{ py: 0.5 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <strong>Все</strong>
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                    {/* Кнопка "Без группы" */}
-                                    <TableRow
-                                        sx={{
-                                            height: '35px',
-                                            cursor: 'pointer',
-                                            backgroundColor: selectedGroupId === '' ? '#e3f2fd' : 'transparent',
-                                            '&:hover': { backgroundColor: '#f5f5f5' }
-                                        }}
-                                        onClick={() => setSelectedGroupId('')}
-                                    >
-                                        <TableCell sx={{ py: 0.5 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                Без группы
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                    {groups.map((group) => (
-                                        <TableRow
-                                            key={group.id}
-                                            sx={{
-                                                height: '35px',
-                                                cursor: 'pointer',
-                                                backgroundColor: selectedGroupId === group.id ? '#e3f2fd' : 'transparent',
-                                                '&:hover': { backgroundColor: '#f5f5f5' }
-                                            }}
-                                            onClick={() => setSelectedGroupId(group.id)}
-                                            onDoubleClick={() => canEdit() && handleOpenGroupDialog(group)}
-                                        >
-                                            <TableCell sx={{ py: 0.5 }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <FolderIcon fontSize="small" color="action" />
-                                                    {group.name}
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {groups.length === 0 && (
-                                        <TableRow>
-                                            <TableCell sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
-                                                Нет групп
-                                            </TableCell>
-                                        </TableRow>
+                                    {rightPanelMode === 'groups' ? (
+                                        <>
+                                            {/* Кнопка "Все" для сброса фильтра */}
+                                            <TableRow
+                                                sx={{
+                                                    height: '35px',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: selectedGroupId === null ? '#e3f2fd' : 'transparent',
+                                                    '&:hover': { backgroundColor: '#f5f5f5' }
+                                                }}
+                                                onClick={() => setSelectedGroupId(null)}
+                                            >
+                                                <TableCell colSpan={2} sx={{ py: 0.5 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <strong>Все</strong>
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                            {/* Кнопка "Без группы" */}
+                                            <TableRow
+                                                sx={{
+                                                    height: '35px',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: selectedGroupId === '' ? '#e3f2fd' : 'transparent',
+                                                    '&:hover': { backgroundColor: '#f5f5f5' }
+                                                }}
+                                                onClick={() => setSelectedGroupId('')}
+                                            >
+                                                <TableCell colSpan={2} sx={{ py: 0.5 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        Без группы
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                            {groups.map((group) => (
+                                                <TableRow
+                                                    key={group.id}
+                                                    sx={{
+                                                        height: '35px',
+                                                        cursor: 'pointer',
+                                                        backgroundColor: selectedGroupId === group.id ? '#e3f2fd' : 'transparent',
+                                                        '&:hover': { backgroundColor: '#f5f5f5' }
+                                                    }}
+                                                    onClick={() => setSelectedGroupId(group.id)}
+                                                    onDoubleClick={() => canEdit() && handleOpenGroupDialog(group)}
+                                                >
+                                                    <TableCell colSpan={2} sx={{ py: 0.5 }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <FolderIcon fontSize="small" color="action" />
+                                                            {group.name}
+                                                        </Box>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {groups.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell colSpan={2} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                                                        Нет групп
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Кнопка "Все" для сброса фильтра по видам */}
+                                            <TableRow
+                                                sx={{
+                                                    height: '35px',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: selectedKindId === null ? '#e3f2fd' : 'transparent',
+                                                    '&:hover': { backgroundColor: '#f5f5f5' }
+                                                }}
+                                                onClick={() => setSelectedKindId(null)}
+                                            >
+                                                <TableCell colSpan={2} sx={{ py: 0.5 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <strong>Все</strong>
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                            {/* Кнопка "Без вида" */}
+                                            <TableRow
+                                                sx={{
+                                                    height: '35px',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: selectedKindId === '' ? '#e3f2fd' : 'transparent',
+                                                    '&:hover': { backgroundColor: '#f5f5f5' }
+                                                }}
+                                                onClick={() => setSelectedKindId('')}
+                                            >
+                                                <TableCell colSpan={2} sx={{ py: 0.5 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        Без вида
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                            {kinds.map((kind) => (
+                                                <TableRow
+                                                    key={kind.id}
+                                                    sx={{
+                                                        height: '35px',
+                                                        cursor: 'pointer',
+                                                        backgroundColor: selectedKindId === kind.id ? '#e3f2fd' : 'transparent',
+                                                        '&:hover': { backgroundColor: '#f5f5f5' }
+                                                    }}
+                                                    onClick={() => setSelectedKindId(kind.id)}
+                                                >
+                                                    <TableCell colSpan={2} sx={{ py: 0.5 }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <DescriptionIcon fontSize="small" color="action" />
+                                                            {kind.name}
+                                                        </Box>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {kinds.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell colSpan={2} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                                                        Нет видов
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </>
                                     )}
                                 </TableBody>
                             </Table>
