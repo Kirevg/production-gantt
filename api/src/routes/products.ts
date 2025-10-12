@@ -373,8 +373,8 @@ router.delete('/products/:productId/work-stages/:workStageId', authenticateToken
   }
 });
 
-// PUT /products/reorder - изменить порядок изделий
-router.put('/reorder', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
+// PUT /projects/products/reorder - изменить порядок изделий
+router.put('/products/reorder', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
   try {
     const { productOrders } = req.body;
 

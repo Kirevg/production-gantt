@@ -475,7 +475,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     orderIndex: index
                 }));
 
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products/reorder`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/reorder`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
