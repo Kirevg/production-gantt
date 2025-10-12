@@ -521,7 +521,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 hours: stage.hours || '',
                 startDate: formattedDate,
                 duration: stage.duration || 1,
-                workTypeId: stage.workType?.id || stage.workTypeId || '',
+                workTypeId: stage.nomenclatureItem?.id || '',
                 assigneeId: stage.assignee?.id || stage.assigneeId || ''
             });
         } else {
@@ -576,7 +576,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     hours: stageForm.hours,
                     startDate: stageForm.startDate,
                     duration: stageForm.duration,
-                    workTypeId: stageForm.workTypeId,
+                    nomenclatureItemId: stageForm.workTypeId,
                     assigneeId: stageForm.assigneeId || null
                 })
             });
@@ -788,9 +788,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                             onDoubleClick={() => handleOpenStageDialog(stage)}
                                         >
                                             <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
-                                                {stage.workType ? (
+                                                {stage.nomenclatureItem ? (
                                                     <Chip
-                                                        label={stage.workType.name}
+                                                        label={stage.nomenclatureItem.name}
                                                         size="small"
                                                         variant="outlined"
                                                         color="primary"
@@ -973,7 +973,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 InputProps={{
                                     inputProps: {
                                         lang: 'ru-RU'
-                                    }
+                                    },
+                                    endAdornment: (
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => {
+                                                const input = document.querySelector('input[type="date"]') as HTMLInputElement;
+                                                if (input) {
+                                                    input.showPicker();
+                                                }
+                                            }}
+                                            sx={{ mr: 1 }}
+                                        >
+                                            <CalendarIcon fontSize="small" />
+                                        </IconButton>
+                                    )
                                 }}
                             />
                             <TextField
