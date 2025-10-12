@@ -103,7 +103,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         quantity: 1,
         link: ''
     });
-    const [isReordering, setIsReordering] = useState(false);
     const [nomenclatureItems, setNomenclatureItems] = useState<any[]>([]);
     const [loadingNomenclature, setLoadingNomenclature] = useState(false);
 
@@ -530,58 +529,33 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
 
     // Компонент для перетаскиваемой строки таблицы
-    function SortableTableRow({ product, index }: { product: Product; index: number }) {
-        const {
-            attributes,
-            listeners,
-            setNodeRef,
-            transform,
-            transition,
-            isDragging,
-        } = useSortable({
-            id: product.id,
-            disabled: loading || isReordering
-        });
-
-        const style = {
-            transform: CSS.Transform.toString(transform),
-            transition,
-            opacity: isDragging ? 0.5 : 1,
-        };
+    function ProductTableRow({ product, index }: { product: Product; index: number }) {
 
         const workStages = product.workStages || [];
 
         return (
             <TableRow
-                ref={setNodeRef}
-                style={style}
-                onDoubleClick={() => !loading && !isReordering && onOpenSpecifications(product.id, product.nomenclatureItem?.name || '')}
+                onDoubleClick={() => !loading && onOpenSpecifications(product.id, product.nomenclatureItem?.name || '')}
                 sx={{
                     height: '35px',
                     borderTop: '2px solid #e0e0e0',
-                    cursor: (loading || isReordering) ? 'default' : 'grab',
                     '&:hover': {
-                        backgroundColor: (loading || isReordering) ? 'transparent' : '#f5f5f5',
-                    },
-                    '&:active': {
-                        cursor: (loading || isReordering) ? 'default' : 'grabbing',
+                        backgroundColor: loading ? 'transparent' : '#f5f5f5',
                     },
                 }}
             >
                 <TableCell
-                    {...attributes}
-                    {...listeners}
                     sx={{
                         width: '40px',
                         minWidth: '40px',
                         maxWidth: '40px',
-                        cursor: (loading || isReordering) ? 'default' : 'grab',
-                        opacity: (loading || isReordering) ? 0.5 : 1,
                         py: 0.5,
                         textAlign: 'center'
                     }}
                 >
-                    <DragIndicator color="action" />
+                    <Typography sx={{ fontSize: '18px', fontWeight: 900 }}>
+                        ↑↓
+                    </Typography>
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                 <TableCell sx={{ py: 0.5, minWidth: '250px' }}>
@@ -641,52 +615,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         );
     }
 
-    // Функция обработки завершения перетаскивания
-    const handleDragEnd = async (event: any) => {
-        const { active, over } = event;
-
-        if (active.id !== over?.id) {
-            setIsReordering(true);
-            const oldProducts = [...products];
-
-            setProducts((items) => {
-                const oldIndex = items.findIndex((item) => item.id === active.id);
-                const newIndex = items.findIndex((item) => item.id === over.id);
-                return arrayMove(items, oldIndex, newIndex);
-            });
-
-            try {
-                const token = localStorage.getItem('token');
-                const newProducts = [...products];
-                const oldIndex = newProducts.findIndex((item) => item.id === active.id);
-                const newIndex = newProducts.findIndex((item) => item.id === over.id);
-                const updatedProducts = arrayMove(newProducts, oldIndex, newIndex);
-
-                const productOrders = updatedProducts.map((product, index) => ({
-                    id: product.id,
-                    orderIndex: index
-                }));
-
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products/reorder`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ productOrders })
-                });
-
-                if (!response.ok) {
-                    setProducts(oldProducts);
-                }
-            } catch (error) {
-                console.error('Ошибка переупорядочивания:', error);
-                setProducts(oldProducts);
-            } finally {
-                setIsReordering(false);
-            }
-        }
-    };
 
     return (
         <Box className="page-container">
@@ -789,48 +717,37 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 <LinearProgress />
             ) : (
                 <>
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                    >
-                        <TableContainer component={Paper}>
-                            <Table sx={{
-                                '& .MuiTableCell-root': {
-                                    borderRight: '1px solid #e0e0e0',
-                                    padding: '4px !important'
-                                }
-                            }}>
-                                <TableHead>
-                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>
-                                            <DragIndicator fontSize="small" />
-                                        </TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '250px', fontSize: '12px' }}>Изделие</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. номер</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Ссылка</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
-                                            <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
-                                        </TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    <SortableContext
-                                        items={products.map(p => p.id)}
-                                        strategy={verticalListSortingStrategy}
-                                    >
-                                        {products.map((product, index) => (
-                                            <SortableTableRow key={product.id} product={product} index={index} />
-                                        ))}
-                                    </SortableContext>
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </DndContext>
+                    <TableContainer component={Paper}>
+                        <Table sx={{
+                            '& .MuiTableCell-root': {
+                                borderRight: '1px solid #e0e0e0',
+                                padding: '4px !important'
+                            }
+                        }}>
+                            <TableHead>
+                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>
+                                        ↑↓
+                                    </TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '250px', fontSize: '12px' }}>Изделие</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. номер</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Ссылка</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
+                                        <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {products.map((product, index) => (
+                                    <ProductTableRow key={product.id} product={product} index={index} />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
 
                     {products.length === 0 && (
                         <Card sx={{ mt: 2 }}>
