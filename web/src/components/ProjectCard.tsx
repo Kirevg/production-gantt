@@ -26,28 +26,8 @@ import {
     Select,
     MenuItem,
 } from '@mui/material';
-import { Build as BuildIcon, Delete as DeleteIcon, DragIndicator } from '@mui/icons-material';
+import { Build as BuildIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
-
-// Импорт библиотек для drag-and-drop функциональности
-import {
-    DndContext,
-    closestCenter,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
-} from '@dnd-kit/core';
-import {
-    arrayMove,
-    SortableContext,
-    sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-    useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 
 
@@ -127,13 +107,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const [nomenclatureItems, setNomenclatureItems] = useState<any[]>([]);
     const [loadingNomenclature, setLoadingNomenclature] = useState(false);
 
-    // Настройка сенсоров для drag-and-drop
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
-    );
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
