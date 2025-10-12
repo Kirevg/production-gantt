@@ -26,7 +26,25 @@ import {
     Select,
     MenuItem,
 } from '@mui/material';
-import { Build as BuildIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Build as BuildIcon, Delete as DeleteIcon, DragIndicator } from '@mui/icons-material';
+
+// Импорт библиотек для drag-and-drop функциональности
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import VolumeButton from './VolumeButton';
 
 
@@ -89,6 +107,7 @@ interface ProjectCardProps {
 const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClose, onOpenSpecifications, canEdit, canCreate, canDelete, isNew = false, user }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isReordering, setIsReordering] = useState(false);
     const [openProductDialog, setOpenProductDialog] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [projectData, setProjectData] = useState({
@@ -106,6 +125,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const [nomenclatureItems, setNomenclatureItems] = useState<any[]>([]);
     const [loadingNomenclature, setLoadingNomenclature] = useState(false);
 
+    // Настройка сенсоров для drag-and-drop
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 10, // Начинаем перетаскивание только после движения на 10px
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
@@ -402,6 +432,70 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         setProducts([...products, emptyProduct]);
     };
 
+    // Обработчик для drag-and-drop событий
+    const handleDragEnd = async (event: any) => {
+        const { active, over } = event;
+
+        if (active && over && active.id !== over.id) {
+            const oldIndex = products.findIndex((product) => product.id === active.id);
+            const newIndex = products.findIndex((product) => product.id === over.id);
+
+            // Проверяем, что индексы найдены
+            if (oldIndex === -1 || newIndex === -1) {
+                console.error('Не удалось найти продукты для переупорядочивания');
+                return;
+            }
+
+            // Сохраняем исходный порядок на случай ошибки
+            const originalProducts = [...products];
+
+            // Обновляем порядок в локальном состоянии
+            const reorderedProducts = arrayMove(products, oldIndex, newIndex);
+            const updatedProducts = reorderedProducts.map((product, index) => ({
+                ...product,
+                orderIndex: index
+            }));
+
+            setProducts(updatedProducts);
+            setIsReordering(true);
+
+            // Отправляем обновленный порядок на сервер
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setProducts(originalProducts);
+                    setIsReordering(false);
+                    return;
+                }
+
+                const productOrders = updatedProducts.map((product, index) => ({
+                    id: product.id,
+                    orderIndex: index
+                }));
+
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ productOrders })
+                });
+
+                if (!response.ok) {
+                    // Если обновление не удалось, возвращаем исходный порядок
+                    setProducts(originalProducts);
+                    console.error('Ошибка обновления порядка продуктов');
+                }
+            } catch (error) {
+                // При ошибке возвращаем исходный порядок
+                setProducts(originalProducts);
+                console.error('Ошибка сети при обновлении порядка:', error);
+            } finally {
+                setIsReordering(false);
+            }
+        }
+    };
 
     const handleCloseProductDialog = () => {
         setOpenProductDialog(false);
@@ -529,18 +623,37 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
 
     // Компонент для перетаскиваемой строки таблицы
-    function ProductTableRow({ product, index }: { product: Product; index: number }) {
+    function SortableProductTableRow({ product, index }: { product: Product; index: number }) {
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({
+            id: product.id,
+            disabled: loading || isReordering
+        });
+
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            opacity: isDragging ? 0.5 : 1,
+        };
 
         const workStages = product.workStages || [];
 
         return (
             <TableRow
-                onDoubleClick={() => !loading && onOpenSpecifications(product.id, product.nomenclatureItem?.name || '')}
+                ref={setNodeRef}
+                style={style}
+                onDoubleClick={() => !loading && !isReordering && onOpenSpecifications(product.id, product.nomenclatureItem?.name || '')}
                 sx={{
                     height: '35px',
                     borderTop: '2px solid #e0e0e0',
                     '&:hover': {
-                        backgroundColor: loading ? 'transparent' : '#f5f5f5',
+                        backgroundColor: (loading || isReordering) ? 'transparent' : '#f5f5f5',
                     },
                 }}
             >
