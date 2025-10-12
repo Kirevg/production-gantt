@@ -1966,6 +1966,8 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
         <TableCell
           {...attributes}
           {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
           sx={{
             width: '40px',
             minWidth: '40px',
