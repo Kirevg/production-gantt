@@ -657,15 +657,19 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     {/* Левая колонка - Таблица номенклатуры */}
                     <Box sx={{ flex: '0 0 78%', overflow: 'auto', minWidth: '232px' }}>
                         <TableContainer component={Paper}>
-                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                            <Table sx={{
+                                '& .MuiTableCell-root': { border: '1px solid #e0e0e0' },
+                                '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important' },
+                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' }
+                            }}>
                                 <TableHead>
                                     <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px', whiteSpace: 'nowrap' }}>№</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Наименование</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Артикул</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Код 1С</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Производитель</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '14px', whiteSpace: 'nowrap' }}>№</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '14px', whiteSpace: 'nowrap' }}>Наименование</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '14px', whiteSpace: 'nowrap' }}>Артикул</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '14px', whiteSpace: 'nowrap' }}>Код 1С</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '14px', whiteSpace: 'nowrap' }}>Производитель</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px', fontSize: '14px', whiteSpace: 'nowrap' }}>
                                             <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
                                         </TableCell>
                                     </TableRow>
@@ -678,16 +682,13 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                             sx={{ height: '35px', cursor: 'pointer' }}
                                             onDoubleClick={() => canEdit() && handleOpenItemDialog(item)}
                                         >
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{index + 1}</TableCell>
-                                            <TableCell sx={{ py: 0.5 }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <DescriptionIcon fontSize="small" color="action" />
-                                                    {item.name}
-                                                </Box>
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center', fontSize: '12px' }}>{index + 1}</TableCell>
+                                            <TableCell sx={{ py: 0.5, fontSize: '12px' }}>
+                                                {item.name}
                                             </TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{item.article || '-'}</TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{item.code1c || '-'}</TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{item.manufacturer || '-'}</TableCell>
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center', fontSize: '12px' }}>{item.article || '-'}</TableCell>
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center', fontSize: '12px' }}>{item.code1c || '-'}</TableCell>
+                                            <TableCell sx={{ py: 0.5, textAlign: 'center', fontSize: '12px' }}>{item.manufacturer || '-'}</TableCell>
                                             <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
                                                 {canDelete() && (
                                                     <IconButton
