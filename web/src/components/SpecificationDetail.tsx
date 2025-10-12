@@ -356,7 +356,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
                     // Ищем существующую позицию в номенклатуре
                     let existingItem = null;
-                    
+
                     if (specificationData.article || specificationData.code1c || specificationData.name) {
                         const searchParams = new URLSearchParams();
                         if (specificationData.article) searchParams.append('article', specificationData.article);
@@ -398,7 +398,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 new: newCount,
                 total: analyzedData.length
             });
-            
+
             setShowColumnMapping(false);
             setShowPreviewDialog(true);
 
@@ -508,7 +508,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 - Создано новых: ${includeNewItems ? successCount - existingCount : 0} позиций
 - Пропущено новых: ${skippedCount} позиций
 - Ошибок: ${errorCount}`;
-            
+
             alert(message);
 
         } catch (error) {
@@ -1038,8 +1038,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 <DialogTitle>
                     Предварительный просмотр импорта
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        Всего позиций: {importStats.total} | 
-                        Существующих: {importStats.existing} | 
+                        Всего позиций: {importStats.total} |
+                        Существующих: {importStats.existing} |
                         Новых: {importStats.new}
                     </Typography>
                 </DialogTitle>
@@ -1085,7 +1085,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 <DialogActions sx={{ justifyContent: 'space-between', p: 2 }}>
                     <Box>
                         <Typography variant="body2" color="text.secondary">
-                            Зеленые позиции будут использованы из номенклатуры, 
+                            Зеленые позиции будут использованы из номенклатуры,
                             желтые будут созданы как новые позиции
                         </Typography>
                     </Box>
@@ -1093,14 +1093,14 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         <Button onClick={() => setShowPreviewDialog(false)}>
                             Отмена
                         </Button>
-                        <Button 
+                        <Button
                             onClick={() => importFromExcel(false)}
                             variant="outlined"
                             color="primary"
                         >
                             Импортировать только существующие
                         </Button>
-                        <Button 
+                        <Button
                             onClick={() => importFromExcel(true)}
                             variant="contained"
                             color="primary"

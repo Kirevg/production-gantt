@@ -2829,6 +2829,19 @@ export default function App() {
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     // Проверяем доступ к вкладке перед переключением
     if (canAccessTab(newValue)) {
+      // Закрываем все детальные страницы при переходе на другую вкладку
+      setShowSpecificationDetail(false);
+      setShowSpecificationsList(false);
+      setShowOldSpecificationsList(false);
+      setShowStagesPage(false);
+      setShowProjectComposition(false);
+      setSelectedProject(null);
+      setSelectedProductId(null);
+      setSelectedProductName(null);
+      setSelectedSpecificationId(null);
+      setSelectedSpecificationName(null);
+      
+      // Переключаем вкладку
       setCurrentTab(newValue);
     }
   };
