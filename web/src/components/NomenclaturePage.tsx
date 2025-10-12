@@ -96,6 +96,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const [loading, setLoading] = useState(true);
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null); // Фильтр по группе
+    const [selectedKindId, setSelectedKindId] = useState<string | null>(null); // Фильтр по виду
 
     // Состояние для диалога группы
     const [openGroupDialog, setOpenGroupDialog] = useState(false);
@@ -423,15 +424,29 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
         return items.filter(item => !item.groupId);
     };
 
-    // Получение отфильтрованных позиций (по выбранной группе или все)
+    // Получение отфильтрованных позиций (по выбранной группе и виду)
     const getFilteredItems = () => {
-        if (selectedGroupId === null) {
-            return items; // Показываем все позиции
-        } else if (selectedGroupId === '') {
-            return getItemsWithoutGroup(); // Показываем позиции без группы
-        } else {
-            return getItemsForGroup(selectedGroupId); // Показываем позиции выбранной группы
+        let filtered = items;
+
+        // Фильтр по группе
+        if (selectedGroupId !== null) {
+            if (selectedGroupId === '') {
+                filtered = getItemsWithoutGroup();
+            } else {
+                filtered = getItemsForGroup(selectedGroupId);
+            }
         }
+
+        // Фильтр по виду
+        if (selectedKindId !== null) {
+            if (selectedKindId === '') {
+                filtered = filtered.filter(item => !item.kindId);
+            } else {
+                filtered = filtered.filter(item => item.kindId === selectedKindId);
+            }
+        }
+
+        return filtered;
     };
 
     return (
@@ -471,13 +486,13 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 </Box>
             </Box>
 
-            {/* Двухколоночный layout: слева номенклатура, справа группы */}
+            {/* Трехколоночный layout: слева номенклатура, в центре группы, справа виды */}
             {loading ? (
                 <LinearProgress />
             ) : (
                 <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', width: '100%', overflow: 'hidden' }}>
                     {/* Левая колонка - Таблица номенклатуры */}
-                    <Box sx={{ flex: '0 0 80%', overflow: 'auto', minWidth: 0 }}>
+                    <Box sx={{ flex: '0 0 70%', overflow: 'auto', minWidth: 0 }}>
                         <TableContainer component={Paper}>
                             <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                                 <TableHead>
@@ -541,8 +556,18 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         <TableContainer component={Paper}>
                             <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                                 <TableHead>
-                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>Группы</TableCell>
+                                    <TableRow>
+                                        <TableCell sx={{
+                                            fontWeight: 'bold',
+                                            fontSize: '12px',
+                                            color: 'black',
+                                            textAlign: 'center',
+                                            padding: '12px 16px',
+                                            border: '1px solid #e0e0e0',
+                                            textDecoration: 'underline'
+                                        }}>
+                                            Группы
+                                        </TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
