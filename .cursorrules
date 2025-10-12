@@ -5,7 +5,7 @@
 **ВСЕГДА** при перезапуске API и/или фронтенда использовать ТОЛЬКО эту команду:
 
 ```powershell
-Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Get-Process | Where-Object {$_.MainWindowTitle -match "Backend Server|Frontend Server" -and $_.MainWindowTitle -notmatch "Git Auto-Commit"} | ForEach-Object {Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue}; Start-Sleep -Seconds 2; start "Backend Server" cmd /k "cd /d C:\Projects\production-gantt\api && npm run dev"; start "Frontend Server" cmd /k "cd /d C:\Projects\production-gantt\web && npm run dev"
+Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Get-Process | Where-Object {$_.MainWindowTitle -match "Backend Server|Frontend Server" -and $_.MainWindowTitle -notmatch "Git Auto-Commit"} | ForEach-Object {Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue}; Start-Sleep -Seconds 2; Start-Process cmd -ArgumentList '/c start "Backend Server" cmd /k "cd /d C:\Projects\production-gantt\api && npm run dev"'; Start-Process cmd -ArgumentList '/c start "Frontend Server" cmd /k "cd /d C:\Projects\production-gantt\web && npm run dev"'
 ```
 
 **НИКОГДА** не пытаться перезапускать только один сервер отдельно!
@@ -20,6 +20,7 @@ Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Get-Process | Wher
 - Не оставлять висячие терминалы
 - Закрывать неиспользуемые терминалы в VS Code
 - Не создавать множественные фоновые процессы
+- **НИКОГДА НЕ ВИСНУТЬ** в терминале после выполнения команды - всегда завершать выполнение
 
 ## Работа с файлами
 
