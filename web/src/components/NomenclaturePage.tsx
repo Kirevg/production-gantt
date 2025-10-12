@@ -132,6 +132,9 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const [showColumnMapping, setShowColumnMapping] = useState(false);
     const [excelData, setExcelData] = useState<any[][]>([]);
     const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
+    const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+    const [previewData, setPreviewData] = useState<any[]>([]);
+    const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
 
     // Функция форматирования даты
 
@@ -144,7 +147,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 const workbook = XLSX.read(data, { type: 'binary' });
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
                 if (jsonData.length > 0) {
                     setExcelData(jsonData as any[][]);
@@ -158,6 +161,104 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             }
         };
         reader.readAsBinaryString(file);
+    };
+
+    // Анализ данных импорта
+    const analyzeImportData = async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            // Пропускаем заголовок (первую строку)
+            const rows = excelData.slice(1);
+            const analyzedData: any[] = [];
+            let existingCount = 0;
+            let newCount = 0;
+
+            // Анализируем каждую строку
+            for (const row of rows) {
+                if (row.length < 2) continue; // Пропускаем пустые строки
+
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        setError('Токен авторизации не найден');
+                        return;
+                    }
+
+                    // Парсим данные из строки согласно сопоставлению колонок
+                    const nomenclatureData: any = {};
+
+                    Object.entries(columnMapping).forEach(([columnIndex, fieldName]) => {
+                        const value = row[parseInt(columnIndex)];
+                        if (value !== undefined && value !== null && value !== '') {
+                            if (fieldName === 'price') {
+                                nomenclatureData[fieldName] = parseFloat(value) || undefined;
+                            } else {
+                                nomenclatureData[fieldName] = value.toString();
+                            }
+                        }
+                    });
+
+                    // Проверяем обязательные поля
+                    if (!nomenclatureData.name) {
+                        continue;
+                    }
+
+                    // Ищем существующую позицию в номенклатуре
+                    let existingItem = null;
+
+                    if (nomenclatureData.article || nomenclatureData.code1c || nomenclatureData.name) {
+                        const searchParams = new URLSearchParams();
+                        if (nomenclatureData.article) searchParams.append('article', nomenclatureData.article);
+                        if (nomenclatureData.code1c) searchParams.append('code1c', nomenclatureData.code1c);
+                        if (nomenclatureData.name) searchParams.append('name', nomenclatureData.name);
+
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?${searchParams}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (searchResponse.ok) {
+                            existingItem = await searchResponse.json();
+                        }
+                    }
+
+                    analyzedData.push({
+                        ...nomenclatureData,
+                        isExisting: !!existingItem,
+                        existingItem: existingItem,
+                        originalData: nomenclatureData
+                    });
+
+                    if (existingItem) {
+                        existingCount++;
+                    } else {
+                        newCount++;
+                    }
+
+                } catch (error) {
+                    console.error('Ошибка анализа строки:', error);
+                }
+            }
+
+            setPreviewData(analyzedData);
+            setImportStats({
+                existing: existingCount,
+                new: newCount,
+                total: analyzedData.length
+            });
+
+            setShowColumnMapping(false);
+            setShowPreviewDialog(true);
+
+        } catch (error) {
+            console.error('Ошибка анализа данных:', error);
+            setError('Ошибка при анализе данных');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Загрузка групп, видов, единиц и позиций
@@ -1062,15 +1163,11 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                 </Typography>
                                 <Box sx={{ display: 'flex', gap: 1 }}>
                                     <Button
-                                        onClick={() => {
-                                            // TODO: Реализовать импорт номенклатуры
-                                            console.log('Импорт номенклатуры:', excelData, columnMapping);
-                                            setShowColumnMapping(false);
-                                        }}
+                                        onClick={analyzeImportData}
                                         variant="contained"
                                         disabled={!Object.values(columnMapping).includes('name')}
                                     >
-                                        Импортировать
+                                        Анализировать
                                     </Button>
                                     <Button onClick={() => setShowColumnMapping(false)}>
                                         Отмена
@@ -1086,7 +1183,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                         maxWidth: '150px',
                                         fontSize: '12px !important'
                                     },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-child(2)': {
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
                                         paddingLeft: '4px !important',
                                         paddingRight: '4px !important'
                                     }
@@ -1169,6 +1266,95 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         </Box>
                     )}
                 </DialogContent>
+            </Dialog>
+
+            {/* Диалог предварительного просмотра импорта */}
+            <Dialog
+                open={showPreviewDialog}
+                maxWidth="lg"
+                fullWidth
+                hideBackdrop={true}
+                disablePortal={true}
+                sx={{
+                    '& .MuiDialog-paper': {
+                        width: '90vw',
+                        height: '80vh',
+                        maxWidth: 'none',
+                        maxHeight: 'none'
+                    }
+                }}
+            >
+                <DialogTitle>
+                    Предварительный просмотр импорта номенклатуры
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Всего позиций: {importStats.total} |
+                        Существующих: {importStats.existing} |
+                        Новых: {importStats.new}
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
+                        <TableContainer component={Paper} sx={{ maxHeight: '400px' }}>
+                            <Table size="small" sx={{
+                                '& .MuiTableCell-root': { fontSize: '12px', padding: '4px 8px' }
+                            }}>
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Статус</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Наименование</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Артикул</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Код 1С</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Производитель</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Цена</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {previewData.map((item, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>
+                                                <Chip
+                                                    label={item.isExisting ? 'Существующая' : 'Новая'}
+                                                    color={item.isExisting ? 'success' : 'warning'}
+                                                    size="small"
+                                                    variant="outlined"
+                                                />
+                                            </TableCell>
+                                            <TableCell>{item.name}</TableCell>
+                                            <TableCell>{item.article || '-'}</TableCell>
+                                            <TableCell>{item.code1c || '-'}</TableCell>
+                                            <TableCell>{item.manufacturer || '-'}</TableCell>
+                                            <TableCell>{item.price || '-'}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'space-between', p: 2 }}>
+                    <Box>
+                        <Typography variant="body2" color="text.secondary">
+                            Зеленые позиции будут использованы из номенклатуры,
+                            желтые будут созданы как новые позиции
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button onClick={() => setShowPreviewDialog(false)}>
+                            Отмена
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                // TODO: Реализовать импорт номенклатуры
+                                console.log('Импорт номенклатуры:', previewData);
+                                setShowPreviewDialog(false);
+                            }}
+                            variant="contained"
+                            color="primary"
+                        >
+                            Импортировать все
+                        </Button>
+                    </Box>
+                </DialogActions>
             </Dialog>
         </Box>
     );
