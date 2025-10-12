@@ -1217,6 +1217,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                                             <MenuItem value="name" sx={{ fontSize: '12px' }}>Наименование</MenuItem>
                                                             <MenuItem value="article" sx={{ fontSize: '12px' }}>Артикул</MenuItem>
                                                             <MenuItem value="code1c" sx={{ fontSize: '12px' }}>Код 1С</MenuItem>
+                                                            <MenuItem value="group" sx={{ fontSize: '12px' }}>Группа</MenuItem>
                                                             <MenuItem value="manufacturer" sx={{ fontSize: '12px' }}>Производитель</MenuItem>
                                                             <MenuItem value="description" sx={{ fontSize: '12px' }}>Описание</MenuItem>
                                                             <MenuItem value="unit" sx={{ fontSize: '12px' }}>Ед. измерения</MenuItem>
