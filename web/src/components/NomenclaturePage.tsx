@@ -151,7 +151,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
 
                 if (jsonData.length > 0) {
                     setExcelData(jsonData as any[][]);
-                    setShowColumnMapping(true);
+                    // НЕ открываем сопоставление колонок автоматически
                 } else {
                     alert('Файл пуст или не содержит данных');
                 }
@@ -1094,10 +1094,12 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 <DialogActions>
                     <VolumeButton
                         onClick={() => {
-                            // TODO: Реализовать логику импорта
-                            console.log('Импорт файла:', importFile);
-                            setOpenImportDialog(false);
-                            setImportFile(null);
+                            if (excelData && excelData.length > 0) {
+                                setOpenImportDialog(false);
+                                setShowColumnMapping(true);
+                            } else {
+                                alert('Сначала выберите файл для импорта');
+                            }
                         }}
                         color="green"
                         disabled={!importFile}
@@ -1108,6 +1110,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         onClick={() => {
                             setOpenImportDialog(false);
                             setImportFile(null);
+                            setExcelData([]);
                         }}
                         color="orange"
                     >
