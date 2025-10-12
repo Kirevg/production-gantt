@@ -205,21 +205,52 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         continue;
                     }
 
-                    // Ищем существующую позицию в номенклатуре
+                    // Ищем существующую позицию в номенклатуре по Артикулу, Код 1С, Наименованию, Обозначению
                     let existingItem = null;
 
-                    if (nomenclatureData.article || nomenclatureData.code1c || nomenclatureData.name) {
-                        const searchParams = new URLSearchParams();
-                        if (nomenclatureData.article) searchParams.append('article', nomenclatureData.article);
-                        if (nomenclatureData.code1c) searchParams.append('code1c', nomenclatureData.code1c);
-                        if (nomenclatureData.name) searchParams.append('name', nomenclatureData.name);
-
-                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?${searchParams}`, {
+                    // Пытаемся найти по каждому полю отдельно (приоритетный поиск)
+                    if (!existingItem && nomenclatureData.article) {
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?article=${encodeURIComponent(nomenclatureData.article)}`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`
                             }
                         });
+                        if (searchResponse.ok) {
+                            existingItem = await searchResponse.json();
+                        }
+                    }
 
+                    // Если не найдено по артикулу, ищем по коду 1С
+                    if (!existingItem && nomenclatureData.code1c) {
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?code1c=${encodeURIComponent(nomenclatureData.code1c)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (searchResponse.ok) {
+                            existingItem = await searchResponse.json();
+                        }
+                    }
+
+                    // Если не найдено по коду 1С, ищем по обозначению
+                    if (!existingItem && nomenclatureData.designation) {
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?designation=${encodeURIComponent(nomenclatureData.designation)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (searchResponse.ok) {
+                            existingItem = await searchResponse.json();
+                        }
+                    }
+
+                    // Если не найдено по обозначению, ищем по точному наименованию
+                    if (!existingItem && nomenclatureData.name) {
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?name=${encodeURIComponent(nomenclatureData.name)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
                         if (searchResponse.ok) {
                             existingItem = await searchResponse.json();
                         }

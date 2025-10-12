@@ -229,9 +229,9 @@ router.get('/', authenticateToken, async (req, res) => {
 // GET /nomenclature/find - найти существующие позиции по полям
 router.get('/find', authenticateToken, async (req, res) => {
     try {
-        const { article, code1c, name } = req.query;
+        const { article, code1c, name, designation } = req.query;
 
-        if (!article && !code1c && !name) {
+        if (!article && !code1c && !name && !designation) {
             return res.status(400).json({ error: 'Необходимо указать хотя бы одно поле для поиска' });
         }
 
@@ -249,6 +249,14 @@ router.get('/find', authenticateToken, async (req, res) => {
         if (code1c) {
             where.code1c = {
                 equals: code1c as string,
+                mode: 'insensitive'
+            };
+        }
+
+        // Поиск по обозначению (точное совпадение)
+        if (designation) {
+            where.designation = {
+                equals: designation as string,
                 mode: 'insensitive'
             };
         }
