@@ -1657,7 +1657,11 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
 
   // Настройка сенсоров для drag-and-drop
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Начинаем перетаскивание только после движения на 8px
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -2019,28 +2023,6 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
           {project.projectManager?.phone || '-'}
         </TableCell>
         <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
-          {canEdit() && (
-            <IconButton
-              size="small"
-              onClick={() => handleEditProject(project)}
-              color="primary"
-              sx={{
-                minWidth: 'auto',
-                padding: '4px',
-                '&:active': {
-                  transform: 'none !important',
-                  boxShadow: 'none !important',
-                  backgroundColor: 'transparent !important'
-                },
-                '&:focus': {
-                  outline: 'none !important',
-                  backgroundColor: 'transparent !important'
-                }
-              }}
-            >
-              <Edit fontSize="small" />
-            </IconButton>
-          )}
           {canDelete() && (
             <IconButton
               size="small"
@@ -2505,7 +2487,9 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Финиш</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '200px' }}>Руководитель проекта</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '140px' }}>Телефон</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '60px' }}>Ред</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '60px' }}>
+                  <Delete sx={{ color: 'error.main' }} />
+                </TableCell>
               </TableRow>
             </TableHead>
             {/* Тело таблицы с данными проектов */}
