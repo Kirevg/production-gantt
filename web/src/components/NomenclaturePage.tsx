@@ -659,8 +659,9 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         <TableContainer component={Paper}>
                             <Table sx={{
                                 '& .MuiTableCell-root': { border: '1px solid #e0e0e0' },
-                                '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '1rem !important' },
-                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '1rem !important' },
+                                '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '0 !important' },
+                                '& .MuiTableHead-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' },
+                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '0 !important' },
                                 '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' }
                             }}>
                                 <TableHead>
@@ -719,7 +720,13 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     {/* Правая колонка - Таблица групп */}
                     <Box sx={{ flex: '0 0 20%', overflow: 'auto', minWidth: 0 }}>
                         <TableContainer component={Paper}>
-                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                            <Table sx={{
+                                '& .MuiTableCell-root': { border: '1px solid #e0e0e0' },
+                                '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '14px !important', lineHeight: '0 !important' },
+                                '& .MuiTableHead-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' },
+                                '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important', lineHeight: '0 !important' },
+                                '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important', maxHeight: '30px !important' }
+                            }}>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell
