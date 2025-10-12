@@ -462,10 +462,11 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         <>
                             <VolumeButton
                                 variant="contained"
-                                onClick={() => handleOpenGroupDialog()}
-                                color="purple"
+                                onClick={() => setOpenImportDialog(true)}
+                                color="green"
+                                startIcon={<UploadIcon />}
                             >
-                                Добавить группу
+                                Импорт
                             </VolumeButton>
                             <VolumeButton
                                 variant="contained"
@@ -476,11 +477,10 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             </VolumeButton>
                             <VolumeButton
                                 variant="contained"
-                                onClick={() => setOpenImportDialog(true)}
-                                color="green"
-                                startIcon={<UploadIcon />}
+                                onClick={() => handleOpenGroupDialog()}
+                                color="purple"
                             >
-                                Импорт
+                                Добавить группу
                             </VolumeButton>
                         </>
                     )}
