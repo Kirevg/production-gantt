@@ -157,8 +157,6 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -1651,7 +1649,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Начинаем перетаскивание только после движения на 8px
+        distance: 10, // Начинаем перетаскивание только после движения на 10px
       },
     }),
     useSensor(KeyboardSensor, {
@@ -1965,6 +1963,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
         <TableCell
           {...attributes}
           {...listeners}
+          onClick={(e) => e.stopPropagation()}
           sx={{
             width: '40px',
             minWidth: '40px',
