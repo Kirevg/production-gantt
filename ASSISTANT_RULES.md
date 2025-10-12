@@ -58,14 +58,15 @@
   - ✅ ПРАВИЛЬНО: `C:\Projects\production-gantt\start-system.bat`
 - **ВМЕСТО** `&&` используй `;` (PowerShell не поддерживает &&)
 - **🚨 ПЕРЕЗАПУСК СЕРВЕРОВ - ПРАВИЛЬНЫЙ СПОСОБ (ВСЕГДА ТАК):**
-  - **ВСЕ ОДНОЙ КОМАНДОЙ** через `;` с `is_background=true`:
+  - **ВСЕ ОДНОЙ КОМАНДОЙ** через `;`:
   ```powershell
-  Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Get-Process | Where-Object {$_.MainWindowTitle -match "Backend Server|Frontend Server|Stop Server"} | ForEach-Object {Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue}; Start-Sleep -Seconds 2; C:\Projects\production-gantt\start-backend-frontend.bat
+  Stop-Process -Name node -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\api && npm run dev' -WindowStyle Normal; Start-Process cmd -ArgumentList '/k', 'cd /d C:\Projects\production-gantt\web && npm run dev' -WindowStyle Normal
   ```
-  - **ВАЖНО**: Используй `Stop-Process -Id $_.Id` а НЕ `.CloseMainWindow()` - последнее НЕ работает!
-  - **НИКОГДА** не делай отдельными командами - будет зависать!
-  - **НЕ ИСПОЛЬЗУЙ** `taskkill` - виснет в терминале
-  - Эта команда: останавливает node → убивает cmd окна → пауза 2 сек → запускает заново
+  - **ВАЖНО**: Используй ТОЛЬКО эту команду!
+  - **НИКОГДА** не пытаться перезапускать только один сервер отдельно!
+  - **ВСЕГДА** перезапускать оба сервера (API + фронтенд) одновременно!
+  - **НЕ ЗАКРЫВАТЬ** окна с автокоммитом (Git Auto-Commit) - они должны работать постоянно!
+  - Эта команда: останавливает все node → пауза 2 сек → запускает API и Frontend в новых окнах
   - Если порты заняты - значит не все процессы остановлены
 - **Работа с Docker:**
   - Запуск: `docker-compose up -d`
