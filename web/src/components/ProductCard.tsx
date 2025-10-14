@@ -638,7 +638,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {/* Заголовок */}
             <Box className="page-header">
                 <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
-                    Карточка изделия <span
+                    Карточка изделия проекта «{projectName}»
+                    <br />
+                    <span
                         style={{ textDecoration: 'underline', cursor: 'pointer', userSelect: 'none' }}
                         onDoubleClick={(e) => {
                             e.stopPropagation();
@@ -647,8 +649,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         }}
                         title="Двойной клик для редактирования"
                     >{productName || '...'}</span>
-                    <br />
-                    проекта «{projectName}»
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <VolumeButton
