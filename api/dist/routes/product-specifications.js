@@ -119,8 +119,8 @@ router.put('/product-specifications/:id', auth_1.authenticateToken, async (req, 
         res.status(500).json({ error: 'Ошибка при обновлении спецификации изделия' });
     }
 });
-// DELETE /product-specifications/:id - Удалить спецификацию изделия
-router.delete('/product-specifications/:id', auth_1.authenticateToken, async (req, res) => {
+// DELETE /:id - Удалить спецификацию изделия
+router.delete('/:id', auth_1.authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа
@@ -147,8 +147,8 @@ router.delete('/product-specifications/:id', auth_1.authenticateToken, async (re
         res.status(500).json({ error: 'Ошибка при удалении спецификации изделия' });
     }
 });
-// GET /product-specifications/:id/specifications - Получить позиции спецификации
-router.get('/product-specifications/:id/specifications', auth_1.authenticateToken, async (req, res) => {
+// GET /:id/specifications - Получить позиции спецификации
+router.get('/:id/specifications', auth_1.authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа

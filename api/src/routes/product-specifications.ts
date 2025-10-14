@@ -22,8 +22,8 @@ const productSpecificationCreateSchema = z.object({
 // Схема для обновления спецификации изделия
 const productSpecificationUpdateSchema = productSpecificationCreateSchema.partial();
 
-// GET /:productId/specifications - Получить все спецификации изделия
-router.get('/:productId/specifications', authenticateToken, async (req, res) => {
+// GET /products/:productId/specifications - Получить все спецификации изделия
+router.get('/products/:productId/specifications', authenticateToken, async (req, res) => {
     const { productId } = req.params;
 
     try {
@@ -64,8 +64,8 @@ router.get('/:productId/specifications', authenticateToken, async (req, res) => 
     }
 });
 
-// POST /:productId/specifications - Создать новую спецификацию изделия
-router.post('/:productId/specifications', authenticateToken, async (req, res) => {
+// POST /products/:productId/specifications - Создать новую спецификацию изделия
+router.post('/products/:productId/specifications', authenticateToken, async (req, res) => {
     const { productId } = req.params;
     try {
         // Проверяем права доступа к изделию
@@ -138,8 +138,8 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
     }
 });
 
-// DELETE /product-specifications/:id - Удалить спецификацию изделия
-router.delete('/product-specifications/:id', authenticateToken, async (req, res) => {
+// DELETE /:id - Удалить спецификацию изделия
+router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа
@@ -168,8 +168,8 @@ router.delete('/product-specifications/:id', authenticateToken, async (req, res)
     }
 });
 
-// GET /product-specifications/:id/specifications - Получить позиции спецификации
-router.get('/product-specifications/:id/specifications', authenticateToken, async (req, res) => {
+// GET /:id/specifications - Получить позиции спецификации
+router.get('/:id/specifications', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа
@@ -209,113 +209,6 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
     } catch (error) {
         console.error('Ошибка при получении позиций спецификации:', error);
         res.status(500).json({ error: 'Ошибка при получении позиций спецификации' });
-    }
-});
-
-// POST /product-specifications/:id/specifications - Создать позицию спецификации
-router.post('/product-specifications/:id/specifications', authenticateToken, async (req, res) => {
-    const { id } = req.params;
-    try {
-        // Проверяем права доступа
-        const productSpec = await prisma.productSpecification.findFirst({
-            where: {
-                id,
-                product: {
-                    project: {
-                        ownerId: (req as AuthenticatedRequest).user.id
-                    }
-                }
-            }
-        });
-
-        if (!productSpec) {
-            return res.status(404).json({ error: 'Спецификация изделия не найдена' });
-        }
-
-        const specificationCreateSchema = z.object({
-            nomenclatureItemId: z.string().uuid().optional(),
-            designation: z.string().optional(),
-            name: z.string().min(1, 'Название обязательно'),
-            article: z.string().optional(),
-            code1c: z.string().optional(),
-            group: z.string().optional(),
-            manufacturer: z.string().optional(),
-            description: z.string().optional(),
-            quantity: z.number().int().min(1).default(1),
-            unit: z.string().optional(),
-            price: z.number().positive().optional(),
-            totalPrice: z.number().positive().optional(),
-        });
-
-        const validatedData = specificationCreateSchema.parse(req.body);
-
-        // Если выбрана позиция из номенклатуры, подтягиваем данные
-        let specData = { ...validatedData };
-        if (validatedData.nomenclatureItemId) {
-            const nomenclatureItem = await prisma.nomenclatureItem.findUnique({
-                where: { id: validatedData.nomenclatureItemId }
-            });
-
-            if (nomenclatureItem) {
-                // Автоматически заполняем поля из номенклатуры, если они не указаны
-                if (!validatedData.name) specData.name = nomenclatureItem.name;
-                if (!validatedData.designation) specData.designation = nomenclatureItem.designation || undefined;
-                // if (!validatedData.unit) specData.unit = nomenclatureItem.unit || undefined; // TODO: связь с Unit
-                if (!validatedData.price) specData.price = nomenclatureItem.price || undefined;
-                if (!validatedData.description) specData.description = nomenclatureItem.description || undefined;
-                if (!validatedData.article) specData.article = nomenclatureItem.article || undefined;
-                if (!validatedData.code1c) specData.code1c = nomenclatureItem.code1c || undefined;
-                if (!validatedData.manufacturer) specData.manufacturer = nomenclatureItem.manufacturer || undefined;
-            }
-        }
-
-        // Вычисляем общую стоимость если есть количество и цена
-        let totalPrice = specData.totalPrice;
-        if (!totalPrice && specData.quantity && specData.price) {
-            totalPrice = specData.quantity * specData.price;
-        }
-
-        const lastSpecification = await prisma.specification.findFirst({
-            where: { productSpecificationId: id },
-            orderBy: { orderIndex: 'desc' },
-        });
-
-        const newOrderIndex = lastSpecification ? lastSpecification.orderIndex + 1 : 0;
-
-        const specificationData: any = {
-            name: specData.name,
-            designation: specData.designation,
-            article: specData.article,
-            code1c: specData.code1c,
-            group: specData.group,
-            manufacturer: specData.manufacturer,
-            description: specData.description,
-            quantity: specData.quantity,
-            // unit: specData.unit, // TODO: связь с Unit
-            price: specData.price,
-            totalPrice: totalPrice,
-            orderIndex: newOrderIndex,
-            productSpecification: {
-                connect: { id: id }
-            }
-        };
-
-        if (specData.nomenclatureItemId) {
-            specificationData.nomenclatureItem = {
-                connect: { id: specData.nomenclatureItemId }
-            };
-        }
-
-        const specification = await prisma.specification.create({
-            data: specificationData,
-        });
-        res.status(201).json(specification);
-    } catch (error) {
-        console.error('Ошибка при создании позиции спецификации:', error);
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ error: error.issues });
-        }
-        res.status(500).json({ error: 'Ошибка при создании позиции спецификации' });
     }
 });
 

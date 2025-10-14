@@ -8,14 +8,23 @@ const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Схема для создания спецификации
 const specificationCreateSchema = zod_1.z.object({
-    nomenclatureItemId: zod_1.z.string().uuid().optional(),
-    designation: zod_1.z.string().optional(),
-    name: zod_1.z.string().min(1, 'Название обязательно'),
-    description: zod_1.z.string().optional(),
+    nomenclatureItemId: zod_1.z.string().uuid().optional().nullable(),
+    designation: zod_1.z.string().optional().nullable(),
+    name: zod_1.z.string().min(1, 'Название обязательно').optional(),
+    description: zod_1.z.string().optional().nullable(),
     quantity: zod_1.z.number().int().min(1).default(1),
-    unit: zod_1.z.string().optional(),
-    price: zod_1.z.number().positive().optional(),
-    totalPrice: zod_1.z.number().positive().optional(),
+    unit: zod_1.z.string().optional().nullable(),
+    price: zod_1.z.number().positive().optional().nullable(),
+    totalPrice: zod_1.z.number().positive().optional().nullable(),
+}).refine((data) => {
+    // Если нет nomenclatureItemId, то name обязательно
+    if (!data.nomenclatureItemId) {
+        return data.name && data.name.length > 0;
+    }
+    return true;
+}, {
+    message: "Название обязательно, если не указана позиция номенклатуры",
+    path: ["name"]
 });
 // Схема для обновления спецификации
 const specificationUpdateSchema = specificationCreateSchema.partial();
@@ -71,7 +80,18 @@ router.post('/product-specifications/:id/specifications', auth_1.authenticateTok
         if (!id) {
             return res.status(400).json({ error: 'Product Specification ID is required' });
         }
-        const data = specificationCreateSchema.parse(req.body);
+        console.log('Полученные данные для создания спецификации:', req.body);
+        let data;
+        try {
+            data = specificationCreateSchema.parse(req.body);
+        }
+        catch (validationError) {
+            console.error('Ошибка валидации:', validationError);
+            return res.status(400).json({
+                error: 'Ошибка валидации данных',
+                details: validationError
+            });
+        }
         // Проверяем права доступа к спецификации изделия
         const productSpec = await prisma.productSpecification.findFirst({
             where: {
@@ -92,18 +112,19 @@ router.post('/product-specifications/:id/specifications', auth_1.authenticateTok
             const nomenclatureItem = await prisma.nomenclatureItem.findUnique({
                 where: { id: data.nomenclatureItemId }
             });
-            if (nomenclatureItem) {
-                // Автоматически заполняем поля из номенклатуры, если они не указаны
-                if (!data.name)
-                    specData.name = nomenclatureItem.name;
-                if (!data.designation)
-                    specData.designation = nomenclatureItem.designation || undefined;
-                // if (!data.unit) specData.unit = nomenclatureItem.unit || undefined; // TODO: связь с Unit
-                if (!data.price)
-                    specData.price = nomenclatureItem.price || undefined;
-                if (!data.description)
-                    specData.description = nomenclatureItem.description || undefined;
+            if (!nomenclatureItem) {
+                return res.status(404).json({ error: 'Позиция номенклатуры не найдена' });
             }
+            // Автоматически заполняем поля из номенклатуры
+            specData.name = data.name || nomenclatureItem.name;
+            specData.designation = data.designation || nomenclatureItem.designation || undefined;
+            // specData.unit = data.unit || nomenclatureItem.unit || undefined; // TODO: связь с Unit
+            specData.price = data.price ?? nomenclatureItem.price ?? undefined;
+            specData.description = data.description || nomenclatureItem.description || undefined;
+        }
+        // Проверяем, что name заполнен
+        if (!specData.name) {
+            return res.status(400).json({ error: 'Название позиции обязательно' });
         }
         // Получаем максимальный orderIndex для сортировки
         const lastSpecification = await prisma.specification.findFirst({
@@ -118,14 +139,14 @@ router.post('/product-specifications/:id/specifications', auth_1.authenticateTok
         }
         const specificationData = {
             name: specData.name,
-            description: specData.description || null,
+            description: specData.description ?? null,
             quantity: specData.quantity,
-            // unit: specData.unit || null, // TODO: связь с Unit
-            price: specData.price || null,
-            designation: specData.designation || null,
+            // unit: specData.unit ?? null, // TODO: связь с Unit
+            price: specData.price ?? null,
+            designation: specData.designation ?? null,
             productSpecificationId: id,
             orderIndex,
-            totalPrice: totalPrice || null
+            totalPrice: totalPrice ?? null
         };
         if (specData.nomenclatureItemId) {
             specificationData.nomenclatureItem = {

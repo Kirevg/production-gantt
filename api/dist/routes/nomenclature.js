@@ -20,6 +20,7 @@ const groupUpdateSchema = zod_1.z.object({
 // Схемы валидации для позиций
 const itemCreateSchema = zod_1.z.object({
     groupId: zod_1.z.string().optional(),
+    kindId: zod_1.z.string().optional(),
     designation: zod_1.z.string().optional(),
     name: zod_1.z.string().min(1, 'Наименование обязательно'),
     article: zod_1.z.string().optional(),
@@ -28,9 +29,11 @@ const itemCreateSchema = zod_1.z.object({
     description: zod_1.z.string().optional(),
     unit: zod_1.z.string().optional(),
     price: zod_1.z.number().optional(),
+    type: zod_1.z.enum(['Product', 'Service', 'Work']).optional(),
 });
 const itemUpdateSchema = zod_1.z.object({
     groupId: zod_1.z.string().optional(),
+    kindId: zod_1.z.string().optional(),
     designation: zod_1.z.string().optional(),
     name: zod_1.z.string().min(1, 'Наименование обязательно').optional(),
     article: zod_1.z.string().optional(),
@@ -39,6 +42,7 @@ const itemUpdateSchema = zod_1.z.object({
     description: zod_1.z.string().optional(),
     unit: zod_1.z.string().optional(),
     price: zod_1.z.number().optional(),
+    type: zod_1.z.enum(['Product', 'Service', 'Work']).optional(),
 });
 // ============= РОУТЫ ДЛЯ ГРУПП =============
 // GET /nomenclature/groups - получить все группы
@@ -160,13 +164,34 @@ router.delete('/groups/:id', auth_1.authenticateToken, (0, auth_1.requireRole)([
 // GET /nomenclature - получить все позиции (корневой роут, алиас для /items)
 router.get('/', auth_1.authenticateToken, async (req, res) => {
     try {
-        const { groupId, type } = req.query;
+        const { groupId, type, article, code1c, name } = req.query;
         const where = {};
         if (groupId) {
             where.groupId = groupId;
         }
         if (type) {
             where.type = type;
+        }
+        // Поиск по артикулу
+        if (article) {
+            where.article = {
+                contains: article,
+                mode: 'insensitive'
+            };
+        }
+        // Поиск по коду 1С
+        if (code1c) {
+            where.code1c = {
+                contains: code1c,
+                mode: 'insensitive'
+            };
+        }
+        // Поиск по названию
+        if (name) {
+            where.name = {
+                contains: name,
+                mode: 'insensitive'
+            };
         }
         const items = await prisma.nomenclatureItem.findMany({
             where,
@@ -180,6 +205,55 @@ router.get('/', auth_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Ошибка получения позиций:', error);
         res.status(500).json({ error: 'Ошибка загрузки позиций' });
+    }
+});
+// GET /nomenclature/find - найти существующие позиции по полям
+router.get('/find', auth_1.authenticateToken, async (req, res) => {
+    try {
+        const { article, code1c, name, designation } = req.query;
+        if (!article && !code1c && !name && !designation) {
+            return res.status(400).json({ error: 'Необходимо указать хотя бы одно поле для поиска' });
+        }
+        const where = {};
+        // Поиск по артикулу (точное совпадение)
+        if (article) {
+            where.article = {
+                equals: article,
+                mode: 'insensitive'
+            };
+        }
+        // Поиск по коду 1С (точное совпадение)
+        if (code1c) {
+            where.code1c = {
+                equals: code1c,
+                mode: 'insensitive'
+            };
+        }
+        // Поиск по обозначению (точное совпадение)
+        if (designation) {
+            where.designation = {
+                equals: designation,
+                mode: 'insensitive'
+            };
+        }
+        // Поиск по названию (точное совпадение)
+        if (name) {
+            where.name = {
+                equals: name,
+                mode: 'insensitive'
+            };
+        }
+        const items = await prisma.nomenclatureItem.findFirst({
+            where,
+            include: {
+                group: true,
+            },
+        });
+        res.json(items);
+    }
+    catch (error) {
+        console.error('Ошибка поиска позиции:', error);
+        res.status(500).json({ error: 'Ошибка поиска позиции' });
     }
 });
 // GET /nomenclature/items - получить все позиции
@@ -234,6 +308,7 @@ router.post('/items', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin'
         const item = await prisma.nomenclatureItem.create({
             data: {
                 groupId: data.groupId || null,
+                kindId: data.kindId || null,
                 designation: data.designation || null,
                 name: data.name,
                 article: data.article || null,
@@ -242,9 +317,11 @@ router.post('/items', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin'
                 description: data.description || null,
                 // unit: data.unit || null, // TODO: изменить на связь с Unit
                 price: data.price || null,
+                type: data.type || 'Product',
             },
             include: {
                 group: true,
+                kind: true,
             },
         });
         res.status(201).json(item);
@@ -266,6 +343,7 @@ router.put('/items/:id', auth_1.authenticateToken, (0, auth_1.requireRole)(['adm
             where: { id },
             data: {
                 ...(data.groupId !== undefined && { groupId: data.groupId }),
+                ...(data.kindId !== undefined && { kindId: data.kindId }),
                 ...(data.designation !== undefined && { designation: data.designation }),
                 ...(data.name !== undefined && { name: data.name }),
                 ...(data.article !== undefined && { article: data.article }),
@@ -274,10 +352,12 @@ router.put('/items/:id', auth_1.authenticateToken, (0, auth_1.requireRole)(['adm
                 ...(data.description !== undefined && { description: data.description }),
                 // ...(data.unit !== undefined && { unit: data.unit }), // TODO: изменить на связь с Unit
                 ...(data.price !== undefined && { price: data.price }),
+                ...(data.type !== undefined && { type: data.type }),
                 updatedAt: new Date(),
             },
             include: {
                 group: true,
+                kind: true,
             },
         });
         res.json(item);

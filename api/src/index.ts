@@ -12,6 +12,8 @@ import nomenclatureRoutes from './routes/nomenclature';
 import nomenclatureKindRoutes from './routes/nomenclature-kinds';
 import unitRoutes from './routes/units';
 import migrationRoutes from './routes/migrations';
+import backupRoutes from './routes/backup';
+import catalogProductRoutes from './routes/catalog-products';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -34,8 +36,13 @@ app.use('/nomenclature', nomenclatureRoutes);
 app.use('/nomenclature-kinds', nomenclatureKindRoutes);
 app.use('/units', unitRoutes);
 app.use('/', specificationRoutes);
-app.use('/products', productSpecificationRoutes);
+app.use('/product-specifications', productSpecificationRoutes);
+app.use('/catalog-products', catalogProductRoutes);
 app.use('/api/migrations', migrationRoutes);
+app.use('/api/backup', backupRoutes);
+
+console.log('🚀 Registered routes:');
+console.log('  - /product-specifications (productSpecificationRoutes)');
 
 app.listen(port, () => {
   console.log(`API listening on http://localhost:${port}`);

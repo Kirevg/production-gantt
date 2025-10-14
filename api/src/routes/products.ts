@@ -7,7 +7,7 @@ const router = express.Router();
 
 const productCreateSchema = z.object({
   projectId: z.string().uuid(),
-  nomenclatureItemId: z.string().uuid(),
+  productId: z.string().uuid(), // Ссылка на справочник изделий
   serialNumber: z.string().optional(),
   description: z.string().optional(),
   quantity: z.number().min(1).default(1),
@@ -21,9 +21,9 @@ const productUpdateSchema = productCreateSchema.partial().extend({
 
 // Схема для создания этапов работ
 const workStageCreateSchema = z.object({
-  sum: z.string().min(1).max(200), // Сумма этапа
-  hours: z.string().optional(),
-  nomenclatureItemId: z.string().uuid().optional(),
+  sum: z.string().max(200).optional().default(''), // Сумма этапа (необязательно)
+  hours: z.string().optional().default(''), // Часы (необязательно)
+  nomenclatureItemId: z.string().uuid(), // Вид работ (ОБЯЗАТЕЛЬНО)
   startDate: z.string().nullable().optional().transform(str => str ? new Date(str) : null),
   endDate: z.string().nullable().optional().transform(str => str ? new Date(str) : null),
   duration: z.number().min(1).default(1),
@@ -57,16 +57,13 @@ router.get('/:projectId/products', authenticateToken, async (req, res) => {
         orderIndex: true,
         createdAt: true,
         updatedAt: true,
-        nomenclatureItem: {
+        product: {
           select: {
             id: true,
             name: true,
             designation: true,
             article: true,
-            code1c: true,
-            manufacturer: true,
-            unit: true,
-            price: true
+            description: true,
           }
         },
         workStages: {
@@ -268,16 +265,13 @@ router.get('/products/:productId', authenticateToken, async (req, res) => {
         productSum: true,
         version: true,
         orderIndex: true,
-        nomenclatureItem: {
+        product: {
           select: {
             id: true,
             name: true,
             designation: true,
             article: true,
-            code1c: true,
-            manufacturer: true,
-            unit: true,
-            price: true
+            description: true,
           }
         }
       }

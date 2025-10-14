@@ -79,7 +79,6 @@ model Unit {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   nomenclatureItems  NomenclatureItem[]
-  specifications     Specification[]
 
   @@index([code])
 }
@@ -87,7 +86,7 @@ model Unit {
 model Project {
   id                String           @id @default(uuid())
   name              String
-  status            ProjectStatus    @default(Planned)
+  status            ProjectStatus    @default(InProject)
   startDate         DateTime?
   endDate           DateTime?
   ownerId           String
@@ -106,12 +105,29 @@ model Project {
   @@index([startDate, endDate])
 }
 
+// Справочник изделий (Products)
+model Product {
+  id              String           @id @default(uuid())
+  name            String           // Название изделия
+  designation     String?          // Обозначение (например, ЧЛ-100)
+  article         String?          // Артикул
+  description     String?          // Описание
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  projectProducts ProjectProduct[] // Изделия в проектах
+
+  @@index([name])
+  @@index([isActive])
+}
+
+// Изделия в конкретном проекте
 model ProjectProduct {
   id                    String                 @id @default(uuid())
   projectId             String
-  nomenclatureItemId    String
-  serialNumber          String?
-  description           String?
+  productId             String                 // Ссылка на справочник изделий
+  serialNumber          String?                // Серийный номер конкретного экземпляра
+  description           String?                // Описание/примечания для конкретного экземпляра
   quantity              Int                    @default(1)
   productSum            Float?
   orderIndex            Int                    @default(0)
@@ -119,12 +135,12 @@ model ProjectProduct {
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  nomenclatureItem      NomenclatureItem       @relation(fields: [nomenclatureItemId], references: [id])
+  product               Product                @relation(fields: [productId], references: [id])
   productSpecifications ProductSpecification[]
   workStages            WorkStage[]
 
   @@index([projectId])
-  @@index([nomenclatureItemId])
+  @@index([productId])
   @@index([orderIndex])
 }
 
@@ -157,6 +173,7 @@ model ProductSpecification {
   productId      String
   name           String
   description    String?
+  totalSum       Float?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   product        ProjectProduct  @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -168,15 +185,7 @@ model ProductSpecification {
 model Specification {
   id                     String               @id @default(uuid())
   productSpecificationId String
-  nomenclatureItemId     String?
-  unitId                 String?
-  designation            String?
-  name                   String
-  article                String?
-  code1c                 String?
-  group                  String?
-  manufacturer           String?
-  description            String?
+  nomenclatureItemId     String
   quantity               Int                  @default(1)
   price                  Float?
   totalPrice             Float?
@@ -184,12 +193,10 @@ model Specification {
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
   productSpecification   ProductSpecification @relation(fields: [productSpecificationId], references: [id], onDelete: Cascade)
-  nomenclatureItem       NomenclatureItem?    @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
-  unit                   Unit?                @relation(fields: [unitId], references: [id])
+  nomenclatureItem       NomenclatureItem     @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
 
   @@index([productSpecificationId])
   @@index([nomenclatureItemId])
-  @@index([unitId])
   @@index([orderIndex])
 }
 
@@ -261,7 +268,6 @@ model NomenclatureItem {
   group           NomenclatureGroup?  @relation(fields: [groupId], references: [id])
   kind            NomenclatureKind?   @relation(fields: [kindId], references: [id])
   unit            Unit?               @relation(fields: [unitId], references: [id])
-  projectProducts ProjectProduct[]
   workStages      WorkStage[]         @relation("WorkStageNomenclature")
   specifications  Specification[]     @relation("SpecificationNomenclature")
 
@@ -280,10 +286,10 @@ enum Role {
 }
 
 enum ProjectStatus {
-  Planned
-  InProgress
-  Done
-  HasProblems
+  InProject    // В проекте (было Planned - Запланирован)
+  InProgress   // В работе
+  Done         // Завершён
+  HasProblems  // Проблемы (было Есть проблемы)
 }
 
 enum NomenclatureType {

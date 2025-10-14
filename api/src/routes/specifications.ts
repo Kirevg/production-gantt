@@ -13,16 +13,27 @@ interface AuthenticatedRequest extends Request {
 const router = Router();
 const prisma = new PrismaClient();
 
-// Схема для создания спецификации
+// Функция для пересчёта итоговой суммы документа
+async function recalculateProductSpecificationTotal(productSpecificationId: string) {
+    const specifications = await prisma.specification.findMany({
+        where: { productSpecificationId },
+        select: { totalPrice: true }
+    });
+
+    const totalSum = specifications.reduce((sum, spec) => sum + (spec.totalPrice || 0), 0);
+
+    await prisma.productSpecification.update({
+        where: { id: productSpecificationId },
+        data: { totalSum }
+    });
+}
+
+// Схема для создания спецификации (принцип 1С - только ID номенклатуры, количество и цена)
 const specificationCreateSchema = z.object({
-    nomenclatureItemId: z.string().uuid().optional(),
-    designation: z.string().optional(),
-    name: z.string().min(1, 'Название обязательно'),
-    description: z.string().optional(),
+    nomenclatureItemId: z.string().uuid(),
     quantity: z.number().int().min(1).default(1),
-    unit: z.string().optional(),
-    price: z.number().positive().optional(),
-    totalPrice: z.number().positive().optional(),
+    price: z.number().positive().optional().or(z.null()),
+    totalPrice: z.number().positive().optional().or(z.null()),
 });
 
 // Схема для обновления спецификации
@@ -64,7 +75,14 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
                         article: true,
                         code1c: true,
                         manufacturer: true,
-                        price: true
+                        description: true,
+                        price: true,
+                        group: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
                     }
                 }
             },
@@ -87,7 +105,18 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
             return res.status(400).json({ error: 'Product Specification ID is required' });
         }
 
-        const data = specificationCreateSchema.parse(req.body);
+        console.log('Полученные данные для создания спецификации:', req.body);
+
+        let data;
+        try {
+            data = specificationCreateSchema.parse(req.body);
+        } catch (validationError) {
+            console.error('Ошибка валидации:', validationError);
+            return res.status(400).json({
+                error: 'Ошибка валидации данных',
+                details: validationError
+            });
+        }
 
         // Проверяем права доступа к спецификации изделия
         const productSpec = await prisma.productSpecification.findFirst({
@@ -105,20 +134,20 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
             return res.status(404).json({ error: 'Спецификация изделия не найдена' });
         }
 
-        // Если выбрана позиция из номенклатуры, подтягиваем данные
+        // Если выбрана позиция из номенклатуры, проверяем её существование
         let specData = { ...data };
         if (data.nomenclatureItemId) {
             const nomenclatureItem = await prisma.nomenclatureItem.findUnique({
                 where: { id: data.nomenclatureItemId }
             });
 
-            if (nomenclatureItem) {
-                // Автоматически заполняем поля из номенклатуры, если они не указаны
-                if (!data.name) specData.name = nomenclatureItem.name;
-                if (!data.designation) specData.designation = nomenclatureItem.designation || undefined;
-                // if (!data.unit) specData.unit = nomenclatureItem.unit || undefined; // TODO: связь с Unit
-                if (!data.price) specData.price = nomenclatureItem.price || undefined;
-                if (!data.description) specData.description = nomenclatureItem.description || undefined;
+            if (!nomenclatureItem) {
+                return res.status(404).json({ error: 'Позиция номенклатуры не найдена' });
+            }
+
+            // Если цена не указана, берем из номенклатуры
+            if (specData.price === undefined || specData.price === null) {
+                specData.price = nomenclatureItem.price ?? undefined;
             }
         }
 
@@ -137,26 +166,20 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
         }
 
         const specificationData: any = {
-            name: specData.name,
-            description: specData.description || null,
             quantity: specData.quantity,
-            // unit: specData.unit || null, // TODO: связь с Unit
-            price: specData.price || null,
-            designation: specData.designation || null,
+            price: specData.price ?? null,
             productSpecificationId: id,
             orderIndex,
-            totalPrice: totalPrice || null
+            totalPrice: totalPrice ?? null,
+            nomenclatureItemId: specData.nomenclatureItemId ?? null
         };
-
-        if (specData.nomenclatureItemId) {
-            specificationData.nomenclatureItem = {
-                connect: { id: specData.nomenclatureItemId }
-            };
-        }
 
         const specification = await prisma.specification.create({
             data: specificationData
         });
+
+        // Пересчитываем итоговую сумму документа
+        await recalculateProductSpecificationTotal(id);
 
         res.status(201).json(specification);
     } catch (error) {
@@ -203,20 +226,22 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
             totalPrice = data.price * data.quantity;
         }
 
+        // По принципу 1С: обновляем только количество, цену и сумму
         const updateData: any = {};
 
-        if (data.name !== undefined) updateData.name = data.name;
-        if (data.description !== undefined) updateData.description = data.description;
         if (data.quantity !== undefined) updateData.quantity = data.quantity;
-        if (data.unit !== undefined) updateData.unit = data.unit;
         if (data.price !== undefined) updateData.price = data.price;
-        if (data.designation !== undefined) updateData.designation = data.designation;
         if (totalPrice !== undefined) updateData.totalPrice = totalPrice;
 
         const specification = await prisma.specification.update({
             where: { id },
             data: updateData
         });
+
+        // Пересчитываем итоговую сумму документа
+        if (existingSpecification) {
+            await recalculateProductSpecificationTotal(existingSpecification.productSpecificationId);
+        }
 
         res.json(specification);
     } catch (error) {
@@ -255,9 +280,14 @@ router.delete('/specifications/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Спецификация не найдена' });
         }
 
+        const productSpecificationId = specification.productSpecificationId;
+
         await prisma.specification.delete({
             where: { id }
         });
+
+        // Пересчитываем итоговую сумму документа
+        await recalculateProductSpecificationTotal(productSpecificationId);
 
         res.status(204).send();
     } catch (error) {

@@ -22,9 +22,9 @@ const productUpdateSchema = productCreateSchema.partial().extend({
 });
 // Схема для создания этапов работ
 const workStageCreateSchema = zod_1.z.object({
-    sum: zod_1.z.string().min(1).max(200), // Сумма этапа
-    hours: zod_1.z.string().optional(),
-    workTypeId: zod_1.z.string().uuid().optional(),
+    sum: zod_1.z.string().max(200).optional().default(''), // Сумма этапа (необязательно)
+    hours: zod_1.z.string().optional().default(''), // Часы (необязательно)
+    nomenclatureItemId: zod_1.z.string().uuid(), // Вид работ (ОБЯЗАТЕЛЬНО)
     startDate: zod_1.z.string().nullable().optional().transform(str => str ? new Date(str) : null),
     endDate: zod_1.z.string().nullable().optional().transform(str => str ? new Date(str) : null),
     duration: zod_1.z.number().min(1).default(1),
@@ -208,7 +208,7 @@ router.get('/products/:productId/work-stages', auth_1.authenticateToken, async (
                 duration: true,
                 progress: true,
                 orderIndex: true,
-                workType: {
+                nomenclatureItem: {
                     select: {
                         id: true,
                         name: true
@@ -340,8 +340,8 @@ router.delete('/products/:productId/work-stages/:workStageId', auth_1.authentica
         res.status(500).json({ error: 'Failed to delete work stage' });
     }
 });
-// PUT /products/reorder - изменить порядок изделий
-router.put('/reorder', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin', 'manager']), async (req, res) => {
+// PUT /projects/products/reorder - изменить порядок изделий
+router.put('/products/reorder', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin', 'manager']), async (req, res) => {
     try {
         const { productOrders } = req.body;
         if (!Array.isArray(productOrders)) {

@@ -22,26 +22,28 @@ const groupUpdateSchema = z.object({
 // Схемы валидации для позиций
 const itemCreateSchema = z.object({
     groupId: z.string().optional(),
+    kindId: z.string().optional(),
+    unitId: z.string().optional(),
     designation: z.string().optional(),
     name: z.string().min(1, 'Наименование обязательно'),
     article: z.string().optional(),
     code1c: z.string().optional(),
     manufacturer: z.string().optional(),
     description: z.string().optional(),
-    unit: z.string().optional(),
     price: z.number().optional(),
     type: z.enum(['Product', 'Service', 'Work']).optional(),
 });
 
 const itemUpdateSchema = z.object({
     groupId: z.string().optional(),
+    kindId: z.string().optional(),
+    unitId: z.string().optional(),
     designation: z.string().optional(),
     name: z.string().min(1, 'Наименование обязательно').optional(),
     article: z.string().optional(),
     code1c: z.string().optional(),
     manufacturer: z.string().optional(),
     description: z.string().optional(),
-    unit: z.string().optional(),
     price: z.number().optional(),
     type: z.enum(['Product', 'Service', 'Work']).optional(),
 });
@@ -217,6 +219,8 @@ router.get('/', authenticateToken, async (req, res) => {
             orderBy: { name: 'asc' },
             include: {
                 group: true,
+                kind: true,
+                unit: true,
             },
         });
         res.json(items);
@@ -273,6 +277,8 @@ router.get('/find', authenticateToken, async (req, res) => {
             where,
             include: {
                 group: true,
+                kind: true,
+                unit: true,
             },
         });
 
@@ -303,6 +309,8 @@ router.get('/items', authenticateToken, async (req, res) => {
             orderBy: { name: 'asc' },
             include: {
                 group: true,
+                kind: true,
+                unit: true,
             },
         });
         res.json(items);
@@ -320,6 +328,8 @@ router.get('/items/:id', authenticateToken, async (req, res) => {
             where: { id },
             include: {
                 group: true,
+                kind: true,
+                unit: true,
             },
         });
 
@@ -341,18 +351,21 @@ router.post('/items', authenticateToken, requireRole(['admin', 'manager']), asyn
         const item = await prisma.nomenclatureItem.create({
             data: {
                 groupId: data.groupId || null,
+                kindId: data.kindId || null,
+                unitId: data.unitId || null,
                 designation: data.designation || null,
                 name: data.name,
                 article: data.article || null,
                 code1c: data.code1c || null,
                 manufacturer: data.manufacturer || null,
                 description: data.description || null,
-                // unit: data.unit || null, // TODO: изменить на связь с Unit
                 price: data.price || null,
                 type: data.type || 'Product',
             },
             include: {
                 group: true,
+                kind: true,
+                unit: true,
             },
         });
         res.status(201).json(item);
@@ -375,19 +388,22 @@ router.put('/items/:id', authenticateToken, requireRole(['admin', 'manager']), a
             where: { id },
             data: {
                 ...(data.groupId !== undefined && { groupId: data.groupId }),
+                ...(data.kindId !== undefined && { kindId: data.kindId }),
+                ...(data.unitId !== undefined && { unitId: data.unitId }),
                 ...(data.designation !== undefined && { designation: data.designation }),
                 ...(data.name !== undefined && { name: data.name }),
                 ...(data.article !== undefined && { article: data.article }),
                 ...(data.code1c !== undefined && { code1c: data.code1c }),
                 ...(data.manufacturer !== undefined && { manufacturer: data.manufacturer }),
                 ...(data.description !== undefined && { description: data.description }),
-                // ...(data.unit !== undefined && { unit: data.unit }), // TODO: изменить на связь с Unit
                 ...(data.price !== undefined && { price: data.price }),
                 ...(data.type !== undefined && { type: data.type }),
                 updatedAt: new Date(),
             },
             include: {
                 group: true,
+                kind: true,
+                unit: true,
             },
         });
         res.json(item);
@@ -404,6 +420,42 @@ router.put('/items/:id', authenticateToken, requireRole(['admin', 'manager']), a
 router.delete('/items/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Проверяем, используется ли позиция в спецификациях
+        const usedInSpecifications = await prisma.specification.findFirst({
+            where: { nomenclatureItemId: id },
+        });
+
+        if (usedInSpecifications) {
+            return res.status(400).json({
+                error: 'Невозможно удалить позицию, используемую в спецификациях',
+                details: 'Сначала удалите все спецификации, содержащие эту позицию'
+            });
+        }
+
+        // Проверяем, используется ли позиция в изделиях
+        const usedInProducts = await prisma.projectProduct.findFirst({
+            where: { nomenclatureItemId: id },
+        });
+
+        if (usedInProducts) {
+            return res.status(400).json({
+                error: 'Невозможно удалить позицию, используемую в изделиях',
+                details: 'Сначала удалите все изделия, связанные с этой позицией'
+            });
+        }
+
+        // Проверяем, используется ли позиция в этапах работ
+        const usedInStages = await prisma.workStage.findFirst({
+            where: { nomenclatureItemId: id },
+        });
+
+        if (usedInStages) {
+            return res.status(400).json({
+                error: 'Невозможно удалить позицию, используемую в этапах работ',
+                details: 'Сначала удалите все этапы работ, связанные с этой позицией'
+            });
+        }
 
         await prisma.nomenclatureItem.delete({
             where: { id },

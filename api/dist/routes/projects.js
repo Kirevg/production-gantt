@@ -103,6 +103,16 @@ router.get('/:id', auth_1.authenticateToken, async (req, res) => {
                         role: true
                     }
                 },
+                projectManager: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        middleName: true,
+                        email: true,
+                        phone: true
+                    }
+                },
                 products: {
                     select: {
                         id: true,
@@ -248,6 +258,14 @@ router.put('/:id', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin', '
                         id: true,
                         email: true,
                         role: true
+                    }
+                },
+                projectManager: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        middleName: true
                     }
                 }
             }

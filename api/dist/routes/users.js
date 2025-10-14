@@ -14,6 +14,7 @@ const createUserSchema = zod_1.z.object({
     email: zod_1.z.string().email(),
     password: zod_1.z.string().min(6),
     role: zod_1.z.enum(['admin', 'manager', 'user']).default('user'),
+    personId: zod_1.z.string().uuid().optional(),
 });
 // Схема валидации для обновления пользователя
 const updateUserSchema = zod_1.z.object({
@@ -21,6 +22,7 @@ const updateUserSchema = zod_1.z.object({
     password: zod_1.z.string().min(6).optional(),
     role: zod_1.z.enum(['admin', 'manager', 'user']).optional(),
     isActive: zod_1.z.boolean().optional(),
+    personId: zod_1.z.string().uuid().optional().nullable(),
 });
 // GET /users - получить список пользователей (только для авторизованных)
 router.get('/', auth_1.authenticateToken, async (req, res) => {
@@ -31,6 +33,15 @@ router.get('/', auth_1.authenticateToken, async (req, res) => {
                 email: true,
                 role: true,
                 isActive: true,
+                personId: true,
+                person: {
+                    select: {
+                        id: true,
+                        lastName: true,
+                        firstName: true,
+                        middleName: true
+                    }
+                },
                 createdAt: true
             },
             orderBy: {
@@ -91,12 +102,14 @@ router.post('/', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin']), a
                 email: data.email,
                 passwordHash,
                 role: data.role,
+                personId: data.personId || null,
             },
             select: {
                 id: true,
                 email: true,
                 role: true,
                 isActive: true,
+                personId: true,
                 createdAt: true,
                 updatedAt: true
             }
@@ -177,6 +190,9 @@ router.put('/:id', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin']),
         if (data.isActive !== undefined) {
             updateData.isActive = data.isActive;
         }
+        if (data.personId !== undefined) {
+            updateData.personId = data.personId || null;
+        }
         // Обновляем пользователя
         const updatedUser = await prisma_1.default.user.update({
             where: { id },
@@ -186,6 +202,7 @@ router.put('/:id', auth_1.authenticateToken, (0, auth_1.requireRole)(['admin']),
                 email: true,
                 role: true,
                 isActive: true,
+                personId: true,
                 createdAt: true,
                 updatedAt: true
             }

@@ -67,7 +67,7 @@ router.get('/', authenticateToken, async (req, res) => {
             description: true,
             quantity: true,
             productSum: true,
-            nomenclatureItem: {
+            product: {
               select: {
                 id: true,
                 name: true,
@@ -127,7 +127,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
             productSum: true,
             orderIndex: true,
             version: true,
-            nomenclatureItem: {
+            product: {
               select: {
                 id: true,
                 name: true,
