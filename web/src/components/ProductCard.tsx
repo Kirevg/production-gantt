@@ -22,7 +22,8 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    Autocomplete
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
@@ -113,7 +114,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [productForm, setProductForm] = useState({
-        productId: '', // Изменено: теперь из справочника изделий
+        productId: '', // ID из справочника (если выбрано)
+        productName: '', // Название изделия (ручной ввод или выбор)
         serialNumber: '',
         quantity: 1,
         link: ''
@@ -331,7 +333,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         // Загружаем форму с актуальными данными
         setProductForm({
-            productId: currentProductData?.product?.id || '', // Изменено
+            productId: currentProductData?.product?.id || '',
+            productName: currentProductData?.product?.name || '',
             serialNumber: currentProductData?.serialNumber || '',
             quantity: currentProductData?.quantity || 1,
             link: currentProductData?.description || ''
@@ -342,16 +345,51 @@ const ProductCard: React.FC<ProductCardProps> = ({
     // Сохранение изменений изделия
     const handleSaveProduct = async () => {
         try {
-            if (!productForm.productId) { // Изменено
-                alert('Пожалуйста, выберите изделие из справочника');
+            // Проверяем, что есть либо выбранное изделие, либо введено название вручную
+            if (!productForm.productId && !productForm.productName) {
+                alert('Пожалуйста, выберите изделие из справочника или введите название вручную');
                 return;
             }
 
             const token = localStorage.getItem('token');
+            let finalProductId = productForm.productId;
+
+            // Если введено название вручную, но не выбрано из справочника - создаём новое изделие в справочнике
+            if (!productForm.productId && productForm.productName) {
+                try {
+                    const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            name: productForm.productName,
+                            isActive: true
+                        })
+                    });
+
+                    if (createProductResponse.ok) {
+                        const newProduct = await createProductResponse.json();
+                        finalProductId = newProduct.id;
+                        console.log('Создано новое изделие в справочнике:', newProduct);
+                    } else {
+                        const errorData = await createProductResponse.json().catch(() => ({ error: 'Unknown error' }));
+                        console.error('Ошибка создания изделия в справочнике:', errorData);
+                        alert(`Ошибка при создании изделия в справочнике: ${JSON.stringify(errorData)}`);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Ошибка при создании изделия в справочнике:', error);
+                    alert('Произошла ошибка при создании изделия в справочнике');
+                    return;
+                }
+            }
+
             const isNewProduct = productId?.startsWith('temp-');
 
             const requestBody = {
-                productId: productForm.productId, // Изменено
+                productId: finalProductId,
                 serialNumber: productForm.serialNumber || undefined,
                 description: productForm.link || undefined,
                 quantity: productForm.quantity,
@@ -380,6 +418,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setOpenProductEditDialog(false);
                 // Обновляем данные изделия вместо перезагрузки страницы
                 await fetchProductData();
+                // Обновляем справочник изделий
+                await fetchCatalogProducts();
             } else {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
                 console.error('API Error:', errorData);
@@ -1033,22 +1073,51 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <DialogTitle>{productId?.startsWith('temp-') ? 'Создать изделие' : 'Редактировать изделие'}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                        <FormControl fullWidth required>
-                            <InputLabel shrink>Изделие</InputLabel>
-                            <Select
-                                value={productForm.productId}
-                                onChange={(e) => setProductForm({ ...productForm, productId: e.target.value })}
-                                label="Изделие"
-                                disabled={loadingProducts}
-                                notched
-                            >
-                                {catalogProducts.map((product) => (
-                                    <MenuItem key={product.id} value={product.id}>
-                                        {product.name} {product.designation ? `(${product.designation})` : ''}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <Autocomplete
+                            freeSolo
+                            options={catalogProducts}
+                            getOptionLabel={(option) => {
+                                if (typeof option === 'string') return option;
+                                return `${option.name}${option.designation ? ` (${option.designation})` : ''}`;
+                            }}
+                            value={productForm.productId ? catalogProducts.find(p => p.id === productForm.productId) || null : productForm.productName}
+                            onChange={(event, newValue) => {
+                                if (typeof newValue === 'string') {
+                                    // Ручной ввод
+                                    setProductForm({
+                                        ...productForm,
+                                        productId: '',
+                                        productName: newValue
+                                    });
+                                } else if (newValue && newValue.id) {
+                                    // Выбор из списка
+                                    setProductForm({
+                                        ...productForm,
+                                        productId: newValue.id,
+                                        productName: newValue.name
+                                    });
+                                } else {
+                                    // Очистка
+                                    setProductForm({
+                                        ...productForm,
+                                        productId: '',
+                                        productName: ''
+                                    });
+                                }
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Изделие"
+                                    fullWidth
+                                    required
+                                    InputLabelProps={{ shrink: true }}
+                                    error={!productForm.productId && !productForm.productName}
+                                    helperText="Выберите из списка или введите название вручную"
+                                />
+                            )}
+                            disabled={loadingProducts}
+                        />
                         <TextField
                             label="Серийный номер"
                             value={productForm.serialNumber}
