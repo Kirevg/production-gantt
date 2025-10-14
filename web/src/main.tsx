@@ -9,82 +9,82 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000
 
 // Функция для отправки лога на сервер
 const sendLogToServer = (level: 'log' | 'info' | 'warn' | 'error', args: any[]) => {
-    try {
-        const message = args.map(arg => {
-            if (typeof arg === 'object') {
-                try {
-                    return JSON.stringify(arg, null, 2);
-                } catch {
-                    return String(arg);
-                }
-            }
-            return String(arg);
-        }).join(' ');
+  try {
+    const message = args.map(arg => {
+      if (typeof arg === 'object') {
+        try {
+          return JSON.stringify(arg, null, 2);
+        } catch {
+          return String(arg);
+        }
+      }
+      return String(arg);
+    }).join(' ');
 
-        const logData = {
-            level,
-            message,
-            timestamp: new Date().toISOString(),
-            url: window.location.href,
-            stack: level === 'error' && args[0] instanceof Error ? args[0].stack : undefined
-        };
+    const logData = {
+      level,
+      message,
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+      stack: level === 'error' && args[0] instanceof Error ? args[0].stack : undefined
+    };
 
-        // Используем navigator.sendBeacon для надёжной отправки
-        // Даже если страница закрывается, лог всё равно отправится
-        const blob = new Blob([JSON.stringify(logData)], { type: 'application/json' });
-        navigator.sendBeacon(`${API_BASE_URL}/api/client-logs`, blob);
-    } catch (err) {
-        // Тихо игнорируем ошибки логирования, чтобы не создавать цикл
-    }
+    // Используем navigator.sendBeacon для надёжной отправки
+    // Даже если страница закрывается, лог всё равно отправится
+    const blob = new Blob([JSON.stringify(logData)], { type: 'application/json' });
+    navigator.sendBeacon(`${API_BASE_URL}/api/client-logs`, blob);
+  } catch (err) {
+    // Тихо игнорируем ошибки логирования, чтобы не создавать цикл
+  }
 };
 
 // Сохраняем оригинальные методы консоли
 const originalConsole = {
-    log: console.log,
-    info: console.info,
-    warn: console.warn,
-    error: console.error
+  log: console.log,
+  info: console.info,
+  warn: console.warn,
+  error: console.error
 };
 
 // Переопределяем console.log
-console.log = function(...args: any[]) {
-    originalConsole.log.apply(console, args);
-    sendLogToServer('log', args);
+console.log = function (...args: any[]) {
+  originalConsole.log.apply(console, args);
+  sendLogToServer('log', args);
 };
 
 // Переопределяем console.info
-console.info = function(...args: any[]) {
-    originalConsole.info.apply(console, args);
-    sendLogToServer('info', args);
+console.info = function (...args: any[]) {
+  originalConsole.info.apply(console, args);
+  sendLogToServer('info', args);
 };
 
 // Переопределяем console.warn
-console.warn = function(...args: any[]) {
-    originalConsole.warn.apply(console, args);
-    sendLogToServer('warn', args);
+console.warn = function (...args: any[]) {
+  originalConsole.warn.apply(console, args);
+  sendLogToServer('warn', args);
 };
 
 // Переопределяем console.error
-console.error = function(...args: any[]) {
-    originalConsole.error.apply(console, args);
-    sendLogToServer('error', args);
+console.error = function (...args: any[]) {
+  originalConsole.error.apply(console, args);
+  sendLogToServer('error', args);
 };
 
 // Перехватываем необработанные ошибки
 window.addEventListener('error', (event) => {
-    sendLogToServer('error', [
-        `Uncaught Error: ${event.message}`,
-        `at ${event.filename}:${event.lineno}:${event.colno}`,
-        event.error
-    ]);
+  sendLogToServer('error', [
+    `Uncaught Error: ${event.message}`,
+    `at ${event.filename}:${event.lineno}:${event.colno}`,
+    event.error
+  ]);
 });
 
 // Перехватываем необработанные Promise rejection
 window.addEventListener('unhandledrejection', (event) => {
-    sendLogToServer('error', [
-        `Unhandled Promise Rejection: ${event.reason}`,
-        event.reason
-    ]);
+  sendLogToServer('error', [
+    `Unhandled Promise Rejection: ${event.reason}`,
+    event.reason
+  ]);
 });
 
 console.log('🔍 Удалённое логирование консоли включено');

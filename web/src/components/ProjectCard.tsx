@@ -25,6 +25,7 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    Autocomplete,
 } from '@mui/material';
 import { Build as BuildIcon, Delete as DeleteIcon, DragIndicator } from '@mui/icons-material';
 
@@ -117,7 +118,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     });
     const [managers, setManagers] = useState<any[]>([]);
     const [productForm, setProductForm] = useState({
-        productId: '', // Изменено: теперь выбираем из справочника изделий
+        productId: '', // ID из справочника (если выбрано)
+        productName: '', // Название изделия (ручной ввод или выбор)
         serialNumber: '',
         quantity: 1,
         link: ''
@@ -503,7 +505,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         setOpenProductDialog(false);
         setEditingProduct(null);
         setProductForm({
-            productId: '', // Изменено
+            productId: '',
+            productName: '',
             serialNumber: '',
             quantity: 1,
             link: ''
@@ -513,8 +516,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const handleSaveProduct = async () => {
         try {
             // Валидация
-            if (!productForm.productId) { // Изменено
-                alert('Пожалуйста, выберите изделие из справочника');
+            if (!productForm.productName.trim()) {
+                alert('Пожалуйста, введите или выберите изделие');
                 return;
             }
 
@@ -524,6 +527,34 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 return;
             }
 
+            // Если введено вручную, сначала создаём изделие в справочнике
+            let productId = productForm.productId;
+            
+            if (!productId && productForm.productName.trim()) {
+                // Создаём новое изделие в справочнике
+                const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: productForm.productName.trim(),
+                        isActive: true
+                    })
+                });
+
+                if (!createProductResponse.ok) {
+                    throw new Error('Ошибка создания изделия в справочнике');
+                }
+
+                const newProduct = await createProductResponse.json();
+                productId = newProduct.id;
+                
+                // Обновляем список изделий
+                await fetchCatalogProducts();
+            }
+
             const url = editingProduct
                 ? `${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products/${editingProduct.id}`
                 : `${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products`;
@@ -531,7 +562,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             const method = editingProduct ? 'PUT' : 'POST';
 
             const requestData: {
-                productId: string; // Изменено
+                productId: string;
                 serialNumber?: string;
                 description?: string;
                 quantity: number;
@@ -539,7 +570,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 orderIndex?: number;
                 productSum?: number;
             } = {
-                productId: productForm.productId, // Изменено
+                productId: productId,
                 serialNumber: productForm.serialNumber || undefined,
                 description: productForm.link || undefined,
                 quantity: productForm.quantity
@@ -679,12 +710,38 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     <DragIndicator color="action" />
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                <TableCell sx={{ py: 0.5, minWidth: '250px' }}>
+                <TableCell 
+                    sx={{ py: 0.5, minWidth: '250px', cursor: 'pointer' }}
+                    onClick={() => {
+                        setEditingProduct(product);
+                        setProductForm({
+                            productId: product.product?.id || '',
+                            productName: product.product?.name || '',
+                            serialNumber: product.serialNumber || '',
+                            quantity: product.quantity || 1,
+                            link: product.description || ''
+                        });
+                        setOpenProductDialog(true);
+                    }}
+                >
                     <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
                         {product.product?.name || 'Без названия'}
                     </Typography>
                 </TableCell>
-                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                <TableCell 
+                    sx={{ py: 0.5, textAlign: 'center', cursor: 'pointer' }}
+                    onClick={() => {
+                        setEditingProduct(product);
+                        setProductForm({
+                            productId: product.product?.id || '',
+                            productName: product.product?.name || '',
+                            serialNumber: product.serialNumber || '',
+                            quantity: product.quantity || 1,
+                            link: product.description || ''
+                        });
+                        setOpenProductDialog(true);
+                    }}
+                >
                     <Typography variant="body1">
                         {product.serialNumber || '-'}
                     </Typography>
@@ -913,22 +970,57 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 </DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-                        <FormControl fullWidth required>
-                            <InputLabel shrink>Изделие</InputLabel>
-                            <Select
-                                value={productForm.productId}
-                                onChange={(e) => setProductForm({ ...productForm, productId: e.target.value })}
-                                label="Изделие"
-                                disabled={loadingProducts}
-                                notched
-                            >
-                                {catalogProducts.map((product) => (
-                                    <MenuItem key={product.id} value={product.id}>
-                                        {product.name} {product.designation ? `(${product.designation})` : ''}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <Autocomplete
+                            freeSolo
+                            options={catalogProducts}
+                            getOptionLabel={(option) => {
+                                if (typeof option === 'string') return option;
+                                return `${option.name}${option.designation ? ` (${option.designation})` : ''}`;
+                            }}
+                            value={catalogProducts.find(p => p.id === productForm.productId) || null}
+                            onChange={(event, newValue) => {
+                                if (typeof newValue === 'string') {
+                                    // Ручной ввод
+                                    setProductForm({ 
+                                        ...productForm, 
+                                        productId: '',
+                                        productName: newValue 
+                                    });
+                                } else if (newValue && newValue.id) {
+                                    // Выбор из списка
+                                    setProductForm({ 
+                                        ...productForm, 
+                                        productId: newValue.id,
+                                        productName: newValue.name
+                                    });
+                                } else {
+                                    // Очистка
+                                    setProductForm({ 
+                                        ...productForm, 
+                                        productId: '',
+                                        productName: '' 
+                                    });
+                                }
+                            }}
+                            onInputChange={(event, newInputValue) => {
+                                // Обновляем название при ручном вводе
+                                setProductForm({ 
+                                    ...productForm, 
+                                    productName: newInputValue 
+                                });
+                            }}
+                            inputValue={productForm.productName}
+                            disabled={loadingProducts}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Изделие"
+                                    required
+                                    placeholder="Введите или выберите изделие"
+                                    helperText="Выберите из списка или введите название вручную"
+                                />
+                            )}
+                        />
                         <TextField
                             label="Количество"
                             type="number"

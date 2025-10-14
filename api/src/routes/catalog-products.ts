@@ -7,6 +7,7 @@ import { authenticateToken, requireRole } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
+// Обновлено: добавлена модель Product в схему Prisma
 
 // Схема валидации для создания изделия
 const productCreateSchema = z.object({
@@ -173,4 +174,5 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res
 });
 
 export default router;
+
 

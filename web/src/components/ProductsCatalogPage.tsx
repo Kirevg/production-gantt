@@ -347,3 +347,4 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
 
 export default ProductsCatalogPage;
 
+

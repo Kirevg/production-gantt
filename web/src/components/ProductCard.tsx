@@ -394,7 +394,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     useEffect(() => {
         fetchSpecifications();
         fetchProductData();
-        fetchNomenclature();
+        fetchCatalogProducts();
         if (productId) {
             fetchStages();
             fetchWorkTypesAndContractors();

@@ -19,7 +19,7 @@ interface ClientLog {
 router.post('/', async (req, res) => {
     try {
         const log: ClientLog = req.body;
-        
+
         // Добавляем информацию о запросе
         const enrichedLog = {
             ...log,
@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
 
         // Формируем строку лога
         const logLine = `[${enrichedLog.timestamp}] [${enrichedLog.level.toUpperCase()}] ${enrichedLog.message}\n`;
-        
+
         // Если есть stack trace, добавляем его
         if (enrichedLog.stack) {
             const stackLine = `Stack: ${enrichedLog.stack}\n`;
@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
 
         const logFile = path.join(logsDir, `client-${new Date().toISOString().split('T')[0]}.log`);
         const fullLogLine = `${JSON.stringify(enrichedLog)}\n`;
-        
+
         fs.appendFileSync(logFile, fullLogLine);
 
         // Отправляем успешный ответ (без тела, чтобы не нагружать сеть)
@@ -60,4 +60,5 @@ router.post('/', async (req, res) => {
 });
 
 export default router;
+
 
