@@ -577,8 +577,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             };
 
             if (editingProduct) {
-                // Для редактирования добавляем только version
-                requestData.version = editingProduct.version;
+                // Для редактирования добавляем только version (если он есть и больше 0)
+                if (editingProduct.version && editingProduct.version > 0) {
+                    requestData.version = editingProduct.version;
+                }
             } else {
                 // Для создания добавляем orderIndex
                 requestData.orderIndex = 0;
