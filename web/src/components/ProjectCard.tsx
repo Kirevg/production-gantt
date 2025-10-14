@@ -419,21 +419,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     };
 
     const handleAddEmptyProduct = () => {
-        // Создаем временную пустую строку
-        const emptyProduct: Product = {
-            id: `temp-${Date.now()}`, // Временный ID
-            serialNumber: '',
-            description: '',
-            product: undefined,
-            quantity: 1,
-            version: 0,
-            orderIndex: products.length,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-
-        // Добавляем в конец списка
-        setProducts([...products, emptyProduct]);
+        // Открываем пустую карточку изделия с временным ID
+        const tempProductId = `temp-${Date.now()}`;
+        onOpenSpecifications(tempProductId, 'Новое изделие');
     };
 
     // Обработчик для drag-and-drop событий

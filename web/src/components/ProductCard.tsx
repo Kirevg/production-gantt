@@ -441,6 +441,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     }, [projectId, productId]);
 
+    // Автоматически открываем диалог редактирования для новых изделий
+    useEffect(() => {
+        if (productId && productId.startsWith('temp-')) {
+            handleOpenProductEdit();
+        }
+    }, [productId]);
+
     // Обработчики для спецификаций
     const handleOpenSpecificationDialog = (specification?: ProjectSpecification) => {
         if (specification) {
