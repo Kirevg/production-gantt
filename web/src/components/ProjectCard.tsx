@@ -529,7 +529,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
             // Если введено вручную, сначала создаём изделие в справочнике
             let productId = productForm.productId;
-            
+
             if (!productId && productForm.productName.trim()) {
                 // Создаём новое изделие в справочнике
                 const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
@@ -550,7 +550,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
                 const newProduct = await createProductResponse.json();
                 productId = newProduct.id;
-                
+
                 // Обновляем список изделий
                 await fetchCatalogProducts();
             }
@@ -712,38 +712,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     <DragIndicator color="action" />
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                <TableCell 
-                    sx={{ py: 0.5, minWidth: '250px', cursor: 'pointer' }}
-                    onClick={() => {
-                        setEditingProduct(product);
-                        setProductForm({
-                            productId: product.product?.id || '',
-                            productName: product.product?.name || '',
-                            serialNumber: product.serialNumber || '',
-                            quantity: product.quantity || 1,
-                            link: product.description || ''
-                        });
-                        setOpenProductDialog(true);
-                    }}
-                >
+                <TableCell sx={{ py: 0.5, minWidth: '250px' }}>
                     <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
                         {product.product?.name || 'Без названия'}
                     </Typography>
                 </TableCell>
-                <TableCell 
-                    sx={{ py: 0.5, textAlign: 'center', cursor: 'pointer' }}
-                    onClick={() => {
-                        setEditingProduct(product);
-                        setProductForm({
-                            productId: product.product?.id || '',
-                            productName: product.product?.name || '',
-                            serialNumber: product.serialNumber || '',
-                            quantity: product.quantity || 1,
-                            link: product.description || ''
-                        });
-                        setOpenProductDialog(true);
-                    }}
-                >
+                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
                     <Typography variant="body1">
                         {product.serialNumber || '-'}
                     </Typography>
@@ -983,32 +957,32 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                             onChange={(event, newValue) => {
                                 if (typeof newValue === 'string') {
                                     // Ручной ввод
-                                    setProductForm({ 
-                                        ...productForm, 
+                                    setProductForm({
+                                        ...productForm,
                                         productId: '',
-                                        productName: newValue 
+                                        productName: newValue
                                     });
                                 } else if (newValue && newValue.id) {
                                     // Выбор из списка
-                                    setProductForm({ 
-                                        ...productForm, 
+                                    setProductForm({
+                                        ...productForm,
                                         productId: newValue.id,
                                         productName: newValue.name
                                     });
                                 } else {
                                     // Очистка
-                                    setProductForm({ 
-                                        ...productForm, 
+                                    setProductForm({
+                                        ...productForm,
                                         productId: '',
-                                        productName: '' 
+                                        productName: ''
                                     });
                                 }
                             }}
                             onInputChange={(event, newInputValue) => {
                                 // Обновляем название при ручном вводе
-                                setProductForm({ 
-                                    ...productForm, 
-                                    productName: newInputValue 
+                                setProductForm({
+                                    ...productForm,
+                                    productName: newInputValue
                                 });
                             }}
                             inputValue={productForm.productName}
