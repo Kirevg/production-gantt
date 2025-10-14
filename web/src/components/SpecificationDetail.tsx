@@ -30,7 +30,7 @@ import VolumeButton from './VolumeButton';
 interface Specification {
     id: string;
     designation?: string;
-    name: string;
+    name?: string;
     article?: string;
     code1c?: string;
     group?: string;
@@ -43,10 +43,24 @@ interface Specification {
     orderIndex: number;
     createdAt: string;
     updatedAt: string;
+    nomenclatureItem?: {
+        id: string;
+        name: string;
+        designation?: string;
+        article?: string;
+        code1c?: string;
+        manufacturer?: string;
+        description?: string;
+        price?: number;
+        group?: {
+            id: string;
+            name: string;
+        };
+    };
 }
 
 interface SpecificationsPageProps {
-    productId: string;
+    productSpecificationId: string;
     productName: string;
     onBack: () => void;
     canEdit?: () => boolean;
@@ -55,7 +69,7 @@ interface SpecificationsPageProps {
 }
 
 const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
-    productId,
+    productSpecificationId,
     productName,
     onBack,
     canEdit = () => true,
@@ -63,6 +77,41 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     canDelete = () => true
 }) => {
     const [specifications, setSpecifications] = useState<Specification[]>([]);
+
+    // Состояние для диалога выбора номенклатуры
+    const [showNomenclatureDialog, setShowNomenclatureDialog] = useState(false);
+    const [nomenclatureItems, setNomenclatureItems] = useState<Array<{
+        id: string;
+        name: string;
+        designation?: string;
+        article?: string;
+        code1c?: string;
+        manufacturer?: string;
+        price?: number;
+        group?: { name: string };
+        kind?: { name: string };
+    }>>([]);
+    const [allNomenclatureItems, setAllNomenclatureItems] = useState<Array<{
+        id: string;
+        name: string;
+        designation?: string;
+        article?: string;
+        code1c?: string;
+        manufacturer?: string;
+        price?: number;
+        group?: { name: string };
+        kind?: { name: string };
+    }>>([]);
+    const [nomenclatureLoading, setNomenclatureLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+    const [selectedItems, setSelectedItems] = useState<Array<{
+        item: any;
+        quantity: number;
+        unit: string;
+    }>>([]);
+    const [showFilters, setShowFilters] = useState(false);
+    const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
 
     // Функция для форматирования денежных значений в маску 0 000,00
     const formatCurrency = (value: number | null | undefined): string => {
@@ -86,6 +135,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
     const [specificationForm, setSpecificationForm] = useState({
+        nomenclatureItemId: '',
         designation: '',
         name: '',
         article: '',
@@ -108,7 +158,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 return;
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productId}/specifications`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productSpecificationId}/specifications`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -129,37 +179,63 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         }
     };
 
+    const fetchNomenclature = async () => {
+        try {
+            setNomenclatureLoading(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен авторизации не найден');
+                return;
+            }
+
+            // Загружаем номенклатуру и группы параллельно
+            const [itemsResponse, groupsResponse] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/items`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            if (itemsResponse.ok) {
+                const data = await itemsResponse.json();
+                setAllNomenclatureItems(data);
+                setNomenclatureItems(data);
+            }
+
+            if (groupsResponse.ok) {
+                const groupsData = await groupsResponse.json();
+                setGroups(groupsData);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки номенклатуры:', error);
+        } finally {
+            setNomenclatureLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchSpecifications();
-    }, [productId]);
+    }, [productSpecificationId]);
 
-    const handleOpenCreateForm = () => {
-        setSpecificationForm({
-            designation: '',
-            name: '',
-            article: '',
-            code1c: '',
-            group: '',
-            manufacturer: '',
-            description: '',
-            quantity: 1,
-            unit: '',
-            price: '',
-            totalPrice: ''
-        });
-        setShowCreateForm(true);
+    const handleOpenCreateForm = async () => {
+        // Загружаем номенклатуру и открываем диалог выбора
+        await fetchNomenclature();
+        setShowNomenclatureDialog(true);
     };
 
     const handleOpenEditForm = (specification: Specification) => {
         setEditingSpecification(specification);
         setSpecificationForm({
-            designation: specification.designation || '',
-            name: specification.name,
-            article: specification.article || '',
-            code1c: specification.code1c || '',
+            nomenclatureItemId: specification.nomenclatureItem?.id || '',
+            designation: specification.nomenclatureItem?.designation || specification.designation || '',
+            name: specification.nomenclatureItem?.name || specification.name || '',
+            article: specification.nomenclatureItem?.article || specification.article || '',
+            code1c: specification.nomenclatureItem?.code1c || specification.code1c || '',
             group: specification.group || '',
-            manufacturer: specification.manufacturer || '',
-            description: specification.description || '',
+            manufacturer: specification.nomenclatureItem?.manufacturer || specification.manufacturer || '',
+            description: specification.nomenclatureItem?.description || specification.description || '',
             quantity: specification.quantity,
             unit: specification.unit || '',
             price: specification.price?.toString() || '',
@@ -168,11 +244,114 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         setShowEditForm(true);
     };
 
+
+    const handleCloseNomenclatureDialog = () => {
+        setShowNomenclatureDialog(false);
+        setSearchQuery('');
+        setSelectedGroupId(null);
+        setSelectedItems([]);
+        setShowFilters(false);
+        // Восстанавливаем полный список номенклатуры
+        setNomenclatureItems(allNomenclatureItems);
+    };
+
+    const handleSearchChange = (query: string) => {
+        setSearchQuery(query);
+        applyFilters(query, selectedGroupId);
+    };
+
+    const handleGroupSelection = (groupId: string | null) => {
+        setSelectedGroupId(groupId);
+        applyFilters(searchQuery, groupId);
+    };
+
+    const applyFilters = (query: string, groupId: string | null) => {
+        let filtered = allNomenclatureItems;
+
+        // Фильтр по поиску
+        if (query.trim() !== '') {
+            filtered = filtered.filter(item =>
+                item.name.toLowerCase().includes(query.toLowerCase()) ||
+                (item.designation && item.designation.toLowerCase().includes(query.toLowerCase())) ||
+                (item.article && item.article.toLowerCase().includes(query.toLowerCase())) ||
+                (item.code1c && item.code1c.toLowerCase().includes(query.toLowerCase())) ||
+                (item.manufacturer && item.manufacturer.toLowerCase().includes(query.toLowerCase()))
+            );
+        }
+
+        // Фильтр по группе
+        if (groupId) {
+            filtered = filtered.filter(item => item.group?.name === groupId);
+        }
+
+        setNomenclatureItems(filtered);
+    };
+
+    const handleItemSelection = (item: any) => {
+        // Проверяем, не добавлен ли уже этот элемент
+        const existingIndex = selectedItems.findIndex(selected => selected.item.id === item.id);
+
+        if (existingIndex >= 0) {
+            // Если уже добавлен, увеличиваем количество
+            const newSelectedItems = [...selectedItems];
+            newSelectedItems[existingIndex].quantity += 1;
+            setSelectedItems(newSelectedItems);
+        } else {
+            // Если новый, добавляем с количеством 1
+            setSelectedItems([...selectedItems, {
+                item: item,
+                quantity: 1,
+                unit: item.unit || 'шт'
+            }]);
+        }
+    };
+
+
+    const clearSelectedItems = () => {
+        setSelectedItems([]);
+    };
+
+    const transferToDocument = () => {
+        if (selectedItems.length === 0) {
+            alert('Выберите номенклатуру для добавления');
+            return;
+        }
+
+        // Добавляем первую выбранную позицию в спецификацию
+        // По принципу 1С: сохраняем только ID номенклатуры, количество и цену
+        const firstItem = selectedItems[0];
+        setSpecificationForm({
+            nomenclatureItemId: firstItem.item.id,
+            designation: firstItem.item.designation || '',
+            name: firstItem.item.name,
+            article: firstItem.item.article || '',
+            code1c: firstItem.item.code1c || '',
+            group: firstItem.item.group?.name || '',
+            manufacturer: firstItem.item.manufacturer || '',
+            description: firstItem.item.description || '',
+            quantity: firstItem.quantity,
+            unit: firstItem.unit,
+            price: firstItem.item.price?.toString() || '',
+            totalPrice: ''
+        });
+
+        setSelectedItems([]);
+        setShowNomenclatureDialog(false);
+        setShowCreateForm(true);
+    };
+
+    const getTotalSum = () => {
+        return selectedItems.reduce((sum, selected) => {
+            return sum + (selected.item.price || 0) * selected.quantity;
+        }, 0);
+    };
+
     const handleCloseForms = () => {
         setShowCreateForm(false);
         setShowEditForm(false);
         setEditingSpecification(null);
         setSpecificationForm({
+            nomenclatureItemId: '',
             designation: '',
             name: '',
             article: '',
@@ -196,19 +375,17 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 return;
             }
 
-            const data = {
-                designation: specificationForm.designation || undefined,
-                name: specificationForm.name,
-                description: specificationForm.description || undefined,
+            // Принцип 1С: в документ передаем только ID номенклатуры, количество и цену
+            const data: any = {
+                nomenclatureItemId: specificationForm.nomenclatureItemId,
                 quantity: specificationForm.quantity,
-                unit: specificationForm.unit || undefined,
                 price: specificationForm.price ? parseFloat(specificationForm.price) : undefined,
                 totalPrice: specificationForm.totalPrice ? parseFloat(specificationForm.totalPrice) : undefined
             };
 
             const url = editingSpecification
                 ? `${import.meta.env.VITE_API_BASE_URL}/specifications/${editingSpecification.id}`
-                : `${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productId}/specifications`;
+                : `${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productSpecificationId}/specifications`;
 
             const method = editingSpecification ? 'PUT' : 'POST';
 
@@ -410,7 +587,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         }
     };
 
-    const importFromExcel = async (includeNewItems = true) => {
+    const importFromExcel = async () => {
         try {
             setLoading(true);
             setError('');
@@ -435,59 +612,47 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         // Используем существующую позицию
                         nomenclatureItemId = item.existingItem.id;
                         existingCount++;
-                    } else if (includeNewItems) {
-                        // Создаем новую позицию в номенклатуре
-                        const nomenclatureData = {
-                            name: item.name,
-                            article: item.article || undefined,
-                            code1c: item.code1c || undefined,
-                            manufacturer: item.manufacturer || undefined,
-                            description: item.description || undefined,
-                            unit: item.unit || undefined,
-                            price: item.price || undefined,
-                            type: 'Product' // Позиции спецификации всегда товары
-                        };
-
-                        const nomenclatureResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/items`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(nomenclatureData)
-                        });
-
-                        if (nomenclatureResponse.ok) {
-                            const newItem = await nomenclatureResponse.json();
-                            nomenclatureItemId = newItem.id;
-                            console.log(`Создана новая позиция в номенклатуре: ${newItem.name}`);
-                        } else {
-                            errorCount++;
-                            continue;
-                        }
                     } else {
-                        // Пропускаем новые позиции
+                        // Пропускаем новые позиции - они НЕ будут добавлены в спецификацию
+                        // В спецификацию добавляются ТОЛЬКО позиции, которые УЖЕ ЕСТЬ в номенклатуре
+                        skippedCount++;
+                        continue;
+                    }
+
+                    // Проверяем, что у нас есть nomenclatureItemId (позиция должна быть в номенклатуре)
+                    if (!nomenclatureItemId) {
+                        console.warn(`Позиция "${item.name}" не найдена в номенклатуре и не была создана`);
                         skippedCount++;
                         continue;
                     }
 
                     // Создаем позицию спецификации с ссылкой на номенклатуру
-                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productId}/specifications`, {
+                    // В спецификацию добавляем только количество, цену и общую стоимость
+                    // Остальные данные берем из номенклатуры
+                    const requestData: any = {
+                        nomenclatureItemId: nomenclatureItemId,
+                        quantity: item.originalData.quantity ? parseInt(item.originalData.quantity) : 1,
+                        price: item.originalData.price && !isNaN(parseFloat(item.originalData.price)) ? parseFloat(item.originalData.price) : null,
+                        totalPrice: item.originalData.totalPrice && !isNaN(parseFloat(item.originalData.totalPrice)) ? parseFloat(item.originalData.totalPrice) : null
+                    };
+
+                    console.log('Отправляемые данные:', requestData);
+
+                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productSpecificationId}/specifications`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                            ...item.originalData,
-                            nomenclatureItemId: nomenclatureItemId
-                        })
+                        body: JSON.stringify(requestData)
                     });
 
                     if (response.ok) {
                         successCount++;
                     } else {
                         errorCount++;
+                        const errorText = await response.text();
+                        console.error('Ошибка API:', response.status, errorText);
                     }
                 } catch (error) {
                     console.error('Ошибка импорта позиции:', error);
@@ -503,11 +668,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
             // Показываем результат
             const message = `Импорт завершен:
-- Успешно импортировано: ${successCount} позиций
-- Использовано существующих: ${existingCount} позиций
-- Создано новых: ${includeNewItems ? successCount - existingCount : 0} позиций
-- Пропущено новых: ${skippedCount} позиций
-- Ошибок: ${errorCount}`;
+- Успешно добавлено в спецификацию: ${successCount} позиций
+- Использовано из номенклатуры: ${existingCount} позиций
+- Пропущено (не найдены в номенклатуре): ${skippedCount} позиций
+- Ошибок: ${errorCount}
+
+${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции не были добавлены в спецификацию, так как они не найдены в номенклатуре. Сначала добавьте их в справочник номенклатуры.' : ''}`;
 
             alert(message);
 
@@ -685,15 +851,15 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                                 onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
                             >
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.designation || ''}</TableCell>
-                                <TableCell sx={{ p: 0.5 }}>{specification.name}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.article || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.code1c || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.group || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.manufacturer || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5 }}>{specification.description || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.designation || specification.designation || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5 }}>{specification.nomenclatureItem?.name || specification.name || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.code1c || specification.code1c || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.group?.name || specification.group || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5 }}>{specification.nomenclatureItem?.description || specification.description || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.quantity}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.unit || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{(specification.nomenclatureItem as any)?.unit || specification.unit || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'right' }}>
                                     {formatCurrency(specification.price)}
                                 </TableCell>
@@ -717,6 +883,245 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            {/* Диалог выбора номенклатуры */}
+            <Dialog
+                open={showNomenclatureDialog}
+                onClose={handleCloseNomenclatureDialog}
+                maxWidth="lg"
+                fullWidth
+                hideBackdrop={true}
+                disablePortal={true}
+                disableScrollLock={true}
+                keepMounted={false}
+                disableEnforceFocus={true}
+                disableAutoFocus={true}
+                disableEscapeKeyDown={true}
+            >
+                <DialogTitle sx={{
+                    backgroundColor: '#f5f5f5',
+                    borderBottom: '1px solid #ddd',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ marginRight: '8px' }}>📦</span>
+                        Подбор номенклатуры
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                        {selectedItems.length} на сумму {getTotalSum().toLocaleString('ru-RU')} ₽
+                    </Typography>
+                </DialogTitle>
+
+                <DialogContent sx={{ p: 0, height: '600px', display: 'flex', flexDirection: 'column' }}>
+                    {/* Верхняя панель с выбранными позициями */}
+                    <Box sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#fafafa' }}>
+                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+                            <TextField
+                                label="Номенклатура"
+                                multiline
+                                rows={2}
+                                value={selectedItems.map(item => `${item.item.name} (${item.quantity} ${item.unit})`).join('\n')}
+                                sx={{ flex: 1 }}
+                                InputProps={{ readOnly: true }}
+                            />
+                            <TextField
+                                label="Количество"
+                                type="number"
+                                size="small"
+                                sx={{ width: '120px' }}
+                                disabled={selectedItems.length === 0}
+                            />
+                            <TextField
+                                label="Ед."
+                                size="small"
+                                sx={{ width: '80px' }}
+                                disabled={selectedItems.length === 0}
+                            />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={transferToDocument}
+                                disabled={selectedItems.length === 0}
+                                sx={{ backgroundColor: '#ffc107', color: 'black' }}
+                            >
+                                Перенести в документ
+                            </Button>
+                            <Button variant="outlined" onClick={clearSelectedItems} disabled={selectedItems.length === 0}>
+                                Очистить
+                            </Button>
+                            <Button variant="outlined">
+                                Показать в списке
+                            </Button>
+                        </Box>
+                    </Box>
+
+                    {/* Панель фильтров и поиска */}
+                    <Box sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#f9f9f9' }}>
+                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1 }}>
+                            <Button
+                                variant="text"
+                                onClick={() => setShowFilters(!showFilters)}
+                                sx={{ textTransform: 'none', color: 'black' }}
+                            >
+                                {showFilters ? '▼' : '▶'} Фильтры
+                            </Button>
+                            <Button variant="outlined" size="small">Создать</Button>
+                            <Box sx={{ flex: 1 }} />
+                            <TextField
+                                placeholder="Поиск (Ctrl+F)"
+                                size="small"
+                                value={searchQuery}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                sx={{ width: '300px' }}
+                                InputProps={{
+                                    startAdornment: <span style={{ marginRight: '8px' }}>🔍</span>,
+                                    endAdornment: searchQuery && (
+                                        <IconButton size="small" onClick={() => handleSearchChange('')}>
+                                            ✕
+                                        </IconButton>
+                                    )
+                                }}
+                            />
+                        </Box>
+
+                        {showFilters && (
+                            <Box sx={{ mt: 2, p: 2, backgroundColor: 'white', borderRadius: 1, border: '1px solid #ddd' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Дополнительные фильтры будут здесь
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
+
+                    {/* Основное содержимое - две колонки */}
+                    <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                        {/* Левая колонка - список номенклатуры */}
+                        <Box sx={{ flex: 1, borderRight: '1px solid #ddd' }}>
+                            {nomenclatureLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                    <LinearProgress />
+                                </Box>
+                            ) : (
+                                <TableContainer sx={{ height: '100%' }}>
+                                    <Table stickyHeader>
+                                        <TableHead>
+                                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                                <TableCell sx={{ fontWeight: 'bold', minWidth: '200px' }}>
+                                                    Наименование ↓
+                                                </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }}>Остаток</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }}>Ед.изм</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }}>Артикул</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }}>Цена</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {nomenclatureItems.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                                        <Typography color="text.secondary">
+                                                            {searchQuery ? 'Ничего не найдено' : 'Номенклатура не найдена'}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                nomenclatureItems.map((item) => (
+                                                    <TableRow
+                                                        key={item.id}
+                                                        sx={{
+                                                            cursor: 'pointer',
+                                                            '&:hover': { backgroundColor: '#e3f2fd' },
+                                                            '&.selected': { backgroundColor: '#fff3cd' }
+                                                        }}
+                                                        onClick={() => handleItemSelection(item)}
+                                                        className={selectedItems.some(selected => selected.item.id === item.id) ? 'selected' : ''}
+                                                    >
+                                                        <TableCell>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                <span style={{ marginRight: '8px' }}>📦</span>
+                                                                {item.name}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell>-</TableCell>
+                                                        <TableCell>шт</TableCell>
+                                                        <TableCell>{item.article || '-'}</TableCell>
+                                                        <TableCell>{item.price ? `${item.price.toLocaleString('ru-RU')} ₽` : '-'}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
+                        </Box>
+
+                        {/* Правая колонка - группы */}
+                        <Box sx={{ width: '250px', backgroundColor: '#f9f9f9' }}>
+                            <Box sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
+                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Группы</Typography>
+                                    <IconButton size="small">
+                                        <span>⋮</span>
+                                    </IconButton>
+                                </Box>
+                            </Box>
+
+                            <Box sx={{ p: 1 }}>
+                                <Box
+                                    sx={{
+                                        p: 1,
+                                        cursor: 'pointer',
+                                        borderRadius: 1,
+                                        backgroundColor: selectedGroupId === null ? '#fff3cd' : 'transparent',
+                                        '&:hover': { backgroundColor: '#e3f2fd' }
+                                    }}
+                                    onClick={() => handleGroupSelection(null)}
+                                >
+                                    📁 Все группы
+                                </Box>
+
+                                {groups.map((group) => (
+                                    <Box
+                                        key={group.id}
+                                        sx={{
+                                            p: 1,
+                                            cursor: 'pointer',
+                                            borderRadius: 1,
+                                            backgroundColor: selectedGroupId === group.id ? '#fff3cd' : 'transparent',
+                                            '&:hover': { backgroundColor: '#e3f2fd' }
+                                        }}
+                                        onClick={() => handleGroupSelection(group.id)}
+                                    >
+                                        📁 {group.name}
+                                    </Box>
+                                ))}
+
+                                <Box
+                                    sx={{
+                                        p: 1,
+                                        cursor: 'pointer',
+                                        borderRadius: 1,
+                                        backgroundColor: selectedGroupId === 'no-group' ? '#fff3cd' : 'transparent',
+                                        '&:hover': { backgroundColor: '#e3f2fd' }
+                                    }}
+                                    onClick={() => handleGroupSelection('no-group')}
+                                >
+                                    📁 Нет группы
+                                </Box>
+                            </Box>
+                        </Box>
+                    </Box>
+                </DialogContent>
+
+                <DialogActions sx={{ backgroundColor: '#f5f5f5', borderTop: '1px solid #ddd' }}>
+                    <Button onClick={handleCloseNomenclatureDialog}>Отмена</Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Диалог создания/редактирования спецификации */}
             <Dialog
@@ -929,7 +1334,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                                         maxWidth: '150px',
                                         fontSize: '12px !important'
                                     },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-child(2)': {
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
                                         paddingLeft: '4px !important',
                                         paddingRight: '4px !important'
                                     }
@@ -1036,12 +1441,17 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 }}
             >
                 <DialogTitle>
-                    Предварительный просмотр импорта
+                    Предварительный просмотр импорта спецификации
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         Всего позиций: {importStats.total} |
-                        Существующих: {importStats.existing} |
-                        Новых: {importStats.new}
+                        Найдено в номенклатуре: {importStats.existing} |
+                        Не найдено в номенклатуре: {importStats.new}
                     </Typography>
+                    {importStats.new > 0 && (
+                        <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+                            ⚠️ Позиции, не найденные в номенклатуре, НЕ будут добавлены в спецификацию
+                        </Typography>
+                    )}
                 </DialogTitle>
                 <DialogContent sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
@@ -1085,8 +1495,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 <DialogActions sx={{ justifyContent: 'space-between', p: 2 }}>
                     <Box>
                         <Typography variant="body2" color="text.secondary">
-                            Зеленые позиции будут использованы из номенклатуры,
-                            желтые будут созданы как новые позиции
+                            ✅ Зеленые позиции будут добавлены в спецификацию (найдены в номенклатуре)<br />
+                            ⚠️ Желтые позиции НЕ будут добавлены в спецификацию (не найдены в номенклатуре)
                         </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
@@ -1094,18 +1504,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                             Отмена
                         </Button>
                         <Button
-                            onClick={() => importFromExcel(false)}
-                            variant="outlined"
-                            color="primary"
-                        >
-                            Импортировать только существующие
-                        </Button>
-                        <Button
-                            onClick={() => importFromExcel(true)}
+                            onClick={importFromExcel}
                             variant="contained"
                             color="primary"
+                            disabled={importStats.existing === 0}
                         >
-                            Импортировать все
+                            Добавить в спецификацию ({importStats.existing})
                         </Button>
                     </Box>
                 </DialogActions>

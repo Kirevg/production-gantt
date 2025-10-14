@@ -105,8 +105,14 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ru-RU');
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '-';
+            return date.toLocaleDateString('ru-RU');
+        } catch (error) {
+            console.error('Error formatting date:', dateString, error);
+            return '-';
+        }
     };
 
     const fetchStages = useCallback(async () => {
@@ -126,6 +132,12 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('📊 Stages data from API:', data);
+                if (data.length > 0) {
+                    console.log('📅 First stage endDate:', data[0].endDate);
+                    console.log('📅 First stage startDate:', data[0].startDate);
+                    console.log('📅 First stage duration:', data[0].duration);
+                }
                 setStages(data);
             } else {
                 console.error('Ошибка загрузки этапов работ');
@@ -532,7 +544,11 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                                                 {stage.duration} дн.
                                             </Typography>
                                         </TableCell>
-                                        <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{formatDate(stage.endDate)}</TableCell>
+                                        <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                                            {stage.endDate ? formatDate(stage.endDate) : (
+                                                <Typography variant="body2" color="text.secondary">-</Typography>
+                                            )}
+                                        </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center', width: '60px' }}>
                                             {canDelete() && (
                                                 <IconButton

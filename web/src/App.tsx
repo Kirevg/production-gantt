@@ -188,7 +188,7 @@ interface LoginResponse {
 interface Project {
   id: string;         // Уникальный идентификатор проекта
   name: string;        // Название проекта
-  status: 'Planned' | 'InProgress' | 'Done' | 'HasProblems'; // Статус проекта
+  status: 'InProject' | 'InProgress' | 'Done' | 'HasProblems'; // Статус проекта
   startDate: string | null;  // Дата начала проекта
   endDate: string | null;    // Дата окончания проекта
   ownerId: string;    // ID владельца проекта
@@ -1624,7 +1624,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
   // Состояние для формы создания нового проекта
   const [newProject, setNewProject] = useState({
     name: '',                    // Название проекта
-    status: 'Planned' as 'Planned' | 'InProgress' | 'Done' | 'HasProblems',   // Статус по умолчанию
+    status: 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems',   // Статус по умолчанию
     managerId: ''               // ID руководителя проекта
   });
   // Состояние для списка руководителей
@@ -1639,7 +1639,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
   const [isReordering, setIsReordering] = useState(false);
   // Состояние для фильтров статусов
   const [statusFilters, setStatusFilters] = useState({
-    Planned: true,
+    InProject: true,
     InProgress: true,
     Done: true,
     HasProblems: true
@@ -1704,7 +1704,8 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
           return;
         }
 
-        const projectOrders = updatedProjects.map((project, index) => ({
+        // Отправляем на сервер только те проекты, которые изменили порядок
+        const projectOrders = reorderedFilteredProjects.map((project, index) => ({
           id: project.id,
           orderIndex: index
         }));
@@ -1990,10 +1991,10 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
         </TableCell>
         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
           <Chip
-            label={project.status === 'Planned' ? 'Запланирован' :
+            label={project.status === 'InProject' ? 'В проекте' :
               project.status === 'InProgress' ? 'В работе' :
-                project.status === 'Done' ? 'Завершен' : 'Есть проблемы'}
-            color={project.status === 'Planned' ? 'secondary' :
+                project.status === 'Done' ? 'Завершён' : 'Проблемы'}
+            color={project.status === 'InProject' ? 'secondary' :
               project.status === 'InProgress' ? 'primary' :
                 project.status === 'Done' ? 'success' : 'error'}
             size="small"
@@ -2069,7 +2070,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
       if (response.ok) {
         // Если проект создан успешно
         setShowCreateForm(false); // Скрываем форму
-        setNewProject({ name: '', status: 'Planned', managerId: '' }); // Очищаем форму
+        setNewProject({ name: '', status: 'InProject', managerId: '' }); // Очищаем форму
         fetchProjects(); // Обновляем список проектов
       } else {
         // Если произошла ошибка, парсим ответ и показываем ошибку
@@ -2207,14 +2208,14 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
               select
               label="Статус"
               value={newProject.status}
-              onChange={(e) => setNewProject({ ...newProject, status: e.target.value as 'Planned' | 'InProgress' | 'Done' | 'HasProblems' })}
+              onChange={(e) => setNewProject({ ...newProject, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' })}
               margin="normal"
               SelectProps={{ native: true }}
             >
-              <option value="Planned">Запланирован</option>
+              <option value="InProject">В проекте</option>
               <option value="InProgress">В работе</option>
-              <option value="Done">Завершен</option>
-              <option value="HasProblems">Есть проблемы</option>
+              <option value="Done">Завершён</option>
+              <option value="HasProblems">Проблемы</option>
             </TextField>
           </DialogContent>
           <DialogActions>
@@ -2235,21 +2236,21 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
           <FormControlLabel
             control={
               <Checkbox
-                checked={statusFilters.Planned}
-                onChange={() => handleStatusFilterChange('Planned')}
+                checked={statusFilters.InProject}
+                onChange={() => handleStatusFilterChange('InProject')}
                 color="default"
               />
             }
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                 <Chip
-                  label="Запланирован"
+                  label="В проекте"
                   color="secondary"
                   size="small"
                   sx={{ borderRadius: '6px' }}
                 />
                 <Typography variant="body2" color="text.secondary">
-                  ({projects.filter(p => p.status === 'Planned').length})
+                  ({projects.filter(p => p.status === 'InProject').length})
                 </Typography>
               </Box>
             }
@@ -2287,7 +2288,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                 <Chip
-                  label="Завершен"
+                  label="Завершён"
                   color="success"
                   size="small"
                   sx={{ borderRadius: '6px' }}
@@ -2309,7 +2310,7 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                 <Chip
-                  label="Есть проблемы"
+                  label="Проблемы"
                   color="error"
                   size="small"
                   sx={{ borderRadius: '6px' }}
@@ -2323,15 +2324,15 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
 
           <Button
             size="small"
-            onClick={() => setStatusFilters({ Planned: true, InProgress: true, Done: true, HasProblems: true })}
-            disabled={statusFilters.Planned && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
+            onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true })}
+            disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
           >
             Показать все
           </Button>
           <Button
             size="small"
-            onClick={() => setStatusFilters({ Planned: false, InProgress: false, Done: false, HasProblems: false })}
-            disabled={!statusFilters.Planned && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
+            onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false })}
+            disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
           >
             Скрыть все
           </Button>
@@ -2863,7 +2864,7 @@ export default function App() {
     setSelectedProject({
       id: 'new', // Временный ID для нового проекта
       name: '',
-      status: 'Planned' as const,
+      status: 'InProject' as const,
       startDate: null,
       endDate: null,
       ownerId: user?.id || '',
@@ -2923,7 +2924,7 @@ export default function App() {
     if (showSpecificationDetail && selectedSpecificationId && selectedSpecificationName) {
       return (
         <SpecificationDetail
-          productId={selectedSpecificationId}
+          productSpecificationId={selectedSpecificationId}
           productName={selectedSpecificationName}
           onBack={handleCloseSpecificationDetail}
           canEdit={canEdit}

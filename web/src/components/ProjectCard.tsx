@@ -59,7 +59,7 @@ interface Product {
     orderIndex?: number;
     createdAt: string;
     updatedAt: string;
-    nomenclatureItem?: {
+    product?: {
         id: string;
         name: string;
         designation?: string;
@@ -113,17 +113,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const [projectData, setProjectData] = useState({
         name: projectName,
         managerId: '',
-        status: 'Planned' as 'Planned' | 'InProgress' | 'Done' | 'HasProblems'
+        status: 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems'
     });
     const [managers, setManagers] = useState<any[]>([]);
     const [productForm, setProductForm] = useState({
-        nomenclatureItemId: '',
+        productId: '', // Изменено: теперь выбираем из справочника изделий
         serialNumber: '',
         quantity: 1,
         link: ''
     });
-    const [nomenclatureItems, setNomenclatureItems] = useState<any[]>([]);
-    const [loadingNomenclature, setLoadingNomenclature] = useState(false);
+    const [catalogProducts, setCatalogProducts] = useState<any[]>([]); // Изменено: список из справочника изделий
+    const [loadingProducts, setLoadingProducts] = useState(false); // Изменено
 
     // Настройка сенсоров для drag-and-drop
     const sensors = useSensors(
@@ -230,17 +230,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         }
     }, []);
 
-    // Загрузка номенклатуры (только типа Product)
-    const fetchNomenclature = useCallback(async () => {
+    // Загрузка справочника изделий
+    const fetchCatalogProducts = useCallback(async () => {
         try {
-            setLoadingNomenclature(true);
+            setLoadingProducts(true);
             const token = localStorage.getItem('token');
             if (!token) {
                 console.error('Токен не найден');
                 return;
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/items?type=Product`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products?isActive=true`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -252,11 +252,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             }
 
             const data = await response.json();
-            setNomenclatureItems(data);
+            setCatalogProducts(data);
         } catch (error) {
-            console.error('Ошибка загрузки номенклатуры:', error);
+            console.error('Ошибка загрузки справочника изделий:', error);
         } finally {
-            setLoadingNomenclature(false);
+            setLoadingProducts(false);
         }
     }, []);
 
@@ -274,7 +274,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 setProjectData({
                     name: data.name,
                     managerId: data.projectManager?.id || '',
-                    status: data.status || 'Planned'
+                    status: data.status || 'InProject'
                 });
             }
         } catch (error) {
@@ -326,10 +326,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 const workStages = await fetchWorkStages(product.id);
                 return {
                     id: product.id,
-                    name: product.nomenclatureItem?.name || 'Без названия',
+                    name: product.product?.name || 'Без названия', // Изменено: теперь из справочника изделий
                     serialNumber: product.serialNumber,
                     description: product.description,
-                    nomenclatureItem: product.nomenclatureItem,
+                    product: product.product, // Изменено
                     quantity: product.quantity,
                     startDate: product.startDate,
                     endDate: product.endDate,
@@ -359,8 +359,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             fetchProducts();
         }
         fetchManagers();
-        fetchNomenclature();
-    }, [projectId, isNew, fetchProjectData, fetchManagers, fetchProducts, fetchNomenclature]);
+        fetchCatalogProducts();
+    }, [projectId, isNew, fetchProjectData, fetchManagers, fetchProducts, fetchCatalogProducts]);
 
     const handleUpdateProject = async () => {
         try {
@@ -422,7 +422,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             id: `temp-${Date.now()}`, // Временный ID
             serialNumber: '',
             description: '',
-            nomenclatureItem: undefined,
+            product: undefined,
             quantity: 1,
             version: 0,
             orderIndex: products.length,
@@ -503,7 +503,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         setOpenProductDialog(false);
         setEditingProduct(null);
         setProductForm({
-            nomenclatureItemId: '',
+            productId: '', // Изменено
             serialNumber: '',
             quantity: 1,
             link: ''
@@ -513,8 +513,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const handleSaveProduct = async () => {
         try {
             // Валидация
-            if (!productForm.nomenclatureItemId) {
-                alert('Пожалуйста, выберите элемент номенклатуры');
+            if (!productForm.productId) { // Изменено
+                alert('Пожалуйста, выберите изделие из справочника');
                 return;
             }
 
@@ -531,7 +531,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             const method = editingProduct ? 'PUT' : 'POST';
 
             const requestData: {
-                nomenclatureItemId: string;
+                productId: string; // Изменено
                 serialNumber?: string;
                 description?: string;
                 quantity: number;
@@ -539,7 +539,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 orderIndex?: number;
                 productSum?: number;
             } = {
-                nomenclatureItemId: productForm.nomenclatureItemId,
+                productId: productForm.productId, // Изменено
                 serialNumber: productForm.serialNumber || undefined,
                 description: productForm.link || undefined,
                 quantity: productForm.quantity
@@ -650,7 +650,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             <TableRow
                 ref={setNodeRef}
                 style={style}
-                onDoubleClick={() => !loading && !isReordering && onOpenSpecifications(product.id, product.nomenclatureItem?.name || '')}
+                onDoubleClick={() => !loading && !isReordering && onOpenSpecifications(product.id, product.product?.name || '')}
                 sx={{
                     height: '35px',
                     borderTop: '2px solid #e0e0e0',
@@ -681,7 +681,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                 <TableCell sx={{ py: 0.5, minWidth: '250px' }}>
                     <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                        {product.nomenclatureItem?.name || 'Без названия'}
+                        {product.product?.name || 'Без названия'}
                     </Typography>
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
@@ -791,16 +791,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                             select
                             label="Статус"
                             value={projectData.status}
-                            onChange={(e) => setProjectData({ ...projectData, status: e.target.value as 'Planned' | 'InProgress' | 'Done' | 'HasProblems' })}
+                            onChange={(e) => setProjectData({ ...projectData, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' })}
                             size="small"
                             SelectProps={{ native: true }}
                             sx={{ flex: 1 }}
                             InputLabelProps={{ shrink: true }}
                         >
-                            <option value="Planned">Запланирован</option>
+                            <option value="InProject">В проекте</option>
                             <option value="InProgress">В работе</option>
-                            <option value="Done">Завершен</option>
-                            <option value="HasProblems">Есть проблемы</option>
+                            <option value="Done">Завершён</option>
+                            <option value="HasProblems">Проблемы</option>
                         </TextField>
                         <VolumeButton
                             variant="contained"
@@ -914,17 +914,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                         <FormControl fullWidth required>
-                            <InputLabel shrink>Элемент номенклатуры</InputLabel>
+                            <InputLabel shrink>Изделие</InputLabel>
                             <Select
-                                value={productForm.nomenclatureItemId}
-                                onChange={(e) => setProductForm({ ...productForm, nomenclatureItemId: e.target.value })}
-                                label="Элемент номенклатуры"
-                                disabled={loadingNomenclature}
+                                value={productForm.productId}
+                                onChange={(e) => setProductForm({ ...productForm, productId: e.target.value })}
+                                label="Изделие"
+                                disabled={loadingProducts}
                                 notched
                             >
-                                {nomenclatureItems.map((item) => (
-                                    <MenuItem key={item.id} value={item.id}>
-                                        {item.name} {item.designation ? `(${item.designation})` : ''}
+                                {catalogProducts.map((product) => (
+                                    <MenuItem key={product.id} value={product.id}>
+                                        {product.name} {product.designation ? `(${product.designation})` : ''}
                                     </MenuItem>
                                 ))}
                             </Select>

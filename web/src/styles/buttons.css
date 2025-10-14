@@ -562,9 +562,15 @@
 /* Убираем margin-bottom у MuiBox-root с классом css-gdel2o */
 .MuiBox-root.css-gdel2o {
     margin-bottom: 0 !important;
+    align-items: center !important;
 }
 
 /* Устанавливаем margin-bottom у класса css-15fmfb5 */
 .css-15fmfb5 {
     margin-bottom: 8px !important;
+}
+
+/* Убираем padding-right у MuiBox-root с классом css-e8yhtp */
+.MuiBox-root.css-e8yhtp {
+    padding-right: 0 !important;
 }

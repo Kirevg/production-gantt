@@ -14,6 +14,7 @@ import unitRoutes from './routes/units';
 import migrationRoutes from './routes/migrations';
 import backupRoutes from './routes/backup';
 import catalogProductRoutes from './routes/catalog-products';
+import clientLogsRoutes from './routes/client-logs';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -40,6 +41,7 @@ app.use('/product-specifications', productSpecificationRoutes);
 app.use('/catalog-products', catalogProductRoutes);
 app.use('/api/migrations', migrationRoutes);
 app.use('/api/backup', backupRoutes);
+app.use('/api/client-logs', clientLogsRoutes);
 
 console.log('🚀 Registered routes:');
 console.log('  - /product-specifications (productSpecificationRoutes)');

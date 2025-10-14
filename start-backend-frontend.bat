@@ -2,10 +2,11 @@
 chcp 65001 >nul
 
 REM Закрываем старые окна серверов (кроме Git Auto-Commit)
-for /f "tokens=2" %%a in ('tasklist /v /fi "windowtitle eq Backend Server*" /fo list ^| find "PID:"') do taskkill /f /pid %%a 2>nul
-for /f "tokens=2" %%a in ('tasklist /v /fi "windowtitle eq Frontend Server*" /fo list ^| find "PID:"') do taskkill /f /pid %%a 2>nul
+REM Используем точное совпадение заголовка без звёздочки
+taskkill /F /FI "WINDOWTITLE eq Backend Server" 2>nul
+taskkill /F /FI "WINDOWTITLE eq Frontend Server" 2>nul
 
-REM Убиваем процессы node.exe
+REM Убиваем все процессы node.exe на всякий случай
 taskkill /f /im node.exe 2>nul
 
 REM Пауза перед запуском

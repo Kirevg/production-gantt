@@ -110,9 +110,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
     // Состояние для редактирования изделия
     const [openProductEditDialog, setOpenProductEditDialog] = useState(false);
     const [productData, setProductData] = useState<any>(null);
-    const [nomenclatureItems, setNomenclatureItems] = useState<Array<{ id: string, name: string }>>([]);
+    const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
     const [productForm, setProductForm] = useState({
-        nomenclatureItemId: '',
+        productId: '', // Изменено: теперь из справочника изделий
         serialNumber: '',
         quantity: 1,
         link: ''
@@ -161,7 +162,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
 
             // Строим URL для получения спецификаций изделия
-            const url = `${import.meta.env.VITE_API_BASE_URL}/products/${productId}/specifications`;
+            const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${productId}/specifications`;
 
             const response = await fetch(url, {
                 headers: {
@@ -273,33 +274,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
-    // Загрузка номенклатуры - только товары из группы "Изделия"
-    const fetchNomenclature = async () => {
+    // Загрузка справочника изделий
+    const fetchCatalogProducts = async () => {
         try {
+            setLoadingProducts(true);
             const token = localStorage.getItem('token');
 
-            // Сначала получаем все группы, чтобы найти группу "Изделия"
-            const groupsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!groupsResponse.ok) {
-                console.error('Ошибка загрузки групп номенклатуры');
-                return;
-            }
-
-            const groups = await groupsResponse.json();
-            const productsGroup = groups.find((group: any) => group.name === 'Изделия');
-
-            if (!productsGroup) {
-                console.error('Группа "Изделия" не найдена');
-                return;
-            }
-
-            // Получаем только товары из группы "Изделия"
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature?type=Product&groupId=${productsGroup.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products?isActive=true`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -307,10 +288,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (response.ok) {
                 const data = await response.json();
-                setNomenclatureItems(data);
+                setCatalogProducts(data);
             }
         } catch (error) {
-            console.error('Ошибка загрузки номенклатуры:', error);
+            console.error('Ошибка загрузки справочника изделий:', error);
+        } finally {
+            setLoadingProducts(false);
         }
     };
 
@@ -318,7 +301,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const handleOpenProductEdit = async () => {
         console.log('handleOpenProductEdit called');
         console.log('productData before:', productData);
-        console.log('nomenclatureItems:', nomenclatureItems);
+        console.log('catalogProducts:', catalogProducts);
 
         // Если данные еще не загружены, загружаем их
         let currentProductData = productData;
@@ -348,7 +331,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         // Загружаем форму с актуальными данными
         setProductForm({
-            nomenclatureItemId: currentProductData?.nomenclatureItem?.id || '',
+            productId: currentProductData?.product?.id || '', // Изменено
             serialNumber: currentProductData?.serialNumber || '',
             quantity: currentProductData?.quantity || 1,
             link: currentProductData?.description || ''
@@ -359,8 +342,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     // Сохранение изменений изделия
     const handleSaveProduct = async () => {
         try {
-            if (!productForm.nomenclatureItemId) {
-                alert('Пожалуйста, выберите элемент номенклатуры');
+            if (!productForm.productId) { // Изменено
+                alert('Пожалуйста, выберите изделие из справочника');
                 return;
             }
 
@@ -368,7 +351,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const isNewProduct = productId?.startsWith('temp-');
 
             const requestBody = {
-                nomenclatureItemId: productForm.nomenclatureItemId,
+                productId: productForm.productId, // Изменено
                 serialNumber: productForm.serialNumber || undefined,
                 description: productForm.link || undefined,
                 quantity: productForm.quantity,
@@ -455,7 +438,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             const url = editingSpecification
                 ? `${import.meta.env.VITE_API_BASE_URL}/product-specifications/${editingSpecification.id}`
-                : `${import.meta.env.VITE_API_BASE_URL}/products/${productId}/specifications`;
+                : `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${productId}/specifications`;
 
             const method = editingSpecification ? 'PUT' : 'POST';
 
@@ -553,10 +536,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     const handleSaveStage = async () => {
         try {
+            // Проверяем обязательное поле "Вид работ"
+            if (!stageForm.workTypeId || stageForm.workTypeId.trim() === '') {
+                alert('Пожалуйста, выберите вид работ');
+                return;
+            }
+
             const token = localStorage.getItem('token');
             if (!token) {
                 console.error('Токен не найден');
                 return;
+            }
+
+            // Вычисляем дату окончания: дата начала + продолжительность
+            let startDate = null;
+            let endDate = null;
+
+            if (stageForm.startDate && stageForm.startDate.trim() !== '') {
+                startDate = new Date(stageForm.startDate);
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + stageForm.duration);
             }
 
             const url = editingStage
@@ -565,30 +564,43 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             const method = editingStage ? 'PUT' : 'POST';
 
+            const requestData: any = {
+                sum: stageForm.sum || '',
+                hours: stageForm.hours || '',
+                startDate: startDate ? startDate.toISOString() : null,
+                endDate: endDate ? endDate.toISOString() : null,
+                duration: stageForm.duration,
+                nomenclatureItemId: stageForm.workTypeId,
+                assigneeId: stageForm.assigneeId || undefined,
+                productId: productId
+            };
+
+            if (!editingStage) {
+                requestData.orderIndex = 0;
+            }
+
+            console.log('📤 Sending work stage data:', requestData);
+
             const response = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    sum: stageForm.sum,
-                    hours: stageForm.hours,
-                    startDate: stageForm.startDate,
-                    duration: stageForm.duration,
-                    nomenclatureItemId: stageForm.workTypeId,
-                    assigneeId: stageForm.assigneeId || null
-                })
+                body: JSON.stringify(requestData)
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('❌ API Error:', errorData);
+                throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
             }
 
             await fetchStages();
             handleCloseStageDialog();
         } catch (error) {
             console.error('Ошибка сохранения этапа:', error);
+            alert(`Произошла ошибка при сохранении: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
         }
     };
 
@@ -636,7 +648,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         title="Двойной клик для редактирования"
                     >{productName || '...'}</span>
                     <br />
-                    проекта "<span style={{ textDecoration: 'underline' }}>{projectName}</span>"
+                    проекта «{projectName}»
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <VolumeButton
@@ -653,7 +665,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <Box sx={{ mb: 4 }}>
                 <Box className="page-header" sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0 }}>
-                        Спецификации
+                        Список спецификаций
                     </Typography>
                     {canCreate() && (
                         <VolumeButton
@@ -673,6 +685,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Название</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата создания</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата обновления</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
@@ -683,15 +696,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <TableBody>
                             {specificationsLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                                         <LinearProgress />
                                     </TableCell>
                                 </TableRow>
                             ) : specifications.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                                         <Typography variant="body1" color="text.secondary">
-                                            Спецификации не найдены
+                                            Список спецификаций пуст
                                         </Typography>
                                     </TableCell>
                                 </TableRow>
@@ -710,6 +723,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         <TableCell sx={{ py: 0.5 }}>
                                             <Typography variant="body2" color="text.secondary">
                                                 {specification.description || '-'}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                {specification.totalSum ? `${specification.totalSum.toLocaleString('ru-RU')} ₽` : '-'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
@@ -1016,17 +1034,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                         <FormControl fullWidth required>
-                            <InputLabel shrink>Элемент номенклатуры</InputLabel>
+                            <InputLabel shrink>Изделие</InputLabel>
                             <Select
-                                value={productForm.nomenclatureItemId}
-                                onChange={(e) => setProductForm({ ...productForm, nomenclatureItemId: e.target.value })}
-                                label="Элемент номенклатуры"
+                                value={productForm.productId}
+                                onChange={(e) => setProductForm({ ...productForm, productId: e.target.value })}
+                                label="Изделие"
+                                disabled={loadingProducts}
                                 notched
-                                required
                             >
-                                {nomenclatureItems.map((item) => (
-                                    <MenuItem key={item.id} value={item.id}>
-                                        {item.name}
+                                {catalogProducts.map((product) => (
+                                    <MenuItem key={product.id} value={product.id}>
+                                        {product.name} {product.designation ? `(${product.designation})` : ''}
                                     </MenuItem>
                                 ))}
                             </Select>
