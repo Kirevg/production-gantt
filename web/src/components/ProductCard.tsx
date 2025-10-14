@@ -420,11 +420,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
             });
 
             if (response.ok) {
+                const savedProduct = await response.json();
+                console.log('Product saved successfully:', savedProduct);
+                
                 setOpenProductEditDialog(false);
-                // Обновляем данные изделия вместо перезагрузки страницы
-                await fetchProductData();
-                // Обновляем справочник изделий
-                await fetchCatalogProducts();
+                
+                // Если это было новое изделие (с временным ID), возвращаемся назад
+                if (isNewProduct) {
+                    console.log('New product created, going back to refresh list');
+                    // Небольшая задержка, чтобы дать время серверу сохранить данные
+                    setTimeout(() => {
+                        onBack(); // Возвращаемся к ProjectCard, который автоматически обновит список
+                    }, 100);
+                } else {
+                    // Для существующего изделия просто обновляем данные
+                    await fetchProductData();
+                    await fetchCatalogProducts();
+                }
             } else {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
                 console.error('API Error:', errorData);
