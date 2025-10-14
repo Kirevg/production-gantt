@@ -345,8 +345,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
     // Сохранение изменений изделия
     const handleSaveProduct = async () => {
         try {
+            console.log('handleSaveProduct - productForm:', productForm);
+            console.log('productId:', productForm.productId);
+            console.log('productName:', productForm.productName);
+            
             // Проверяем, что есть либо выбранное изделие, либо введено название вручную
             if (!productForm.productId && !productForm.productName) {
+                console.error('Validation failed: both productId and productName are empty');
                 alert('Пожалуйста, выберите изделие из справочника или введите название вручную');
                 return;
             }
@@ -1109,6 +1114,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         ...productForm,
                                         productId: '',
                                         productName: ''
+                                    });
+                                }
+                            }}
+                            onInputChange={(event, newInputValue) => {
+                                // Обновляем productName при вводе текста
+                                if (event && event.type === 'change') {
+                                    setProductForm({
+                                        ...productForm,
+                                        productName: newInputValue,
+                                        productId: ''
                                     });
                                 }
                             }}
