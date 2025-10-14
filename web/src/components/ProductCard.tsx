@@ -425,17 +425,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 
                 setOpenProductEditDialog(false);
                 
-                // Если это было новое изделие (с временным ID), возвращаемся назад
+                // Обновляем локальные данные изделия
+                setProductData(savedProduct);
+                
+                // Если это было новое изделие, показываем уведомление
                 if (isNewProduct) {
-                    console.log('New product created, going back to refresh list');
-                    // Небольшая задержка, чтобы дать время серверу сохранить данные
-                    setTimeout(() => {
-                        onBack(); // Возвращаемся к ProjectCard, который автоматически обновит список
-                    }, 100);
-                } else {
-                    // Для существующего изделия просто обновляем данные
-                    await fetchProductData();
-                    await fetchCatalogProducts();
+                    console.log('New product created with ID:', savedProduct.id);
+                    alert('Изделие успешно создано! Теперь вы можете добавить спецификации и этапы работ.');
+                }
+                
+                // Обновляем справочник изделий
+                await fetchCatalogProducts();
+                
+                // Обновляем спецификации и этапы для нового изделия
+                if (isNewProduct && savedProduct.id) {
+                    await fetchSpecifications();
+                    await fetchStages();
                 }
             } else {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -712,7 +717,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             handleOpenProductEdit();
                         }}
                         title="Двойной клик для редактирования"
-                    >{productName || '...'}</span>
+                    >{productData?.product?.name || productName || '...'}</span>
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <VolumeButton
