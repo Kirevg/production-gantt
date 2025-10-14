@@ -422,11 +422,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
             if (response.ok) {
                 const savedProduct = await response.json();
                 console.log('Product saved successfully:', savedProduct);
+                console.log('savedProduct.product:', savedProduct.product);
+                console.log('Current productData before update:', productData);
                 
                 setOpenProductEditDialog(false);
                 
                 // Обновляем локальные данные изделия
                 setProductData(savedProduct);
+                console.log('productData updated to:', savedProduct);
                 
                 // Обновляем справочник изделий
                 await fetchCatalogProducts();
@@ -699,6 +702,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
             console.error('Ошибка удаления этапа:', error);
         }
     };
+
+    // Логирование для отладки заголовка
+    console.log('Render - productData:', productData);
+    console.log('Render - productData?.product?.name:', productData?.product?.name);
+    console.log('Render - productName prop:', productName);
 
     return (
         <Box className="page-container">
