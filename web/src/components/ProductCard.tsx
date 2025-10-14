@@ -428,19 +428,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 // Обновляем локальные данные изделия
                 setProductData(savedProduct);
                 
-                // Если это было новое изделие, показываем уведомление
-                if (isNewProduct) {
-                    console.log('New product created with ID:', savedProduct.id);
-                    alert('Изделие успешно создано! Теперь вы можете добавить спецификации и этапы работ.');
-                }
-                
                 // Обновляем справочник изделий
                 await fetchCatalogProducts();
                 
-                // Обновляем спецификации и этапы для нового изделия
-                if (isNewProduct && savedProduct.id) {
+                // Для нового изделия также обновляем спецификации и этапы
+                if (isNewProduct) {
+                    console.log('New product created with ID:', savedProduct.id);
                     await fetchSpecifications();
                     await fetchStages();
+                } else {
+                    // Для существующего изделия обновляем данные через API
+                    await fetchProductData();
                 }
             } else {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
