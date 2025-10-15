@@ -13,18 +13,17 @@ model User {
   passwordHash String
   role         Role           @default(user)
   isActive     Boolean        @default(true)
-  personId     String?        @unique
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  person       Person?        @relation(fields: [personId], references: [id])
+  personId     String?        @unique
   auditLogs    AuditLog[]
   projects     Project[]      @relation("ProjectOwner")
   tokens       RefreshToken[]
+  person       Person?        @relation(fields: [personId], references: [id])
 
   @@index([personId])
 }
 
-// Физические лица (сотрудники, РП)
 model Person {
   id                String    @id @default(uuid())
   lastName          String
@@ -37,14 +36,13 @@ model Person {
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  user              User?
   projectsAsManager Project[] @relation("ProjectManager")
+  user              User?
 
   @@index([isProjectManager])
   @@index([isActive])
 }
 
-// Контрагенты (поставщики, производители, подрядчики)
 model Counterparty {
   id             String      @id @default(uuid())
   name           String
@@ -69,34 +67,33 @@ model Counterparty {
   @@index([isActive])
 }
 
-// Единицы измерения
 model Unit {
-  id                 String             @id @default(uuid())
-  code               String             @unique
-  name               String
-  fullName           String?
-  internationalCode  String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  nomenclatureItems  NomenclatureItem[]
+  id                String             @id @default(uuid())
+  code              String             @unique
+  name              String
+  fullName          String?
+  internationalCode String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  nomenclatureItems NomenclatureItem[]
 
   @@index([code])
 }
 
 model Project {
-  id                String           @id @default(uuid())
-  name              String
-  status            ProjectStatus    @default(InProject)
-  startDate         DateTime?
-  endDate           DateTime?
-  ownerId           String
-  projectManagerId  String?
-  orderIndex        Int              @default(0)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  products          ProjectProduct[]
-  projectManager    Person?          @relation("ProjectManager", fields: [projectManagerId], references: [id])
-  owner             User             @relation("ProjectOwner", fields: [ownerId], references: [id])
+  id               String           @id @default(uuid())
+  name             String
+  status           ProjectStatus    @default(InProject)
+  startDate        DateTime?
+  endDate          DateTime?
+  ownerId          String
+  orderIndex       Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  projectManagerId String?
+  owner            User             @relation("ProjectOwner", fields: [ownerId], references: [id])
+  projectManager   Person?          @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  products         ProjectProduct[]
 
   @@index([status])
   @@index([ownerId])
@@ -105,38 +102,36 @@ model Project {
   @@index([startDate, endDate])
 }
 
-// Справочник изделий (Products)
 model Product {
   id              String           @id @default(uuid())
-  name            String           // Название изделия
-  designation     String?          // Обозначение (например, ЧЛ-100)
-  article         String?          // Артикул
-  description     String?          // Описание
+  name            String
+  designation     String?
+  article         String?
+  description     String?
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  projectProducts ProjectProduct[] // Изделия в проектах
+  projectProducts ProjectProduct[]
 
   @@index([name])
   @@index([isActive])
 }
 
-// Изделия в конкретном проекте
 model ProjectProduct {
   id                    String                 @id @default(uuid())
   projectId             String
-  productId             String                 // Ссылка на справочник изделий
-  serialNumber          String?                // Серийный номер конкретного экземпляра
-  description           String?                // Описание/примечания для конкретного экземпляра
+  serialNumber          String?
+  description           String?
   quantity              Int                    @default(1)
   productSum            Float?
   orderIndex            Int                    @default(0)
   version               Int                    @default(1)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  product               Product                @relation(fields: [productId], references: [id])
+  productId             String
   productSpecifications ProductSpecification[]
+  product               Product                @relation(fields: [productId], references: [id])
+  project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
   workStages            WorkStage[]
 
   @@index([projectId])
@@ -159,8 +154,8 @@ model WorkStage {
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
   assignee           Counterparty?     @relation(fields: [assigneeId], references: [id])
-  product            ProjectProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
   nomenclatureItem   NomenclatureItem? @relation("WorkStageNomenclature", fields: [nomenclatureItemId], references: [id])
+  product            ProjectProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([nomenclatureItemId])
@@ -173,9 +168,9 @@ model ProductSpecification {
   productId      String
   name           String
   description    String?
-  totalSum       Float?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  totalSum       Float?
   product        ProjectProduct  @relation(fields: [productId], references: [id], onDelete: Cascade)
   specifications Specification[]
 
@@ -185,15 +180,15 @@ model ProductSpecification {
 model Specification {
   id                     String               @id @default(uuid())
   productSpecificationId String
-  nomenclatureItemId     String
   quantity               Int                  @default(1)
   price                  Float?
   totalPrice             Float?
   orderIndex             Int                  @default(0)
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
-  productSpecification   ProductSpecification @relation(fields: [productSpecificationId], references: [id], onDelete: Cascade)
+  nomenclatureItemId     String
   nomenclatureItem       NomenclatureItem     @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
+  productSpecification   ProductSpecification @relation(fields: [productSpecificationId], references: [id], onDelete: Cascade)
 
   @@index([productSpecificationId])
   @@index([nomenclatureItemId])
@@ -251,25 +246,25 @@ model NomenclatureGroup {
 }
 
 model NomenclatureItem {
-  id              String              @id @default(uuid())
-  groupId         String?
-  kindId          String?
-  unitId          String?
-  type            NomenclatureType    @default(Product)
-  designation     String?
-  name            String
-  article         String?
-  code1c          String?
-  manufacturer    String?
-  description     String?
-  price           Float?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  group           NomenclatureGroup?  @relation(fields: [groupId], references: [id])
-  kind            NomenclatureKind?   @relation(fields: [kindId], references: [id])
-  unit            Unit?               @relation(fields: [unitId], references: [id])
-  workStages      WorkStage[]         @relation("WorkStageNomenclature")
-  specifications  Specification[]     @relation("SpecificationNomenclature")
+  id             String             @id @default(uuid())
+  groupId        String?
+  type           NomenclatureType   @default(Product)
+  designation    String?
+  name           String
+  article        String?
+  code1c         String?
+  manufacturer   String?
+  description    String?
+  price          Float?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  unitId         String?
+  kindId         String?
+  group          NomenclatureGroup? @relation(fields: [groupId], references: [id])
+  kind           NomenclatureKind?  @relation(fields: [kindId], references: [id])
+  unit           Unit?              @relation(fields: [unitId], references: [id])
+  specifications Specification[]    @relation("SpecificationNomenclature")
+  workStages     WorkStage[]        @relation("WorkStageNomenclature")
 
   @@index([groupId])
   @@index([kindId])
@@ -286,10 +281,10 @@ enum Role {
 }
 
 enum ProjectStatus {
-  InProject    // В проекте (было Planned - Запланирован)
-  InProgress   // В работе
-  Done         // Завершён
-  HasProblems  // Проблемы (было Есть проблемы)
+  InProject
+  InProgress
+  Done
+  HasProblems
 }
 
 enum NomenclatureType {

@@ -8,7 +8,8 @@ x-common-variables: &common-variables
   JWT_SECRET: your-super-secret-jwt-key-here
 
 services:
-  # База данных PostgreSQL
+  # База данных PostgreSQL (локальная для разработки)
+  # Для продакшена используйте внешнюю базу (Neon.tech, Railway, etc.)
   postgres:
     image: postgres:16
     container_name: gantt_postgres
@@ -21,18 +22,24 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+    profiles:
+      - local-dev
 
   # API Backend
   api:
     build: ./api
     container_name: gantt_api
     environment:
-      DATABASE_URL: postgresql://gantt_app:StrongPass123!@postgres:5432/gantt?schema=public
-      JWT_SECRET: your-super-secret-jwt-key-here
+      # Для внешней базы данных (Neon.tech, Railway, etc.)
+      # Замените на ваш connection string
+      DATABASE_URL: ${DATABASE_URL:-postgresql://gantt_app:StrongPass123!@postgres:5432/gantt?schema=public}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-here}
       PORT: 4000
-      CORS_ORIGINS: http://localhost,http://localhost:5173
+      CORS_ORIGINS: http://localhost,http://localhost:5173,http://localhost:80
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
+        required: false
     ports:
       - "4001:4000"
     restart: unless-stopped

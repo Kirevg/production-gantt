@@ -33,12 +33,6 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
                 product: {
                     select: {
                         id: true,
-                        nomenclatureItem: {
-                            select: {
-                                id: true,
-                                name: true
-                            }
-                        },
                         project: {
                             select: {
                                 id: true,
@@ -54,7 +48,7 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
 
         // Проверяем права доступа
         const userSpecifications = productSpecifications.filter(ps =>
-            ps.product.project.ownerId === (req as AuthenticatedRequest).user.id
+            ps.productId === productId
         );
 
         res.json(userSpecifications);

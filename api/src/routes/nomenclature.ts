@@ -435,7 +435,7 @@ router.delete('/items/:id', authenticateToken, requireRole(['admin']), async (re
 
         // Проверяем, используется ли позиция в изделиях
         const usedInProducts = await prisma.projectProduct.findFirst({
-            where: { nomenclatureItemId: id },
+            where: { productId: id },
         });
 
         if (usedInProducts) {

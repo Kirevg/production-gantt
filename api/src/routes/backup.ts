@@ -12,7 +12,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 // POST /api/backup/create - Создать резервную копию базы данных
-router.post('/create', authenticateToken, requireRole(['admin']), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/create', authenticateToken, requireRole(['admin']), async (req, res: Response) => {
     try {
         console.log('📦 Создание резервной копии базы данных...');
 
@@ -92,7 +92,7 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req: Au
 });
 
 // POST /api/backup/restore - Восстановить базу данных из резервной копии
-router.post('/restore', authenticateToken, requireRole(['admin']), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/restore', authenticateToken, requireRole(['admin']), async (req, res: Response) => {
     try {
         const { data } = req.body;
 

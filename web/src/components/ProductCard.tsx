@@ -27,7 +27,6 @@ import {
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
-    List as ListIcon,
     CalendarToday as CalendarIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
@@ -37,6 +36,7 @@ interface ProjectSpecification {
     id: string;
     name: string;
     description?: string;
+    sum?: number; // Сумма спецификации
     createdAt: string;
     updatedAt: string;
 }
@@ -348,7 +348,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             console.log('handleSaveProduct - productForm:', productForm);
             console.log('productId:', productForm.productId);
             console.log('productName:', productForm.productName);
-            
+
             // Проверяем, что есть либо выбранное изделие, либо введено название вручную
             if (!productForm.productId && !productForm.productName) {
                 console.error('Validation failed: both productId and productName are empty');
@@ -424,16 +424,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 console.log('Product saved successfully:', savedProduct);
                 console.log('savedProduct.product:', savedProduct.product);
                 console.log('Current productData before update:', productData);
-                
+
                 setOpenProductEditDialog(false);
-                
+
                 // Обновляем локальные данные изделия
                 setProductData(savedProduct);
                 console.log('productData updated to:', savedProduct);
-                
+
                 // Обновляем справочник изделий
                 await fetchCatalogProducts();
-                
+
                 // Для нового изделия также обновляем спецификации и этапы
                 if (isNewProduct) {
                     console.log('New product created with ID:', savedProduct.id);
@@ -574,7 +574,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 hours: stage.hours || '',
                 startDate: formattedDate,
                 duration: stage.duration || 1,
-                workTypeId: stage.nomenclatureItem?.id || '',
+                workTypeId: stage.workTypeId || '',
                 assigneeId: stage.assignee?.id || stage.assigneeId || ''
             });
         } else {
@@ -802,7 +802,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
                                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                {specification.totalSum ? `${specification.totalSum.toLocaleString('ru-RU')} ₽` : '-'}
+                                                {specification.sum ? `${specification.sum.toLocaleString('ru-RU')} ₽` : '-'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
@@ -881,9 +881,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                             onDoubleClick={() => handleOpenStageDialog(stage)}
                                         >
                                             <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
-                                                {stage.nomenclatureItem ? (
+                                                {stage.workType ? (
                                                     <Chip
-                                                        label={stage.nomenclatureItem.name}
+                                                        label={stage.workType.name}
                                                         size="small"
                                                         variant="outlined"
                                                         color="primary"
@@ -1113,10 +1113,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             options={catalogProducts}
                             getOptionLabel={(option) => {
                                 if (typeof option === 'string') return option;
-                                return `${option.name}${option.designation ? ` (${option.designation})` : ''}`;
+                                return `${option.name}`;
                             }}
                             value={productForm.productId ? catalogProducts.find(p => p.id === productForm.productId) || null : productForm.productName}
-                            onChange={(event, newValue) => {
+                            onChange={(_, newValue) => {
                                 if (typeof newValue === 'string') {
                                     // Ручной ввод
                                     setProductForm({

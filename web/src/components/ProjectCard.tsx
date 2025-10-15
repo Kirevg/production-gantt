@@ -21,10 +21,6 @@ import {
     Paper,
     IconButton,
     LinearProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Autocomplete,
 } from '@mui/material';
 import { Build as BuildIcon, Delete as DeleteIcon, DragIndicator } from '@mui/icons-material';
@@ -942,7 +938,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                 return `${option.name}${option.designation ? ` (${option.designation})` : ''}`;
                             }}
                             value={catalogProducts.find(p => p.id === productForm.productId) || null}
-                            onChange={(event, newValue) => {
+                            onChange={(_, newValue) => {
                                 if (typeof newValue === 'string') {
                                     // Ручной ввод
                                     setProductForm({
@@ -966,7 +962,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                     });
                                 }
                             }}
-                            onInputChange={(event, newInputValue) => {
+                            onInputChange={(_, newInputValue) => {
                                 // Обновляем название при ручном вводе
                                 setProductForm({
                                     ...productForm,
