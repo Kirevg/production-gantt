@@ -1,5 +1,12 @@
 version: '3.8'
 
+# Настройки для совместной работы
+x-common-variables: &common-variables
+  POSTGRES_USER: gantt_app
+  POSTGRES_PASSWORD: StrongPass123!
+  POSTGRES_DB: gantt
+  JWT_SECRET: your-super-secret-jwt-key-here
+
 services:
   # База данных PostgreSQL
   postgres:
