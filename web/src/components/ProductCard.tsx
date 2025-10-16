@@ -424,7 +424,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const isNewProduct = productId?.startsWith('temp-');
 
             const requestBody = {
-                productId: finalProductId,
+                productId: (finalProductId && !finalProductId.startsWith('temp-')) ? finalProductId : undefined,
                 serialNumber: productForm.serialNumber || undefined,
                 description: productForm.link || undefined,
                 quantity: productForm.quantity,
@@ -478,8 +478,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     console.log('currentProductId updated to:', savedProduct.id);
 
                     // Обновляем название изделия в родительском компоненте
-                    if (onProductNameUpdate && savedProduct.product?.name) {
-                        onProductNameUpdate(savedProduct.product.name);
+                    if (onProductNameUpdate) {
+                        // Используем название из формы или из загруженных данных
+                        const productName = productForm.productName || savedProduct.product?.name || 'Без названия';
+                        onProductNameUpdate(productName);
                     }
                 } else {
                     // Для существующего изделия обновляем данные через API
