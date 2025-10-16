@@ -1029,7 +1029,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             {/* Диалог подтверждения удаления изделия */}
             <Dialog
                 open={openDeleteDialog}
-                onClose={() => setOpenDeleteDialog(false)}
+                onClose={() => { }}
                 sx={{
                     '& .MuiDialog-paper': {
                         position: 'fixed',
