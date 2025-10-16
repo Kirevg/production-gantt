@@ -1047,14 +1047,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     Подтверждение удаления
                 </DialogTitle>
                 <DialogContent sx={{ textAlign: 'center', py: 2 }}>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
-                        Вы уверены, что хотите удалить изделие:
-                    </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'error.main' }}>
                         {productToDelete?.product?.name || productToDelete?.name || 'Без названия'}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-                        Это действие нельзя отменить.
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 3 }}>
