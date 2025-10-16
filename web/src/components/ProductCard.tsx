@@ -92,6 +92,7 @@ interface ProductCardProps {
     productName?: string;
     onBack: () => void;
     onOpenSpecification: (specificationId: string, specificationName: string) => void;
+    onProductNameUpdate?: (productName: string) => void;
     canEdit: () => boolean;
     canCreate: () => boolean;
     canDelete: () => boolean;
@@ -104,6 +105,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     productName,
     onBack,
     onOpenSpecification,
+    onProductNameUpdate,
     canCreate,
     canDelete
 }) => {
@@ -450,6 +452,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     setIsNewProduct(false);
                     setCurrentProductId(savedProduct.id);
                     console.log('Product status changed from new to existing, new ID:', savedProduct.id);
+
+                    // Обновляем название изделия в родительском компоненте
+                    if (onProductNameUpdate && savedProduct.product?.name) {
+                        onProductNameUpdate(savedProduct.product.name);
+                    }
                 }
 
                 // Обновляем справочник изделий

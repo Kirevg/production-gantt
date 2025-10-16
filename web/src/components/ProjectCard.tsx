@@ -627,7 +627,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 return;
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products/${productId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products/${productToDelete.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -642,8 +642,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             await fetchProducts();
             setOpenDeleteDialog(false);
             setProductToDelete(null);
+            console.log('Изделие успешно удалено');
         } catch (error) {
             console.error('Ошибка удаления изделия:', error);
+            alert('Ошибка при удалении изделия. Проверьте консоль для подробностей.');
         }
     };
 
@@ -1036,7 +1038,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         transform: 'translate(-50%, -50%)',
                         margin: 0,
                         width: '400px',
-                        height: '300px',
+                        height: '200px',
                         maxHeight: '90vh'
                     }
                 }}
@@ -1060,13 +1062,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         onClick={confirmDeleteProduct}
                         variant="contained"
                         color="error"
+                        className="volume-button"
                         sx={{ minWidth: 120 }}
                     >
                         Удалить
                     </Button>
                     <Button
                         onClick={() => setOpenDeleteDialog(false)}
-                        variant="outlined"
+                        variant="contained"
+                        className="volume-button"
                         sx={{ minWidth: 120 }}
                     >
                         Отмена

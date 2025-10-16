@@ -2968,6 +2968,7 @@ export default function App() {
             setShowOldSpecificationsList(false);
           }}
           onOpenSpecification={handleOpenSpecificationDetail}
+          onProductNameUpdate={(newName) => setSelectedProductName(newName)}
           canEdit={canEdit}
           canCreate={canCreate}
           canDelete={canDelete}
