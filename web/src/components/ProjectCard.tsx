@@ -1030,6 +1030,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             <Dialog
                 open={openDeleteDialog}
                 onClose={() => { }}
+                disableEscapeKeyDown
                 sx={{
                     '& .MuiDialog-paper': {
                         position: 'fixed',
@@ -1040,6 +1041,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         width: '400px',
                         height: '200px',
                         maxHeight: '90vh'
+                    },
+                    '& .MuiDialogContent-root': {
+                        padding: '0px 24px'
                     }
                 }}
             >
