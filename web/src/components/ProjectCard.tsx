@@ -419,7 +419,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const handleAddEmptyProduct = () => {
         // Открываем пустую карточку изделия с временным ID
         const tempProductId = `temp-${Date.now()}`;
-        onOpenSpecifications(tempProductId, 'Новое изделие');
+        onOpenSpecifications(tempProductId, '');
     };
 
     // Обработчик для drag-and-drop событий

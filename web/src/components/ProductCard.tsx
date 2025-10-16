@@ -258,6 +258,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // Загрузка данных изделия
     const fetchProductData = async () => {
+        console.log('fetchProductData called with currentProductId:', currentProductId, 'projectId:', projectId);
+
         if (!currentProductId || !projectId) return;
 
         // Если это временное изделие, не загружаем данные с сервера
@@ -277,7 +279,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             if (response.ok) {
                 const data = await response.json();
                 console.log('Product data loaded:', data);
+                console.log('Product name from API:', data?.product?.name);
                 setProductData(data);
+                console.log('productData state updated');
             } else {
                 console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
             }
@@ -452,11 +456,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     setIsNewProduct(false);
                     setCurrentProductId(savedProduct.id);
                     console.log('Product status changed from new to existing, new ID:', savedProduct.id);
-
-                    // Обновляем название изделия в родительском компоненте
-                    if (onProductNameUpdate && savedProduct.product?.name) {
-                        onProductNameUpdate(savedProduct.product.name);
-                    }
+                    console.log('currentProductId updated to:', savedProduct.id);
                 }
 
                 // Обновляем справочник изделий
@@ -470,6 +470,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     await fetchProductData();
                     await fetchSpecifications();
                     await fetchStages();
+
+                    // Обновляем название изделия в родительском компоненте
+                    if (onProductNameUpdate && savedProduct.product?.name) {
+                        onProductNameUpdate(savedProduct.product.name);
+                    }
                 } else {
                     // Для существующего изделия обновляем данные через API
                     await fetchProductData();
