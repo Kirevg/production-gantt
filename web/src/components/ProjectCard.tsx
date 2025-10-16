@@ -107,6 +107,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const [isReordering, setIsReordering] = useState(false);
     const [openProductDialog, setOpenProductDialog] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
     const [projectData, setProjectData] = useState({
         name: projectName,
         managerId: '',
@@ -610,10 +612,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         }
     };
 
-    const handleDeleteProduct = async (productId: string) => {
-        if (!window.confirm('Вы уверены, что хотите удалить это изделие?')) {
-            return;
-        }
+    const handleDeleteProduct = (product: Product) => {
+        setProductToDelete(product);
+        setOpenDeleteDialog(true);
+    };
+
+    const confirmDeleteProduct = async () => {
+        if (!productToDelete) return;
 
         try {
             const token = localStorage.getItem('token');
@@ -635,6 +640,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             }
 
             await fetchProducts();
+            setOpenDeleteDialog(false);
+            setProductToDelete(null);
         } catch (error) {
             console.error('Ошибка удаления изделия:', error);
         }
@@ -739,7 +746,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         {canDelete() && (
                             <IconButton
                                 size="small"
-                                onClick={() => handleDeleteProduct(product.id)}
+                                onClick={() => handleDeleteProduct(product)}
                                 color="error"
                                 title="Удалить изделие"
                                 sx={{ minWidth: 'auto', padding: '4px' }}
@@ -1013,6 +1020,56 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     <Button onClick={handleCloseProductDialog}>Отмена</Button>
                     <Button onClick={handleSaveProduct} variant="contained" sx={{ fontSize: '14px' }}>
                         {editingProduct ? 'Сохранить' : 'Создать'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Диалог подтверждения удаления изделия */}
+            <Dialog
+                open={openDeleteDialog}
+                onClose={() => setOpenDeleteDialog(false)}
+                sx={{
+                    '& .MuiDialog-paper': {
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        margin: 0,
+                        width: '400px',
+                        height: '300px',
+                        maxHeight: '90vh'
+                    }
+                }}
+            >
+                <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
+                    Подтверждение удаления
+                </DialogTitle>
+                <DialogContent sx={{ textAlign: 'center', py: 2 }}>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                        Вы уверены, что хотите удалить изделие:
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                        {productToDelete?.product?.name || productToDelete?.name || 'Без названия'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                        Это действие нельзя отменить.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 3 }}>
+                    <Button
+                        onClick={confirmDeleteProduct}
+                        variant="contained"
+                        color="error"
+                        sx={{ minWidth: 120 }}
+                    >
+                        Удалить
+                    </Button>
+                    <Button
+                        onClick={() => setOpenDeleteDialog(false)}
+                        variant="outlined"
+                        sx={{ minWidth: 120 }}
+                    >
+                        Отмена
                     </Button>
                 </DialogActions>
             </Dialog>
