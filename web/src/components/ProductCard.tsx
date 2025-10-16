@@ -123,6 +123,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
         console.log('isNewProduct changed to:', isNewProduct);
     }, [isNewProduct]);
 
+    // Отслеживание изменений currentProductId для загрузки данных
+    useEffect(() => {
+        if (currentProductId && !currentProductId.startsWith('temp-') && projectId) {
+            console.log('currentProductId changed to real ID, loading data:', currentProductId);
+            fetchProductData();
+            fetchSpecifications();
+            fetchStages();
+        }
+    }, [currentProductId, projectId]);
+
     const [productForm, setProductForm] = useState({
         productId: '', // ID из справочника (если выбрано)
         productName: '', // Название изделия (ручной ввод или выбор)
@@ -451,12 +461,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setProductData(savedProduct);
                 console.log('productData updated to:', savedProduct);
 
-                // Если это было новое изделие, обновляем статус и ID
+                // Если это было новое изделие, обновляем статус
                 if (isNewProduct) {
                     setIsNewProduct(false);
-                    setCurrentProductId(savedProduct.id);
                     console.log('Product status changed from new to existing, new ID:', savedProduct.id);
-                    console.log('currentProductId updated to:', savedProduct.id);
                 }
 
                 // Обновляем справочник изделий
@@ -465,11 +473,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 // Для нового изделия также обновляем спецификации и этапы
                 if (isNewProduct) {
                     console.log('New product created with ID:', savedProduct.id);
-                    // Обновляем ID и перезапрашиваем все данные
+                    // Обновляем ID
                     setCurrentProductId(savedProduct.id);
-                    await fetchProductData();
-                    await fetchSpecifications();
-                    await fetchStages();
+                    console.log('currentProductId updated to:', savedProduct.id);
 
                     // Обновляем название изделия в родительском компоненте
                     if (onProductNameUpdate && savedProduct.product?.name) {
