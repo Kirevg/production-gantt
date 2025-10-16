@@ -114,6 +114,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [isNewProduct, setIsNewProduct] = useState(productId?.startsWith('temp-') || false);
+    const [currentProductId, setCurrentProductId] = useState(productId);
+
+    // Принудительное обновление компонента при изменении статуса изделия
+    useEffect(() => {
+        console.log('isNewProduct changed to:', isNewProduct);
+    }, [isNewProduct]);
+
     const [productForm, setProductForm] = useState({
         productId: '', // ID из справочника (если выбрано)
         productName: '', // Название изделия (ручной ввод или выбор)
@@ -165,7 +172,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
 
             // Строим URL для получения спецификаций изделия
-            const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${productId}/specifications`;
+            const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${currentProductId}/specifications`;
 
             const response = await fetch(url, {
                 headers: {
@@ -189,7 +196,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // Загрузка этапов работ
     const fetchStages = async () => {
-        if (!productId) return;
+        if (!currentProductId) return;
 
         try {
             const token = localStorage.getItem('token');
@@ -198,7 +205,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${currentProductId}/work-stages`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -249,17 +256,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // Загрузка данных изделия
     const fetchProductData = async () => {
-        if (!productId || !projectId) return;
+        if (!currentProductId || !projectId) return;
 
         // Если это временное изделие, не загружаем данные с сервера
-        if (productId.startsWith('temp-')) {
+        if (currentProductId?.startsWith('temp-')) {
             console.log('Временное изделие, данные не загружаются с сервера');
             return;
         }
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${currentProductId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -438,10 +445,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setProductData(savedProduct);
                 console.log('productData updated to:', savedProduct);
 
-                // Если это было новое изделие, обновляем статус
+                // Если это было новое изделие, обновляем статус и ID
                 if (isNewProduct) {
                     setIsNewProduct(false);
-                    console.log('Product status changed from new to existing');
+                    setCurrentProductId(savedProduct.id);
+                    console.log('Product status changed from new to existing, new ID:', savedProduct.id);
                 }
 
                 // Обновляем справочник изделий
@@ -450,7 +458,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 // Для нового изделия также обновляем спецификации и этапы
                 if (isNewProduct) {
                     console.log('New product created with ID:', savedProduct.id);
-                    // Перезапрашиваем данные изделия из базы
+                    // Обновляем ID и перезапрашиваем все данные
+                    setCurrentProductId(savedProduct.id);
                     await fetchProductData();
                     await fetchSpecifications();
                     await fetchStages();
@@ -1119,7 +1128,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </Dialog>
 
             {/* Диалог редактирования/создания изделия */}
-            <Dialog open={openProductEditDialog} onClose={() => { }} maxWidth="sm" fullWidth>
+            <Dialog
+                key={`product-dialog-${isNewProduct}-${currentProductId}`}
+                open={openProductEditDialog}
+                onClose={() => { }}
+                maxWidth="sm"
+                fullWidth
+            >
                 <DialogTitle>{isNewProduct ? 'Создать изделие' : 'Редактировать изделие'}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
