@@ -5,7 +5,6 @@ import CounterpartiesPage from './CounterpartiesPage';
 import PersonsPage from './PersonsPage';
 import UnitsPage from './UnitsPage';
 import NomenclatureKindsPage from './NomenclatureKindsPage';
-import ProductsCatalogPage from './ProductsCatalogPage';
 
 interface ReferencesPageProps {
     canEdit: () => boolean;
@@ -26,17 +25,15 @@ const ReferencesPage: React.FC<ReferencesPageProps> = ({
 
     const renderSubTabContent = () => {
         switch (currentSubTab) {
-            case 0: // Изделия
-                return <ProductsCatalogPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-            case 1: // Номенклатура
+            case 0: // Номенклатура
                 return <NomenclaturePage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-            case 2: // Контрагенты
+            case 1: // Контрагенты
                 return <CounterpartiesPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-            case 3: // Физические лица
+            case 2: // Физические лица
                 return <PersonsPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-            case 4: // Единицы измерения
+            case 3: // Единицы измерения
                 return <UnitsPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-            case 5: // Виды номенклатуры
+            case 4: // Виды номенклатуры
                 return <NomenclatureKindsPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
             default:
                 return null;
@@ -63,7 +60,6 @@ const ReferencesPage: React.FC<ReferencesPageProps> = ({
                     }
                 }}
             >
-                <Tab label="Изделия" />
                 <Tab label="Номенклатура" />
                 <Tab label="Контрагенты" />
                 <Tab label="Физические лица" />
