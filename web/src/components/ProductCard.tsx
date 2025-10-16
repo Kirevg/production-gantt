@@ -183,6 +183,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
+            // Не загружаем спецификации для временных изделий
+            if (currentProductId?.startsWith('temp-')) {
+                console.log('Временное изделие, спецификации не загружаются, currentProductId:', currentProductId);
+                setSpecifications([]);
+                setSpecificationsLoading(false);
+                return;
+            }
+
+            console.log('fetchSpecifications called with currentProductId:', currentProductId);
+
             // Строим URL для получения спецификаций изделия
             const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${currentProductId}/specifications`;
 
@@ -550,9 +560,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
+            // Проверяем, что продукт уже создан (не temp-*)
+            if (!editingSpecification && currentProductId?.startsWith('temp-')) {
+                console.error('Нельзя создать спецификацию для временного изделия, currentProductId:', currentProductId);
+                alert('Сначала сохраните изделие, а затем создавайте спецификации');
+                return;
+            }
+
+            console.log('handleSaveSpecification called with currentProductId:', currentProductId);
+
             const url = editingSpecification
                 ? `${import.meta.env.VITE_API_BASE_URL}/product-specifications/${editingSpecification.id}`
-                : `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${productId}/specifications`;
+                : `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${currentProductId}/specifications`;
 
             const method = editingSpecification ? 'PUT' : 'POST';
 
