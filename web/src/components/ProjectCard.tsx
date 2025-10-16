@@ -1046,7 +1046,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
                     Подтверждение удаления
                 </DialogTitle>
-                <DialogContent sx={{ textAlign: 'center', py: 2 }}>
+                <DialogContent sx={{ textAlign: 'center' }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'error.main' }}>
                         {productToDelete?.product?.name || productToDelete?.name || 'Без названия'}
                     </Typography>
