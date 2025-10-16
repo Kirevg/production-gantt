@@ -50,7 +50,7 @@ interface Stage {
     duration: number;
     endDate: string;
     workTypeId?: string;
-    workType?: {
+    nomenclatureItem?: {
         id: string;
         name: string;
     };
@@ -239,6 +239,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
 
             const data = await response.json();
+            console.log('API: Work stages fetched:', JSON.stringify(data, null, 2));
             setStages(data);
         } catch (error) {
             console.error('Ошибка загрузки этапов:', error);
@@ -944,9 +945,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                             onDoubleClick={() => handleOpenStageDialog(stage)}
                                         >
                                             <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
-                                                {stage.workType ? (
+                                                {stage.nomenclatureItem ? (
                                                     <Chip
-                                                        label={stage.workType.name}
+                                                        label={stage.nomenclatureItem.name}
                                                         size="small"
                                                         variant="outlined"
                                                         color="primary"
