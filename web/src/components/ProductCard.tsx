@@ -113,6 +113,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [productData, setProductData] = useState<any>(null);
     const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
+    const [isNewProduct, setIsNewProduct] = useState(productId?.startsWith('temp-') || false);
     const [productForm, setProductForm] = useState({
         productId: '', // ID из справочника (если выбрано)
         productName: '', // Название изделия (ручной ввод или выбор)
@@ -437,12 +438,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setProductData(savedProduct);
                 console.log('productData updated to:', savedProduct);
 
+                // Если это было новое изделие, обновляем статус
+                if (isNewProduct) {
+                    setIsNewProduct(false);
+                    console.log('Product status changed from new to existing');
+                }
+
                 // Обновляем справочник изделий
                 await fetchCatalogProducts();
 
                 // Для нового изделия также обновляем спецификации и этапы
                 if (isNewProduct) {
                     console.log('New product created with ID:', savedProduct.id);
+                    // Перезапрашиваем данные изделия из базы
+                    await fetchProductData();
                     await fetchSpecifications();
                     await fetchStages();
                 } else {
@@ -1111,7 +1120,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Диалог редактирования/создания изделия */}
             <Dialog open={openProductEditDialog} onClose={() => { }} maxWidth="sm" fullWidth>
-                <DialogTitle>{productId?.startsWith('temp-') ? 'Создать изделие' : 'Редактировать изделие'}</DialogTitle>
+                <DialogTitle>{isNewProduct ? 'Создать изделие' : 'Редактировать изделие'}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                         <Autocomplete
