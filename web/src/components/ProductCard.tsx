@@ -282,7 +282,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
             setLoadingProducts(true);
             const token = localStorage.getItem('token');
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products?isActive=true`, {
+            // Загружаем изделия только из текущего проекта
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -290,10 +291,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (response.ok) {
                 const data = await response.json();
-                setCatalogProducts(data);
+                // Преобразуем данные изделий проекта в формат для выпадающего списка
+                const projectProducts = data.map((product: any) => ({
+                    id: product.id,
+                    name: product.product?.name || product.name || 'Без названия'
+                }));
+                setCatalogProducts(projectProducts);
             }
         } catch (error) {
-            console.error('Ошибка загрузки справочника изделий:', error);
+            console.error('Ошибка загрузки изделий проекта:', error);
         } finally {
             setLoadingProducts(false);
         }
@@ -963,7 +969,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </Box>
 
             {/* Диалог создания/редактирования спецификации */}
-            <Dialog open={openSpecificationDialog} onClose={handleCloseSpecificationDialog} maxWidth="sm" fullWidth>
+            <Dialog open={openSpecificationDialog} onClose={() => { }} maxWidth="sm" fullWidth>
                 <DialogTitle>
                     {editingSpecification ? 'Редактировать спецификацию' : 'Создать спецификацию'}
                 </DialogTitle>
@@ -1104,7 +1110,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </Dialog>
 
             {/* Диалог редактирования/создания изделия */}
-            <Dialog open={openProductEditDialog} onClose={() => setOpenProductEditDialog(false)} maxWidth="sm" fullWidth>
+            <Dialog open={openProductEditDialog} onClose={() => { }} maxWidth="sm" fullWidth>
                 <DialogTitle>{productId?.startsWith('temp-') ? 'Создать изделие' : 'Редактировать изделие'}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
