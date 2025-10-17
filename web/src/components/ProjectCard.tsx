@@ -1051,8 +1051,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     Подтверждение удаления
                 </DialogTitle>
                 <DialogContent sx={{ textAlign: 'center' }}>
+                    {/* 
+                        Показываем имя удаляемого изделия.
+                        productToDelete может быть объектом изделия или содержать поле product с нужными данными.
+                        Настраиваем логику: если есть поле name - показываем его, иначе "Без названия"
+                    */}
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'error.main' }}>
-                        {productToDelete?.product?.name || productToDelete?.name || 'Без названия'}
+                        {productToDelete?.product?.name || 'Без названия'}
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 3 }}>
