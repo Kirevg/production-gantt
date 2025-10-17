@@ -18,7 +18,8 @@ import {
     IconButton,
     LinearProgress,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    Chip
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
@@ -51,6 +52,23 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
     const [loading, setLoading] = useState(true);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingCounterparty, setEditingCounterparty] = useState<Counterparty | null>(null);
+
+    // Состояние для фильтров типов контрагентов с сохранением в localStorage
+    const [typeFilters, setTypeFilters] = useState(() => {
+        const saved = localStorage.getItem('counterparties-type-filters');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error('Ошибка загрузки фильтров контрагентов:', e);
+            }
+        }
+        return {
+            supplier: true,
+            manufacturer: true,
+            contractor: true
+        };
+    });
     const [counterpartyForm, setCounterpartyForm] = useState({
         name: '',
         fullName: '',
@@ -91,6 +109,24 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
     useEffect(() => {
         fetchCounterparties();
     }, []);
+
+    // Функция для фильтрации контрагентов по типам
+    const getFilteredCounterparties = () => {
+        return counterparties.filter(cp => {
+            if (cp.isSupplier && !typeFilters.supplier) return false;
+            if (cp.isManufacturer && !typeFilters.manufacturer) return false;
+            if (cp.isContractor && !typeFilters.contractor) return false;
+            return true;
+        });
+    };
+
+    // Обработчик изменения фильтров типов
+    const handleTypeFilterChange = (type: keyof typeof typeFilters) => {
+        setTypeFilters(prev => ({
+            ...prev,
+            [type]: !prev[type]
+        }));
+    };
 
     const handleOpenDialog = (counterparty?: Counterparty) => {
         if (counterparty) {
@@ -198,10 +234,86 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
                 </Typography>
                 {canCreate() && (
                     <VolumeButton variant="contained" onClick={() => handleOpenDialog()} color="blue">
-                        Добавить контрагента
+                        Добавить
                     </VolumeButton>
                 )}
             </Box>
+
+            {/* Фильтры типов контрагентов */}
+            <Paper sx={{ p: 0, mb: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', height: '56px', overflow: 'hidden', width: '100%' }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Показано: {getFilteredCounterparties().length} из {counterparties.length}
+                    </Typography>
+
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={typeFilters.supplier}
+                                onChange={() => handleTypeFilterChange('supplier')}
+                                color="default"
+                            />
+                        }
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                <Chip
+                                    label="Поставщик"
+                                    color="secondary"
+                                    size="small"
+                                    sx={{ borderRadius: '6px' }}
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                    ({counterparties.filter(cp => cp.isSupplier).length})
+                                </Typography>
+                            </Box>
+                        }
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={typeFilters.manufacturer}
+                                onChange={() => handleTypeFilterChange('manufacturer')}
+                                color="primary"
+                            />
+                        }
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                <Chip
+                                    label="Производитель"
+                                    color="primary"
+                                    size="small"
+                                    sx={{ borderRadius: '6px' }}
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                    ({counterparties.filter(cp => cp.isManufacturer).length})
+                                </Typography>
+                            </Box>
+                        }
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={typeFilters.contractor}
+                                onChange={() => handleTypeFilterChange('contractor')}
+                                color="success"
+                            />
+                        }
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                <Chip
+                                    label="Подрядчик"
+                                    color="success"
+                                    size="small"
+                                    sx={{ borderRadius: '6px' }}
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                    ({counterparties.filter(cp => cp.isContractor).length})
+                                </Typography>
+                            </Box>
+                        }
+                    />
+                </Box>
+            </Paper>
 
             {loading ? (
                 <LinearProgress />
@@ -212,18 +324,15 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>Название</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>Контакт</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>Контактное лицо</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>Телефон</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Поставщик</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Производитель</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Подрядчик</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px', fontSize: '12px' }}>
                                     <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
                                 </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {counterparties.map((cp, index) => (
+                            {getFilteredCounterparties().map((cp, index) => (
                                 <TableRow
                                     key={cp.id}
                                     sx={{ height: '35px' }}
@@ -234,9 +343,6 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
                                     <TableCell sx={{ py: 0.5 }}>{cp.name}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{cp.contactName || '-'}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{cp.phone || '-'}</TableCell>
-                                    <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{cp.isSupplier ? '✓' : ''}</TableCell>
-                                    <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{cp.isManufacturer ? '✓' : ''}</TableCell>
-                                    <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{cp.isContractor ? '✓' : ''}</TableCell>
                                     <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
                                         {canDelete() && (
                                             <IconButton size="small" onClick={() => handleDelete(cp.id)} color="error" sx={{ padding: '4px' }}>
