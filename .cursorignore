@@ -1,0 +1,17 @@
+# Cursor ignore file
+# Исключения для Cursor (не игнорировать эти файлы)
+
+# Разрешить .env файлы
+!.env
+!api/.env
+!web/.env
+
+# Разрешить конфигурационные файлы
+!*.config.js
+!*.config.ts
+!*.config.json
+
+# Разрешить документацию
+!*.md
+!README.md
+!PROJECT_CONTEXT.md
