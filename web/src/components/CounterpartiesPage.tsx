@@ -120,12 +120,14 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
         });
     };
 
-    // Обработчик изменения фильтров типов
+    // Обработчик изменения фильтров типов с сохранением в localStorage
     const handleTypeFilterChange = (type: keyof typeof typeFilters) => {
-        setTypeFilters(prev => ({
-            ...prev,
-            [type]: !prev[type]
-        }));
+        const newFilters = {
+            ...typeFilters,
+            [type]: !typeFilters[type]
+        };
+        setTypeFilters(newFilters);
+        localStorage.setItem('counterparties-type-filters', JSON.stringify(newFilters));
     };
 
     const handleOpenDialog = (counterparty?: Counterparty) => {
