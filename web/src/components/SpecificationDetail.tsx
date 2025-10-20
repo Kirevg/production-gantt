@@ -1149,7 +1149,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 </TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.code1c || specification.code1c || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.group?.name || specification.group?.name || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.group?.name || (specification.group as any)?.name || (specification.group as string) || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5 }}>{specification.nomenclatureItem?.description || specification.description || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.quantity}</TableCell>
