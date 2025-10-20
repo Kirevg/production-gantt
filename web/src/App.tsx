@@ -337,7 +337,6 @@ function ProjectManagersList({ canEdit, canCreate, canDelete }: {
   };
 
   const handleEditManager = (manager: ProjectManager) => {
-    console.log('Editing manager:', manager);
     setEditingManager(manager);
     setShowEditManagerForm(true);
   };
@@ -737,7 +736,6 @@ function ContractorsList({ canEdit, canCreate, canDelete }: {
   };
 
   const handleEditContractor = (contractor: Contractor) => {
-    console.log('Editing contractor:', contractor);
     setEditingContractor(contractor);
     setShowEditContractorForm(true);
   };
@@ -1195,7 +1193,6 @@ function UsersList({ currentUser, canEdit, canCreate, canDelete }: {
   };
 
   const handleEditUser = (user: SystemUser) => {
-    console.log('Editing user:', user);
     setEditingUser({ ...user, password: '' });
     setShowEditUserForm(true);
   };
@@ -2730,7 +2727,6 @@ export default function App() {
         throw new Error('Токен авторизации не найден. Пожалуйста, войдите в систему заново.');
       }
 
-      console.log('Creating backup with token:', token.substring(0, 20) + '...');
 
       const response = await fetch('http://localhost:4000/api/backup/create', {
         method: 'POST',

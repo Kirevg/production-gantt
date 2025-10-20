@@ -78,6 +78,11 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 }) => {
     const [specifications, setSpecifications] = useState<Specification[]>([]);
 
+    // Состояние для редактирования ячейки номенклатуры
+    const [editingCell, setEditingCell] = useState<string | null>(null);
+    const [cellSearchQuery, setCellSearchQuery] = useState('');
+    const [cellFilteredItems, setCellFilteredItems] = useState<any[]>([]);
+
     // Состояние для диалога выбора номенклатуры
     const [showNomenclatureDialog, setShowNomenclatureDialog] = useState(false);
     const [nomenclatureItems, setNomenclatureItems] = useState<Array<{
@@ -715,6 +720,115 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
         }
     };
 
+    // Функции для работы с выпадающим списком номенклатуры
+    const handleReplaceNomenclatureItem = async (specification: Specification) => {
+        // Сохраняем текущую позицию для замены
+        setEditingSpecification(specification);
+        // Загружаем номенклатуру для автокомплита
+        await fetchNomenclature();
+        setCellFilteredItems([]);
+        setCellSearchQuery('');
+        setEditingCell(specification.id);
+    };
+
+    const handleCellSearchChange = (query: string) => {
+        setCellSearchQuery(query);
+
+        if (!query.trim()) {
+            setCellFilteredItems([]);
+            return;
+        }
+
+        const filtered = allNomenclatureItems.filter(item => {
+            const searchLower = query.toLowerCase();
+            return (
+                item.name?.toLowerCase().includes(searchLower) ||
+                item.article?.toLowerCase().includes(searchLower) ||
+                item.code1c?.toLowerCase().includes(searchLower) ||
+                item.designation?.toLowerCase().includes(searchLower)
+            );
+        });
+
+        setCellFilteredItems(filtered);
+    };
+
+    const handleSelectCellNomenclatureItem = async (item: any) => {
+        if (!editingSpecification) return;
+
+        try {
+            const response = await fetch(`/api/specifications/${editingSpecification.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    nomenclatureItemId: item.id,
+                    name: item.name,
+                    designation: item.designation,
+                    article: item.article,
+                    code1c: item.code1c,
+                    group: item.group,
+                    manufacturer: item.manufacturer
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка обновления позиции');
+            }
+
+            const updatedSpecification = await response.json();
+
+            // Обновляем локальное состояние
+            setSpecifications(prev =>
+                prev.map(spec =>
+                    spec.id === editingSpecification.id
+                        ? { ...spec, ...updatedSpecification }
+                        : spec
+                )
+            );
+
+            // Закрываем режим редактирования
+            setEditingCell(null);
+            setEditingSpecification(null);
+            setCellSearchQuery('');
+            setCellFilteredItems([]);
+
+        } catch (error) {
+            console.error('Ошибка обновления позиции:', error);
+            setError('Ошибка при обновлении позиции');
+        }
+    };
+
+    const handleCancelCellEdit = () => {
+        setEditingCell(null);
+        setEditingSpecification(null);
+        setCellSearchQuery('');
+        setCellFilteredItems([]);
+    };
+
+    const handleAddEmptyRow = () => {
+        // Добавляем пустую строку в таблицу спецификации
+        setSpecifications(prev => [...prev, {
+            id: `temp-${Date.now()}`,
+            designation: '',
+            name: '',
+            article: '',
+            code1c: '',
+            group: '',
+            manufacturer: '',
+            description: '',
+            quantity: 1,
+            unit: '',
+            price: 0,
+            totalPrice: 0,
+            orderIndex: prev.length,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            nomenclatureItem: undefined
+        }]);
+    };
+
     const handleClearAll = async () => {
         if (!canDelete() || specifications.length === 0) return;
 
@@ -771,6 +885,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     {canCreate() && (
                         <VolumeButton
                             variant="contained"
+                            onClick={handleAddEmptyRow}
+                            color="blue"
+                        >
+                            Добавить
+                        </VolumeButton>
+                    )}
+                    {canCreate() && (
+                        <VolumeButton
+                            variant="contained"
                             onClick={handleImport}
                             color="green"
                         >
@@ -812,7 +935,11 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             )}
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
+            <TableContainer
+                component={Paper}
+                sx={{ width: '100%', overflowX: 'auto' }}
+                onClick={handleCancelCellEdit}
+            >
                 <Table sx={{
                     '& .MuiTableCell-root': { borderRight: '1px solid #bdbdbd' },
                     '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '12px !important' },
@@ -852,10 +979,177 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             >
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.designation || specification.designation || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5 }}>{specification.nomenclatureItem?.name || specification.name || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, position: 'relative' }}>
+                                    {editingCell === specification.id ? (
+                                        <Box sx={{ position: 'relative' }}>
+                                            <TextField
+                                                fullWidth
+                                                size="small"
+                                                value={cellSearchQuery}
+                                                onChange={(e) => handleCellSearchChange(e.target.value)}
+                                                placeholder="Поиск номенклатуры..."
+                                                sx={{
+                                                    '& .MuiInputBase-root': {
+                                                        height: '30px',
+                                                        fontSize: '12px'
+                                                    }
+                                                }}
+                                            />
+                                            {editingCell === specification.id && (
+                                                <Box sx={{
+                                                    position: 'absolute',
+                                                    top: '100%',
+                                                    left: 0,
+                                                    right: 0,
+                                                    zIndex: 1000,
+                                                    backgroundColor: 'white',
+                                                    border: '1px solid #ccc',
+                                                    borderRadius: 1,
+                                                    maxHeight: '200px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                                                }}>
+                                                    {/* Контейнер для прокрутки списка */}
+                                                    <Box sx={{
+                                                        flex: 1,
+                                                        overflow: 'auto',
+                                                        maxHeight: '150px'
+                                                    }}>
+                                                        {/* Отфильтрованные элементы */}
+                                                        {cellFilteredItems.length > 0 ? (
+                                                            cellFilteredItems.slice(0, 10).map((item) => (
+                                                                <Box
+                                                                    key={item.id}
+                                                                    onClick={() => handleSelectCellNomenclatureItem(item)}
+                                                                    sx={{
+                                                                        p: 1,
+                                                                        cursor: 'pointer',
+                                                                        borderBottom: '1px solid #f0f0f0',
+                                                                        '&:hover': {
+                                                                            backgroundColor: '#f5f5f5'
+                                                                        },
+                                                                        '&:last-child': {
+                                                                            borderBottom: 'none'
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                                                        {item.name}
+                                                                        {item.code1c && ` (${item.code1c})`}
+                                                                    </Typography>
+                                                                </Box>
+                                                            ))
+                                                        ) : (
+                                                            <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
+                                                                <Typography variant="body2">
+                                                                    Ничего не найдено
+                                                                </Typography>
+                                                            </Box>
+                                                        )}
+                                                    </Box>
+
+                                                    {/* Кнопки внизу окна */}
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        borderTop: '1px solid #ccc',
+                                                        position: 'sticky',
+                                                        bottom: 0,
+                                                        p: '4px 8px'
+                                                    }}>
+                                                        {/* Кнопка "Показать все" в стиле 1С - как ссылка */}
+                                                        <Box
+                                                            onClick={() => {
+                                                                setCellFilteredItems(allNomenclatureItems);
+                                                                setCellSearchQuery('');
+                                                            }}
+                                                            sx={{
+                                                                p: '4px 8px',
+                                                                cursor: 'pointer',
+                                                                backgroundColor: '#f0f0f0',
+                                                                border: '1px solid #808080',
+                                                                fontFamily: 'Arial, sans-serif',
+                                                                fontSize: '11px',
+                                                                '&:hover': {
+                                                                    backgroundColor: '#e8e8e8'
+                                                                },
+                                                                '&:active': {
+                                                                    backgroundColor: '#d8d8d8',
+                                                                    border: '1px solid #404040'
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Typography variant="body2" sx={{
+                                                                fontWeight: 'normal',
+                                                                color: '#0000ff',
+                                                                fontFamily: 'Arial, sans-serif',
+                                                                fontSize: '11px',
+                                                                textAlign: 'center',
+                                                                textDecoration: 'underline',
+                                                                '&:hover': {
+                                                                    textDecoration: 'underline'
+                                                                }
+                                                            }}>
+                                                                Показать все
+                                                            </Typography>
+                                                        </Box>
+
+                                                        {/* Кнопка с плюсом в стиле 1С - небольшая прямоугольная */}
+                                                        <Box
+                                                            onClick={() => {
+                                                                // TODO: Добавить функционал для новой кнопки
+                                                                console.log('Кнопка с плюсом нажата');
+                                                            }}
+                                                            sx={{
+                                                                width: '30px',
+                                                                height: '20px',
+                                                                p: '2px 4px',
+                                                                cursor: 'pointer',
+                                                                backgroundColor: '#f0f0f0',
+                                                                border: '1px solid #808080',
+                                                                fontFamily: 'Arial, sans-serif',
+                                                                fontSize: '11px',
+                                                                '&:hover': {
+                                                                    backgroundColor: '#e8e8e8'
+                                                                },
+                                                                '&:active': {
+                                                                    backgroundColor: '#d8d8d8',
+                                                                    border: '1px solid #404040'
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Typography variant="body2" sx={{
+                                                                fontWeight: 'bold',
+                                                                color: '#000',
+                                                                fontFamily: 'Arial, sans-serif',
+                                                                fontSize: '12px',
+                                                                textAlign: 'center',
+                                                                lineHeight: 1
+                                                            }}>
+                                                                +
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Box>
+                                            )}
+                                        </Box>
+                                    ) : (
+                                        <Box
+                                            onDoubleClick={() => handleReplaceNomenclatureItem(specification)}
+                                            sx={{
+                                                cursor: canEdit() ? 'pointer' : 'default',
+                                                '&:hover': canEdit() ? { backgroundColor: '#f5f5f5' } : {}
+                                            }}
+                                        >
+                                            {specification.nomenclatureItem?.name || specification.name || '-'}
+                                        </Box>
+                                    )}
+                                </TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.code1c || specification.code1c || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.group?.name || specification.group || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.group?.name || specification.group?.name || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5 }}>{specification.nomenclatureItem?.description || specification.description || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.quantity}</TableCell>

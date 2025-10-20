@@ -43,9 +43,6 @@ app.use('/api/migrations', migrationRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/client-logs', clientLogsRoutes);
 
-console.log('🚀 Registered routes:');
-console.log('  - /product-specifications (productSpecificationRoutes)');
-
 app.listen(port, () => {
   console.log(`API listening on http://localhost:${port}`);
 });

@@ -132,12 +132,6 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('📊 Stages data from API:', data);
-                if (data.length > 0) {
-                    console.log('📅 First stage endDate:', data[0].endDate);
-                    console.log('📅 First stage startDate:', data[0].startDate);
-                    console.log('📅 First stage duration:', data[0].duration);
-                }
                 setStages(data);
             } else {
                 console.error('Ошибка загрузки этапов работ');

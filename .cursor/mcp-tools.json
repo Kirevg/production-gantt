@@ -1,0 +1,167 @@
+{
+    "browser_tools": {
+        "screenshot": {
+            "description": "Делает скриншот веб-страницы или элемента",
+            "parameters": {
+                "url": "URL страницы для скриншота",
+                "selector": "CSS селектор элемента (опционально)",
+                "full_page": "Скриншот всей страницы (true/false)",
+                "output_path": "Путь для сохранения скриншота"
+            },
+            "safety": {
+                "allowed_domains": [
+                    "localhost",
+                    "127.0.0.1",
+                    "production-gantt.com"
+                ],
+                "max_timeout": 30000
+            }
+        },
+        "test_frontend": {
+            "description": "Запускает автотесты фронтенда",
+            "parameters": {
+                "base_url": "http://localhost:5173",
+                "test_suite": "smoke, regression, e2e",
+                "browser": "chrome, firefox, edge"
+            },
+            "safety": {
+                "allowed_urls": [
+                    "http://localhost:5173",
+                    "http://localhost:4000"
+                ],
+                "max_test_duration": 300000
+            }
+        },
+        "navigate": {
+            "description": "Навигация по веб-страницам",
+            "parameters": {
+                "url": "URL для перехода",
+                "wait_for": "Элемент для ожидания загрузки",
+                "timeout": "Таймаут ожидания в мс"
+            }
+        }
+    },
+    "documentation_tools": {
+        "generate_docs": {
+            "description": "Генерирует документацию для кода",
+            "parameters": {
+                "file_path": "Путь к файлу для документирования",
+                "output_format": "markdown, html, pdf",
+                "include_examples": "Включать примеры использования"
+            }
+        },
+        "api_docs": {
+            "description": "Генерирует документацию API",
+            "parameters": {
+                "endpoint": "API эндпоинт для документирования",
+                "method": "HTTP метод",
+                "output_path": "Путь для сохранения документации"
+            }
+        }
+    },
+    "image_generation": {
+        "create_diagram": {
+            "description": "Создает диаграммы архитектуры",
+            "parameters": {
+                "type": "erd, flow, sequence, gantt",
+                "data": "Данные для диаграммы",
+                "output_path": "Путь для сохранения",
+                "format": "png, svg, pdf"
+            }
+        },
+        "generate_ui_mockup": {
+            "description": "Генерирует мокапы UI",
+            "parameters": {
+                "component": "Название компонента",
+                "layout": "Структура макета",
+                "output_path": "Путь для сохранения"
+            }
+        }
+    },
+    "database_tools": {
+        "query_executor": {
+            "description": "Выполняет SQL запросы",
+            "parameters": {
+                "sql": "SQL запрос",
+                "database": "production_gantt",
+                "timeout": 30000
+            },
+            "safety": {
+                "allowed_operations": [
+                    "SELECT",
+                    "INSERT",
+                    "UPDATE",
+                    "DELETE"
+                ],
+                "forbidden_operations": [
+                    "DROP",
+                    "TRUNCATE",
+                    "ALTER"
+                ],
+                "max_rows": 1000
+            }
+        },
+        "backup_database": {
+            "description": "Создает резервную копию БД",
+            "parameters": {
+                "backup_path": "Путь для сохранения бэкапа",
+                "include_data": "Включать данные (true/false)",
+                "compress": "Сжимать бэкап (true/false)"
+            }
+        },
+        "migrate_database": {
+            "description": "Выполняет миграции БД",
+            "parameters": {
+                "migration_file": "Файл миграции",
+                "rollback": "Откатить миграцию (true/false)"
+            }
+        }
+    },
+    "git_tools": {
+        "commit_changes": {
+            "description": "Создает коммит с изменениями",
+            "parameters": {
+                "message": "Сообщение коммита",
+                "files": "Список файлов для коммита",
+                "push": "Отправить в удаленный репозиторий (true/false)"
+            }
+        },
+        "create_branch": {
+            "description": "Создает новую ветку",
+            "parameters": {
+                "branch_name": "Название ветки",
+                "from_branch": "Базовая ветка (опционально)"
+            }
+        },
+        "merge_branch": {
+            "description": "Сливает ветки",
+            "parameters": {
+                "source_branch": "Исходная ветка",
+                "target_branch": "Целевая ветка"
+            }
+        }
+    },
+    "file_operations": {
+        "create_directory": {
+            "description": "Создает директорию если не существует",
+            "parameters": {
+                "path": "Путь к директории",
+                "recursive": "Создать родительские директории (true/false)"
+            }
+        },
+        "backup_file": {
+            "description": "Создает резервную копию файла",
+            "parameters": {
+                "file_path": "Путь к файлу",
+                "backup_suffix": "Суффикс для бэкапа (.bak, .backup)"
+            }
+        },
+        "validate_path": {
+            "description": "Проверяет корректность пути",
+            "parameters": {
+                "path": "Путь для проверки",
+                "must_exist": "Путь должен существовать (true/false)"
+            }
+        }
+    }
+}

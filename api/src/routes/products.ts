@@ -99,7 +99,6 @@ router.get('/:projectId/products', authenticateToken, async (req, res) => {
       }
     });
 
-    console.log('API: Products fetched:', JSON.stringify(products, null, 2));
     res.json(products);
   } catch (error) {
     console.error('API Error fetching products:', error);
@@ -140,9 +139,7 @@ router.post('/:projectId/products', authenticateToken, requireRole(['admin', 'ma
 router.put('/:projectId/products/:productId', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
   try {
     const { productId } = req.params;
-    console.log('API: PUT request body:', JSON.stringify(req.body, null, 2));
     const data = productUpdateSchema.parse(req.body);
-    console.log('API: Parsed data:', JSON.stringify(data, null, 2));
 
     if (!productId) {
       return res.status(400).json({ error: 'Product ID is required' });

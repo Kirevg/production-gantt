@@ -283,46 +283,10 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         continue;
                     }
 
-                    // Ищем существующую позицию в номенклатуре по Артикулу, Код 1С, Наименованию, Обозначению
+                    // Ищем существующую позицию в номенклатуре по приоритетным критериям
                     let existingItem = null;
 
-                    // Пытаемся найти по каждому полю отдельно (приоритетный поиск)
-                    if (!existingItem && nomenclatureData.article) {
-                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?article=${encodeURIComponent(nomenclatureData.article)}`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        if (searchResponse.ok) {
-                            existingItem = await searchResponse.json();
-                        }
-                    }
-
-                    // Если не найдено по артикулу, ищем по коду 1С
-                    if (!existingItem && nomenclatureData.code1c) {
-                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?code1c=${encodeURIComponent(nomenclatureData.code1c)}`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        if (searchResponse.ok) {
-                            existingItem = await searchResponse.json();
-                        }
-                    }
-
-                    // Если не найдено по коду 1С, ищем по обозначению
-                    if (!existingItem && nomenclatureData.designation) {
-                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?designation=${encodeURIComponent(nomenclatureData.designation)}`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        if (searchResponse.ok) {
-                            existingItem = await searchResponse.json();
-                        }
-                    }
-
-                    // Если не найдено по обозначению, ищем по точному наименованию
+                    // ПРИОРИТЕТ 1: Сначала ищем по наименованию (самое важное поле)
                     if (!existingItem && nomenclatureData.name) {
                         const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?name=${encodeURIComponent(nomenclatureData.name)}`, {
                             headers: {
@@ -330,7 +294,59 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             }
                         });
                         if (searchResponse.ok) {
-                            existingItem = await searchResponse.json();
+                            const foundItem = await searchResponse.json();
+                            // Проверяем точное совпадение по наименованию
+                            if (foundItem && foundItem.name && foundItem.name.toLowerCase() === nomenclatureData.name.toLowerCase()) {
+                                existingItem = foundItem;
+                            }
+                        }
+                    }
+
+                    // ПРИОРИТЕТ 2: Если не найдено по наименованию, ищем по артикулу
+                    if (!existingItem && nomenclatureData.article) {
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?article=${encodeURIComponent(nomenclatureData.article)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (searchResponse.ok) {
+                            const foundItem = await searchResponse.json();
+                            // Проверяем точное совпадение по артикулу
+                            if (foundItem && foundItem.article && foundItem.article.toLowerCase() === nomenclatureData.article.toLowerCase()) {
+                                existingItem = foundItem;
+                            }
+                        }
+                    }
+
+                    // ПРИОРИТЕТ 3: Если не найдено по артикулу, ищем по коду 1С
+                    if (!existingItem && nomenclatureData.code1c) {
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?code1c=${encodeURIComponent(nomenclatureData.code1c)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (searchResponse.ok) {
+                            const foundItem = await searchResponse.json();
+                            // Проверяем точное совпадение по коду 1С
+                            if (foundItem && foundItem.code1c && foundItem.code1c.toLowerCase() === nomenclatureData.code1c.toLowerCase()) {
+                                existingItem = foundItem;
+                            }
+                        }
+                    }
+
+                    // ПРИОРИТЕТ 4: Если не найдено по коду 1С, ищем по обозначению
+                    if (!existingItem && nomenclatureData.designation) {
+                        const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/find?designation=${encodeURIComponent(nomenclatureData.designation)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (searchResponse.ok) {
+                            const foundItem = await searchResponse.json();
+                            // Проверяем точное совпадение по обозначению
+                            if (foundItem && foundItem.designation && foundItem.designation.toLowerCase() === nomenclatureData.designation.toLowerCase()) {
+                                existingItem = foundItem;
+                            }
                         }
                     }
 
@@ -386,6 +402,19 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     // Получить различия между данными из Excel и БД
     const getDifferences = (excelData: any, existingItem: any) => {
         const differences: { field: string, excelValue: any, dbValue: any, label: string }[] = [];
+
+        // Порядок приоритета сравнения полей
+        const fieldPriority = [
+            'name',        // Наименование - самое важное
+            'designation', // Обозначение
+            'article',     // Артикул
+            'code1c',      // Код 1С
+            'manufacturer', // Производитель
+            'description', // Описание
+            'price',       // Цена
+            'group'        // Группа
+        ];
+
         const fieldLabels: { [key: string]: string } = {
             designation: 'Обозначение',
             name: 'Наименование',
@@ -397,19 +426,33 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             group: 'Группа'
         };
 
-        Object.keys(fieldLabels).forEach(field => {
+        // Сравниваем поля в порядке приоритета
+        fieldPriority.forEach(field => {
             const excelValue = excelData[field];
             const dbValue = existingItem[field];
 
+            // Для группы извлекаем только название
+            let excelDisplayValue = excelValue || '(пусто)';
+            let dbDisplayValue = dbValue || '(пусто)';
+
+            if (field === 'group') {
+                if (typeof excelValue === 'object' && excelValue?.name) {
+                    excelDisplayValue = excelValue.name;
+                }
+                if (typeof dbValue === 'object' && dbValue?.name) {
+                    dbDisplayValue = dbValue.name;
+                }
+            }
+
             // Сравниваем значения (с учётом пустых строк и null)
-            const excelNormalized = excelValue || '';
-            const dbNormalized = dbValue || '';
+            const excelNormalized = excelDisplayValue || '';
+            const dbNormalized = dbDisplayValue || '';
 
             if (excelNormalized !== dbNormalized) {
                 differences.push({
                     field,
-                    excelValue: excelValue || '(пусто)',
-                    dbValue: dbValue || '(пусто)',
+                    excelValue: excelDisplayValue,
+                    dbValue: dbDisplayValue,
                     label: fieldLabels[field]
                 });
             }
@@ -690,8 +733,6 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 description: group.description || '',
                 parentId: group.parentId || ''
             });
-            console.log('Редактирование группы:', group);
-            console.log('Доступные группы для выбора родителя:', groups.filter(g => g.id !== group.id));
         } else {
             setEditingGroup(null);
             setGroupForm({
@@ -699,8 +740,6 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 description: '',
                 parentId: ''
             });
-            console.log('Создание новой группы');
-            console.log('Доступные группы для выбора родителя:', groups);
         }
         setOpenGroupDialog(true);
     };
@@ -1834,7 +1873,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 <DialogContent sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
                         <TableContainer component={Paper} sx={{ maxHeight: '400px' }}>
-                            <Table size="small" sx={{
+                            <Table size="small" stickyHeader sx={{
                                 '& .MuiTableCell-root': { fontSize: '12px', padding: '4px 8px' }
                             }}>
                                 <TableHead>
@@ -1906,7 +1945,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 <DialogActions sx={{ justifyContent: 'space-between', p: 2 }}>
                     <Box>
                         <Typography variant="body2" color="text.secondary">
-                            Зеленые позиции будут использованы из номенклатуры,
+                            Зеленые позиции существуют в номенклатуре,
                             желтые будут созданы как новые позиции
                         </Typography>
                     </Box>

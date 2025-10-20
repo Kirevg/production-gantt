@@ -320,7 +320,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             }
 
             const data = await response.json();
-            console.log('API: Products fetched:', data);
             // Преобразуем изделия для отображения и загружаем этапы работ
             const productsData = await Promise.all(data.map(async (product: any) => {
                 const workStages = await fetchWorkStages(product.id);
@@ -572,7 +571,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 requestData.orderIndex = 0;
             }
 
-            console.log('Sending data:', requestData);
 
             const response = await fetch(url, {
                 method,
@@ -592,7 +590,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
                 // Если конфликт версий, обновляем данные и повторяем запрос
                 if (response.status === 409 && errorData.error === 'Version conflict') {
-                    console.log('Version conflict detected, refreshing data...');
                     await fetchProducts();
                     // Закрываем диалог и показываем сообщение пользователю
                     handleCloseProductDialog();
@@ -642,7 +639,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             await fetchProducts();
             setOpenDeleteDialog(false);
             setProductToDelete(null);
-            console.log('Изделие успешно удалено');
         } catch (error) {
             console.error('Ошибка удаления изделия:', error);
             alert('Ошибка при удалении изделия. Проверьте консоль для подробностей.');

@@ -8,20 +8,13 @@ const router = express.Router();
 
 // Применить миграции (prisma migrate deploy)
 router.post('/deploy', authenticateToken, requireRole(['admin']), async (req, res) => {
-    console.log('Migration deploy request received');
     try {
         const command = 'npx prisma migrate deploy';
-        console.log('Executing command:', command);
 
         const { stdout, stderr } = await execAsync(command, {
             cwd: process.cwd(),
             timeout: 30000 // 30 секунд таймаут
         });
-
-        console.log('Migration deploy stdout:', stdout);
-        if (stderr) {
-            console.log('Migration deploy stderr:', stderr);
-        }
 
         res.json({
             message: 'Миграции успешно применены',
@@ -39,7 +32,6 @@ router.post('/deploy', authenticateToken, requireRole(['admin']), async (req, re
 
 // Сбросить миграции (prisma migrate reset) - ОПАСНО!
 router.post('/reset', authenticateToken, requireRole(['admin']), async (req, res) => {
-    console.log('Migration reset request received');
     try {
         const { confirm } = req.body;
 
@@ -51,17 +43,11 @@ router.post('/reset', authenticateToken, requireRole(['admin']), async (req, res
         }
 
         const command = 'npx prisma migrate reset --force';
-        console.log('Executing command:', command);
 
         const { stdout, stderr } = await execAsync(command, {
             cwd: process.cwd(),
             timeout: 60000 // 60 секунд таймаут
         });
-
-        console.log('Migration reset stdout:', stdout);
-        if (stderr) {
-            console.log('Migration reset stderr:', stderr);
-        }
 
         res.json({
             message: 'Миграции успешно сброшены. База данных пересоздана.',
@@ -79,20 +65,13 @@ router.post('/reset', authenticateToken, requireRole(['admin']), async (req, res
 
 // Проверить статус миграций (prisma migrate status)
 router.get('/status', authenticateToken, requireRole(['admin']), async (req, res) => {
-    console.log('Migration status request received');
     try {
         const command = 'npx prisma migrate status';
-        console.log('Executing command:', command);
 
         const { stdout, stderr } = await execAsync(command, {
             cwd: process.cwd(),
             timeout: 15000 // 15 секунд таймаут
         });
-
-        console.log('Migration status stdout:', stdout);
-        if (stderr) {
-            console.log('Migration status stderr:', stderr);
-        }
 
         res.json({
             message: 'Статус миграций получен',
@@ -110,7 +89,6 @@ router.get('/status', authenticateToken, requireRole(['admin']), async (req, res
 
 // Создать новую миграцию (prisma migrate dev)
 router.post('/create', authenticateToken, requireRole(['admin']), async (req, res) => {
-    console.log('Migration create request received');
     try {
         const { name } = req.body;
 
@@ -122,17 +100,12 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
         }
 
         const command = `npx prisma migrate dev --name ${name}`;
-        console.log('Executing command:', command);
 
         const { stdout, stderr } = await execAsync(command, {
             cwd: process.cwd(),
             timeout: 60000 // 60 секунд таймаут
         });
 
-        console.log('Migration create stdout:', stdout);
-        if (stderr) {
-            console.log('Migration create stderr:', stderr);
-        }
 
         res.json({
             message: `Миграция "${name}" успешно создана`,

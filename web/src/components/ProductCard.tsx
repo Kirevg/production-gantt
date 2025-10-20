@@ -120,13 +120,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // Принудительное обновление компонента при изменении статуса изделия
     useEffect(() => {
-        console.log('isNewProduct changed to:', isNewProduct);
+        // Component will re-render when isNewProduct changes
     }, [isNewProduct]);
 
     // Отслеживание изменений currentProductId для загрузки данных
     useEffect(() => {
         if (currentProductId && !currentProductId.startsWith('temp-') && projectId) {
-            console.log('currentProductId changed to real ID, loading data:', currentProductId);
+            // Loading data for real product ID
             fetchProductData();
             fetchSpecifications();
             fetchStages();
@@ -185,13 +185,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             // Не загружаем спецификации для временных изделий
             if (currentProductId?.startsWith('temp-')) {
-                console.log('Временное изделие, спецификации не загружаются, currentProductId:', currentProductId);
                 setSpecifications([]);
                 setSpecificationsLoading(false);
                 return;
             }
 
-            console.log('fetchSpecifications called with currentProductId:', currentProductId);
 
             // Строим URL для получения спецификаций изделия
             const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${currentProductId}/specifications`;
@@ -239,7 +237,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
 
             const data = await response.json();
-            console.log('API: Work stages fetched:', JSON.stringify(data, null, 2));
             setStages(data);
         } catch (error) {
             console.error('Ошибка загрузки этапов:', error);
@@ -279,13 +276,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // Загрузка данных изделия
     const fetchProductData = async () => {
-        console.log('fetchProductData called with currentProductId:', currentProductId, 'projectId:', projectId);
-
         if (!currentProductId || !projectId) return;
 
         // Если это временное изделие, не загружаем данные с сервера
         if (currentProductId?.startsWith('temp-')) {
-            console.log('Временное изделие, данные не загружаются с сервера');
             return;
         }
 
@@ -299,10 +293,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Product data loaded:', data);
-                console.log('Product name from API:', data?.product?.name);
                 setProductData(data);
-                console.log('productData state updated');
             } else {
                 console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
             }
@@ -342,14 +333,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // Открытие диалога редактирования изделия
     const handleOpenProductEdit = async () => {
-        console.log('handleOpenProductEdit called');
-        console.log('productData before:', productData);
-        console.log('catalogProducts:', catalogProducts);
 
         // Если данные еще не загружены, загружаем их
         let currentProductData = productData;
         if (!currentProductData && productId && !productId.startsWith('temp-') && projectId) {
-            console.log('Loading product data...');
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}`, {
@@ -360,7 +347,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
                 if (response.ok) {
                     currentProductData = await response.json();
-                    console.log('Product data loaded:', currentProductData);
                     setProductData(currentProductData);
                 } else {
                     console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
@@ -370,7 +356,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
         }
 
-        console.log('productData after:', currentProductData);
 
         // Загружаем форму с актуальными данными
         setProductForm({
@@ -386,9 +371,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
     // Сохранение изменений изделия
     const handleSaveProduct = async () => {
         try {
-            console.log('handleSaveProduct - productForm:', productForm);
-            console.log('productId:', productForm.productId);
-            console.log('productName:', productForm.productName);
 
             // Проверяем, что есть либо выбранное изделие, либо введено название вручную
             if (!productForm.productId && !productForm.productName) {
@@ -418,7 +400,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     if (createProductResponse.ok) {
                         const newProduct = await createProductResponse.json();
                         finalProductId = newProduct.id;
-                        console.log('Создано новое изделие в справочнике:', newProduct);
                     } else {
                         const errorData = await createProductResponse.json().catch(() => ({ error: 'Unknown error' }));
                         console.error('Ошибка создания изделия в справочнике:', errorData);
@@ -442,8 +423,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 ...(isNewProduct ? { orderIndex: 0 } : { version: productData?.version || 1 })
             };
 
-            console.log('API: Request body:', requestBody);
-            console.log('Is new product:', isNewProduct);
 
             const url = isNewProduct
                 ? `${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products`
@@ -462,20 +441,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (response.ok) {
                 const savedProduct = await response.json();
-                console.log('Product saved successfully:', savedProduct);
-                console.log('savedProduct.product:', savedProduct.product);
-                console.log('Current productData before update:', productData);
 
                 setOpenProductEditDialog(false);
 
                 // Обновляем локальные данные изделия
                 setProductData(savedProduct);
-                console.log('productData updated to:', savedProduct);
 
                 // Если это было новое изделие, обновляем статус
                 if (isNewProduct) {
                     setIsNewProduct(false);
-                    console.log('Product status changed from new to existing, new ID:', savedProduct.id);
                 }
 
                 // Обновляем справочник изделий
@@ -483,10 +457,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
                 // Для нового изделия также обновляем спецификации и этапы
                 if (isNewProduct) {
-                    console.log('New product created with ID:', savedProduct.id);
                     // Обновляем ID
                     setCurrentProductId(savedProduct.id);
-                    console.log('currentProductId updated to:', savedProduct.id);
 
                     // Обновляем название изделия в родительском компоненте
                     if (onProductNameUpdate) {
@@ -568,7 +540,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
-            console.log('handleSaveSpecification called with currentProductId:', currentProductId);
 
             const url = editingSpecification
                 ? `${import.meta.env.VITE_API_BASE_URL}/product-specifications/${editingSpecification.id}`
@@ -713,7 +684,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 requestData.orderIndex = 0;
             }
 
-            console.log('📤 Sending work stage data:', requestData);
 
             const response = await fetch(url, {
                 method,
@@ -767,10 +737,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
-    // Логирование для отладки заголовка
-    console.log('Render - productData:', productData);
-    console.log('Render - productData?.product?.name:', productData?.product?.name);
-    console.log('Render - productName prop:', productName);
 
     return (
         <Box className="page-container">
@@ -783,7 +749,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         style={{ textDecoration: 'underline', cursor: 'pointer', userSelect: 'none' }}
                         onDoubleClick={(e) => {
                             e.stopPropagation();
-                            console.log('Double click triggered');
                             handleOpenProductEdit();
                         }}
                         title="Двойной клик для редактирования"

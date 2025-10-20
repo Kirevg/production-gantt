@@ -1,0 +1,44 @@
+{
+    "mcpServers": {
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-filesystem",
+                "C:\\Projects\\production-gantt"
+            ],
+            "env": {
+                "ALLOWED_DIRECTORIES": "C:\\Projects\\production-gantt"
+            }
+        },
+        "browser": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-browser"
+            ],
+            "env": {
+                "HEADLESS": "false",
+                "BROWSER_TIMEOUT": "30000"
+            }
+        },
+        "memory": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-memory"
+            ],
+            "env": {
+                "MEMORY_DIR": "C:\\Projects\\production-gantt\\.cursor\\memory"
+            }
+        },
+        "git": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-git",
+                "--repository",
+                "C:\\Projects\\production-gantt"
+            ],
+            "env": {
+                "GIT_REPOSITORY": "C:\\Projects\\production-gantt"
+            }
+        }
+    }
+}

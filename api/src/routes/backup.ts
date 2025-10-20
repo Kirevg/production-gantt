@@ -14,7 +14,6 @@ interface AuthenticatedRequest extends Request {
 // POST /api/backup/create - Создать резервную копию базы данных
 router.post('/create', authenticateToken, requireRole(['admin']), async (req, res: Response) => {
     try {
-        console.log('📦 Создание резервной копии базы данных...');
 
         // Получаем все данные из всех таблиц
         const [
@@ -75,7 +74,6 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
         const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
         const filename = `backup_${timestamp}.json`;
 
-        console.log(`✅ Резервная копия создана: ${filename}`);
 
         // Отправляем файл как JSON для скачивания
         res.setHeader('Content-Type', 'application/json');
@@ -100,7 +98,6 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
             return res.status(400).json({ error: 'Данные для восстановления не предоставлены' });
         }
 
-        console.log('🔄 Восстановление базы данных из резервной копии...');
 
         // Очищаем все таблицы (в правильном порядке из-за внешних ключей)
         await prisma.refreshToken.deleteMany({});
@@ -134,7 +131,6 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
         if (data.auditLogs?.length) await prisma.auditLog.createMany({ data: data.auditLogs });
         if (data.refreshTokens?.length) await prisma.refreshToken.createMany({ data: data.refreshTokens });
 
-        console.log('✅ База данных успешно восстановлена');
 
         res.json({
             message: 'База данных успешно восстановлена',

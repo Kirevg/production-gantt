@@ -74,6 +74,7 @@ model Unit {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   nomenclatureItems NomenclatureItem[]
+  specifications    Specification[]
 
   @@index([code])
 }
@@ -185,7 +186,9 @@ model Specification {
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
   nomenclatureItemId     String
+  unitId                 String?
   nomenclatureItem       NomenclatureItem     @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
+  unit                   Unit?                @relation(fields: [unitId], references: [id])
   productSpecification   ProductSpecification @relation(fields: [productSpecificationId], references: [id], onDelete: Cascade)
 
   @@index([productSpecificationId])

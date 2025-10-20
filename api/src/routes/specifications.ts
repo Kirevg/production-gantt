@@ -105,8 +105,6 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
             return res.status(400).json({ error: 'Product Specification ID is required' });
         }
 
-        console.log('Полученные данные для создания спецификации:', req.body);
-
         let data;
         try {
             data = specificationCreateSchema.parse(req.body);
@@ -138,7 +136,8 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
         let specData = { ...data };
         if (data.nomenclatureItemId) {
             const nomenclatureItem = await prisma.nomenclatureItem.findUnique({
-                where: { id: data.nomenclatureItemId }
+                where: { id: data.nomenclatureItemId },
+                include: { unit: true }
             });
 
             if (!nomenclatureItem) {
@@ -148,6 +147,11 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
             // Если цена не указана, берем из номенклатуры
             if (specData.price === undefined || specData.price === null) {
                 specData.price = nomenclatureItem.price ?? undefined;
+            }
+
+            // Передаем единицу измерения из номенклатуры в спецификацию
+            if (nomenclatureItem.unitId) {
+                specData.unitId = nomenclatureItem.unitId;
             }
         }
 
@@ -171,7 +175,8 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
             productSpecificationId: id,
             orderIndex,
             totalPrice: totalPrice ?? null,
-            nomenclatureItemId: specData.nomenclatureItemId ?? null
+            nomenclatureItemId: specData.nomenclatureItemId ?? null,
+            unitId: specData.unitId ?? null
         };
 
         const specification = await prisma.specification.create({
