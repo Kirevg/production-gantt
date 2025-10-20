@@ -1,14 +1,14 @@
 # ========================================
-#   РџР•Р Р•Р—РђРџРЈРЎРљ РЎР•Р Р’Р•Р РћР’ PRODUCTION GANTT
+#   ПЕРЕЗАПУСК СЕРВЕРОВ PRODUCTION GANTT
 # ========================================
 
-Write-Host "РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј СЃС‚Р°СЂС‹Рµ РїСЂРѕС†РµСЃСЃС‹..." -ForegroundColor Yellow
+Write-Host "Останавливаем старые процессы..." -ForegroundColor Yellow
 
-# РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј РІСЃРµ РїСЂРѕС†РµСЃСЃС‹ Node.js
+# Останавливаем все процессы Node.js
 Stop-Process -Name node -Force -ErrorAction SilentlyContinue
 
-# РќР°С…РѕРґРёРј Рё Р·Р°РєСЂС‹РІР°РµРј РѕРєРЅР° СЃ Р·Р°РіРѕР»РѕРІРєР°РјРё "Backend Server" Рё "Frontend Server"
-# РќР• РўР РћР“РђР•Рњ РѕРєРЅР° СЃ "Git Auto-Commit"
+# Находим и закрываем окна с заголовками "Backend Server" и "Frontend Server"
+# НЕ ТРОГАЕМ окна с "Git Auto-Commit"
 Get-Process | Where-Object {
     $_.MainWindowTitle -match "Backend Server|Frontend Server" -and 
     $_.MainWindowTitle -notmatch "Git Auto-Commit"
@@ -16,18 +16,18 @@ Get-Process | Where-Object {
     Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
 }
 
-# РџР°СѓР·Р° 2 СЃРµРєСѓРЅРґС‹
+# Пауза 2 секунды
 Start-Sleep -Seconds 2
 
-Write-Host "Р—Р°РїСѓСЃРєР°РµРј API СЃРµСЂРІРµСЂ..." -ForegroundColor Green
+Write-Host "Запускаем API сервер..." -ForegroundColor Green
 Start-Process -FilePath "cmd" -ArgumentList "/k", "cd /d C:\Projects\production-gantt\api && npm run dev" -WindowStyle Normal
 
-Write-Host "Р—Р°РїСѓСЃРєР°РµРј Frontend СЃРµСЂРІРµСЂ..." -ForegroundColor Green  
+Write-Host "Запускаем Frontend сервер..." -ForegroundColor Green  
 Start-Process -FilePath "cmd" -ArgumentList "/k", "cd /d C:\Projects\production-gantt\web && npm run dev" -WindowStyle Normal
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "   РЎР•Р Р’Р•Р Р« Р—РђРџРЈР©Р•РќР«!" -ForegroundColor Green
+Write-Host "   СЕРВЕРЫ ЗАПУЩЕНЫ!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "API: http://localhost:4000" -ForegroundColor White
 Write-Host "Frontend: http://localhost:5173" -ForegroundColor White
