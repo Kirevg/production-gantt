@@ -85,6 +85,10 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [cellSearchQuery, setCellSearchQuery] = useState('');
     const [cellFilteredItems, setCellFilteredItems] = useState<any[]>([]);
 
+    // Состояние для inline редактирования количества
+    const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
+    const [quantityValue, setQuantityValue] = useState<string>('');
+
     // Состояние для диалога выбора номенклатуры
     const [showNomenclatureDialog, setShowNomenclatureDialog] = useState(false);
     const [nomenclatureItems, setNomenclatureItems] = useState<Array<{
@@ -157,6 +161,65 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         } else {
             setSortField(field);
             setSortDirection('asc');
+        }
+    };
+
+    // Функции для inline редактирования количества
+    const handleQuantityClick = (specificationId: string, currentQuantity: number) => {
+        if (canEdit()) {
+            setEditingQuantity(specificationId);
+            setQuantityValue(currentQuantity.toString());
+        }
+    };
+
+    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuantityValue(e.target.value);
+    };
+
+    const handleQuantitySave = async (specificationId: string) => {
+        if (!canEdit()) return;
+
+        const newQuantity = parseFloat(quantityValue);
+        if (isNaN(newQuantity) || newQuantity < 0) {
+            setEditingQuantity(null);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/specifications/${specificationId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ quantity: newQuantity })
+            });
+
+            if (response.ok) {
+                // Обновляем локальное состояние
+                setSpecifications(prev => prev.map(spec =>
+                    spec.id === specificationId
+                        ? { ...spec, quantity: newQuantity, totalPrice: newQuantity * (spec.price || 0) }
+                        : spec
+                ));
+            }
+        } catch (error) {
+            console.error('Ошибка обновления количества:', error);
+        }
+
+        setEditingQuantity(null);
+    };
+
+    const handleQuantityCancel = () => {
+        setEditingQuantity(null);
+        setQuantityValue('');
+    };
+
+    const handleQuantityKeyDown = (e: React.KeyboardEvent, specificationId: string) => {
+        if (e.key === 'Enter') {
+            handleQuantitySave(specificationId);
+        } else if (e.key === 'Escape') {
+            handleQuantityCancel();
         }
     };
 
@@ -1440,8 +1503,29 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell
                                     sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
-                                >{specification.quantity}</TableCell>
+                                    onClick={() => handleQuantityClick(specification.id, specification.quantity)}
+                                >
+                                    {editingQuantity === specification.id ? (
+                                        <input
+                                            type="number"
+                                            value={quantityValue}
+                                            onChange={handleQuantityChange}
+                                            onBlur={() => handleQuantitySave(specification.id)}
+                                            onKeyDown={(e) => handleQuantityKeyDown(e, specification.id)}
+                                            style={{
+                                                width: '100%',
+                                                border: 'none',
+                                                outline: 'none',
+                                                textAlign: 'center',
+                                                fontSize: '12px',
+                                                backgroundColor: 'transparent'
+                                            }}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        specification.quantity
+                                    )}
+                                </TableCell>
                                 <TableCell
                                     sx={{ p: 0.5, textAlign: 'center' }}
                                 >
