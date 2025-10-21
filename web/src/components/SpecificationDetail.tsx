@@ -203,14 +203,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     };
     const [columnWidths, setColumnWidths] = useState({
         number: 40,
-        designation: 100,
         name: 200,
         article: 100,
         quantity: 80,
         unit: 80,
         price: 100,
         total: 100,
-        code1c: 100,
         group: 120,
         manufacturer: 120,
         description: 150
@@ -1131,18 +1129,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     fontWeight: 'bold',
                                     textAlign: 'center',
                                     fontSize: '12px',
-                                    width: `${columnWidths.designation}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
-                                }}
-                                onMouseDown={(e) => handleMouseDown(e, 'designation')}
-                            >Обозначение</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
                                     width: `${columnWidths.name}px`,
                                     position: 'relative',
                                     cursor: 'col-resize',
@@ -1216,18 +1202,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     fontWeight: 'bold',
                                     textAlign: 'center',
                                     fontSize: '12px',
-                                    width: `${columnWidths.code1c}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
-                                }}
-                                onMouseDown={(e) => handleMouseDown(e, 'code1c')}
-                            >Код 1С</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
                                     width: `${columnWidths.group}px`,
                                     position: 'relative',
                                     cursor: 'col-resize',
@@ -1270,7 +1244,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 sx={{ height: '30px !important' }}
                             >
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.designation || specification.designation || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, position: 'relative', wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                     {editingCell === specification.id ? (
                                         <Box sx={{ position: 'relative' }}>
@@ -1467,7 +1440,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 >
                                     {formatCurrency(specification.totalPrice)}
                                 </TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.code1c || specification.code1c || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.group?.name || (specification.group as any)?.name || (specification.group as string) || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.description || specification.description || '-'}</TableCell>
