@@ -1359,26 +1359,32 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 }}
                                             />
                                             {editingCell === specification.id && (
-                                                <Box sx={{
-                                                    position: 'absolute',
-                                                    top: '100%',
-                                                    left: 0,
-                                                    right: 0,
-                                                    zIndex: 1000,
-                                                    backgroundColor: 'white',
-                                                    border: '1px solid #ccc',
-                                                    borderRadius: 1,
-                                                    maxHeight: '200px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                                                }}>
+                                                <Box
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: '100%',
+                                                        left: 0,
+                                                        right: 0,
+                                                        zIndex: 1000,
+                                                        backgroundColor: 'white',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: 1,
+                                                        maxHeight: '200px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                                                    }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
                                                     {/* Контейнер для прокрутки списка */}
-                                                    <Box sx={{
-                                                        flex: 1,
-                                                        overflow: 'auto',
-                                                        maxHeight: '150px'
-                                                    }}>
+                                                    <Box
+                                                        sx={{
+                                                            flex: 1,
+                                                            overflow: 'auto',
+                                                            maxHeight: '150px'
+                                                        }}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
                                                         {/* Отфильтрованные элементы */}
                                                         {cellFilteredItems.length > 0 ? (
                                                             cellFilteredItems.slice(0, 10).map((item) => (
@@ -1611,7 +1617,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 keepMounted={false}
                 disableEnforceFocus={true}
                 disableAutoFocus={true}
-                disableEscapeKeyDown={true}
+                disableEscapeKeyDown={true} // Отключаем закрытие по Escape
                 BackdropProps={{
                     onClick: (e) => e.stopPropagation() // Предотвращаем закрытие при клике на backdrop
                 }}
