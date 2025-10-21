@@ -218,16 +218,14 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             quantity: 80,
             unit: 80,
             price: 100,
-            total: 100,
-            group: 120,
-            manufacturer: 120
+            total: 100
         };
     };
 
     const [columnWidths, setColumnWidths] = useState(getInitialColumnWidths);
 
     // Маппинг колонок для правильного изменения размера
-    const columnOrder = ['number', 'name', 'article', 'quantity', 'unit', 'price', 'total', 'group', 'manufacturer'];
+    const columnOrder = ['number', 'name', 'article', 'quantity', 'unit', 'price', 'total'];
 
     // Функция для изменения ширины колонки
     const handleColumnResize = (columnKey: string, newWidth: number) => {
@@ -1243,30 +1241,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 }}
                                 onMouseDown={(e) => handleMouseDown(e, 'total')}
                             >Сумма</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.group}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
-                                }}
-                                onMouseDown={(e) => handleMouseDown(e, 'group')}
-                            >Группа</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.manufacturer}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
-                                }}
-                                onMouseDown={(e) => handleMouseDown(e, 'manufacturer')}
-                            >Производитель</TableCell>
                             <TableCell sx={{
                                 fontWeight: 'bold',
                                 textAlign: 'center',
@@ -1489,8 +1463,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 >
                                     {formatCurrency(specification.totalPrice)}
                                 </TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.group?.name || (specification.group as any)?.name || (specification.group as string) || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
                                 <TableCell sx={{
                                     textAlign: 'center',
                                     p: 0.5,
