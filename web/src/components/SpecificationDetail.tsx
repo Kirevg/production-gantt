@@ -1242,7 +1242,16 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 }}
                                 onMouseDown={(e) => handleMouseDown(e, 'manufacturer')}
                             >Производитель</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '20px', fontSize: '12px', p: 0.5, whiteSpace: 'nowrap' }}>
+                            <TableCell sx={{
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                width: '40px',
+                                fontSize: '12px',
+                                p: 0.5,
+                                whiteSpace: 'nowrap',
+                                cursor: 'default' // Заблокированное изменение размера
+                            }}>
+                                🗑️
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -1451,7 +1460,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 </TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.group?.name || (specification.group as any)?.name || (specification.group as string) || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
-                                <TableCell sx={{ textAlign: 'center', p: 0.5, width: '20px' }}>
+                                <TableCell sx={{
+                                    textAlign: 'center',
+                                    p: 0.5,
+                                    width: '40px',
+                                    cursor: 'default' // Заблокированное изменение размера
+                                }}>
                                     {canDelete() && (
                                         <IconButton
                                             size="small"
