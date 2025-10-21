@@ -620,3 +620,15 @@ input[type="number"]:focus {
     font-size: 12px !important;
     font-weight: normal !important;
 }
+
+/* Переопределение Material-UI Typography классов для окна выбора номенклатуры */
+.nomenclature-selection-window .MuiTypography-root.MuiTypography-body2 {
+    font-size: 12px !important;
+    font-weight: normal !important;
+}
+
+/* Более агрессивные стили для переопределения Material-UI */
+.nomenclature-selection-window * {
+    font-size: 12px !important;
+    font-weight: normal !important;
+}

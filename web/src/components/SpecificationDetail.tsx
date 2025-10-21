@@ -1325,14 +1325,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{ p: 0.5, position: 'relative', wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                     {editingCell === specification.id ? (
-                                        <Box
-                                            sx={{
-                                                position: 'relative',
-                                                fontSize: '12px !important',
-                                                '& *': {
-                                                    fontSize: '12px !important',
-                                                    fontWeight: 'normal !important'
-                                                }
+                                        <Box 
+                                            className="nomenclature-selection-window"
+                                            sx={{ 
+                                                position: 'relative'
                                             }}
                                             onClick={(e) => e.stopPropagation()}
                                         >
@@ -1355,6 +1351,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                             />
                                             {editingCell === specification.id && (
                                                 <Box
+                                                    className="nomenclature-selection-window"
                                                     sx={{
                                                         position: 'absolute',
                                                         top: '100%',
@@ -1367,12 +1364,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         maxHeight: '200px',
                                                         display: 'flex',
                                                         flexDirection: 'column',
-                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                                                        fontSize: '12px !important',
-                                                        '& *': {
-                                                            fontSize: '12px !important',
-                                                            fontWeight: 'normal !important'
-                                                        }
+                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                                                     }}
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
@@ -1403,11 +1395,19 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <Typography
+                                                                    <Typography 
                                                                         variant="body2"
                                                                         sx={{
                                                                             fontSize: '12px !important',
-                                                                            fontWeight: 'normal !important'
+                                                                            fontWeight: 'normal !important',
+                                                                            '&.MuiTypography-root': {
+                                                                                fontSize: '12px !important',
+                                                                                fontWeight: 'normal !important'
+                                                                            },
+                                                                            '&.MuiTypography-body2': {
+                                                                                fontSize: '12px !important',
+                                                                                fontWeight: 'normal !important'
+                                                                            }
                                                                         }}
                                                                     >
                                                                         {item.name}
