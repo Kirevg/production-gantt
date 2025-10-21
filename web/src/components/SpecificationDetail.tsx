@@ -201,25 +201,46 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             return 0;
         });
     };
-    const [columnWidths, setColumnWidths] = useState({
-        number: 40,
-        name: 200,
-        article: 100,
-        quantity: 80,
-        unit: 80,
-        price: 100,
-        total: 100,
-        group: 120,
-        manufacturer: 120,
-        description: 150
-    });
+    // Загружаем сохраненные ширины колонок из localStorage
+    const getInitialColumnWidths = () => {
+        try {
+            const saved = localStorage.getItem('specification-column-widths');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (error) {
+            console.warn('Ошибка загрузки сохраненных ширин колонок:', error);
+        }
+        return {
+            number: 40,
+            name: 200,
+            article: 100,
+            quantity: 80,
+            unit: 80,
+            price: 100,
+            total: 100,
+            group: 120,
+            manufacturer: 120
+        };
+    };
+
+    const [columnWidths, setColumnWidths] = useState(getInitialColumnWidths);
 
     // Функция для изменения ширины колонки
     const handleColumnResize = (columnKey: string, newWidth: number) => {
-        setColumnWidths(prev => ({
-            ...prev,
+        const newWidths = {
+            ...columnWidths,
             [columnKey]: Math.max(50, newWidth) // Минимальная ширина 50px
-        }));
+        };
+
+        setColumnWidths(newWidths);
+
+        // Сохраняем в localStorage
+        try {
+            localStorage.setItem('specification-column-widths', JSON.stringify(newWidths));
+        } catch (error) {
+            console.warn('Ошибка сохранения ширин колонок:', error);
+        }
     };
 
     // Обработчики для изменения размера колонок
@@ -1221,18 +1242,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 }}
                                 onMouseDown={(e) => handleMouseDown(e, 'manufacturer')}
                             >Производитель</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.description}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
-                                }}
-                                onMouseDown={(e) => handleMouseDown(e, 'description')}
-                            >Описание</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '20px', fontSize: '12px', p: 0.5, whiteSpace: 'nowrap' }}>
                             </TableCell>
                         </TableRow>
@@ -1442,7 +1451,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 </TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.group?.name || (specification.group as any)?.name || (specification.group as string) || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.description || specification.description || '-'}</TableCell>
                                 <TableCell sx={{ textAlign: 'center', p: 0.5, width: '20px' }}>
                                     {canDelete() && (
                                         <IconButton
