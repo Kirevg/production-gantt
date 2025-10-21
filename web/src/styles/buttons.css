@@ -43,7 +43,7 @@
 /* Основной контейнер страницы */
 .page-container {
     min-width: 900px !important;
-    max-width: 1200px !important;
+    max-width: 1600px !important;
 }
 
 /* Заголовок страницы с кнопкой */

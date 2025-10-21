@@ -139,6 +139,40 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
+    const [sortField, setSortField] = useState<string>('');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+    // Функция для обработки сортировки
+    const handleSort = (field: string) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    // Функция для получения отсортированных данных
+    const getSortedPreviewData = () => {
+        if (!sortField) return previewData;
+
+        return [...previewData].sort((a, b) => {
+            const aValue = a[sortField] || '';
+            const bValue = b[sortField] || '';
+
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                return sortDirection === 'asc'
+                    ? aValue.localeCompare(bValue, 'ru')
+                    : bValue.localeCompare(aValue, 'ru');
+            }
+
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+            }
+
+            return 0;
+        });
+    };
     const [columnWidths, setColumnWidths] = useState({
         number: 40,
         designation: 100,
@@ -935,8 +969,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
     }
 
     return (
-        <Box className="page-container">
-            <Box className="page-header">
+        <Box className="page-container" sx={{
+            overflow: 'hidden',
+            height: 'auto !important',
+            maxHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
+            <Box className="page-header" sx={{ flexShrink: 0 }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                     Спецификация: {productName}
                 </Typography>
@@ -988,7 +1028,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>
                     {error}
                 </Alert>
             )}
@@ -996,9 +1036,11 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
             <TableContainer
                 component={Paper}
-                sx={{ 
-                    width: '100%', 
-                    maxHeight: 600,
+                sx={{
+                    width: '100%',
+                    flex: 1,
+                    height: '600px !important',
+                    maxHeight: '600px !important',
                     overflow: 'auto',
                     border: '1px solid #ddd',
                     borderRadius: 1,
@@ -1020,18 +1062,26 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 }}
                 onClick={handleCancelCellEdit}
             >
-                <Table sx={{
-                    '& .MuiTableCell-root': { borderRight: '1px solid #bdbdbd' },
-                    '& .MuiTableHead-root .MuiTableCell-root': { fontSize: '12px !important' },
-                    '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' },
-                    '& .MuiTableRow-root': { height: '30px !important' },
-                    '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important' },
-                    '& .MuiButtonBase-root-MuiIconButton-root': { padding: '0 !important' },
-                    '& .MuiIconButton-root': { padding: '0 !important' },
-                    tableLayout: 'auto',
-                    width: '100%',
-                    minWidth: 'max-content'
-                }}>
+                <Table
+                    stickyHeader
+                    sx={{
+                        '& .MuiTableCell-root': { borderRight: '1px solid #bdbdbd' },
+                        '& .MuiTableHead-root .MuiTableCell-root': {
+                            fontSize: '12px !important',
+                            backgroundColor: '#f5f5f5 !important',
+                            position: 'sticky',
+                            top: 0,
+                            zIndex: 1
+                        },
+                        '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' },
+                        '& .MuiTableRow-root': { height: '30px !important' },
+                        '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important' },
+                        '& .MuiButtonBase-root-MuiIconButton-root': { padding: '0 !important' },
+                        '& .MuiIconButton-root': { padding: '0 !important' },
+                        tableLayout: 'auto',
+                        width: '100%',
+                        minWidth: 'max-content'
+                    }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                             <TableCell
@@ -1187,8 +1237,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         {specifications.map((specification, index) => (
                             <TableRow
                                 key={specification.id}
-                                sx={{ height: '30px !important', cursor: canEdit() ? 'pointer' : 'default' }}
-                                onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                sx={{ height: '30px !important' }}
                             >
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.designation || specification.designation || '-'}</TableCell>
@@ -1360,17 +1409,32 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         </Box>
                                     )}
                                 </TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.quantity}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>
+                                <TableCell
+                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
+                                <TableCell
+                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                >{specification.quantity}</TableCell>
+                                <TableCell
+                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                >
                                     {(specification.nomenclatureItem as any)?.unit?.name ||
                                         (specification.nomenclatureItem as any)?.unit?.code ||
                                         specification.unit || '-'}
                                 </TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'right' }}>
+                                <TableCell
+                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                >
                                     {formatCurrency(specification.price)}
                                 </TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}>
+                                <TableCell
+                                    sx={{ p: 0.5, textAlign: 'right', minWidth: '80px', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                >
                                     {formatCurrency(specification.totalPrice)}
                                 </TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.code1c || specification.code1c || '-'}</TableCell>
@@ -1398,24 +1462,30 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             {/* Диалог выбора номенклатуры */}
             <Dialog
                 open={showNomenclatureDialog}
-                onClose={handleCloseNomenclatureDialog}
+                onClose={() => { }} // Отключаем закрытие при клике вне диалога
                 maxWidth="lg"
                 fullWidth
-                hideBackdrop={true}
+                hideBackdrop={false}
                 disablePortal={true}
                 disableScrollLock={true}
                 keepMounted={false}
                 disableEnforceFocus={true}
                 disableAutoFocus={true}
                 disableEscapeKeyDown={true}
+                BackdropProps={{
+                    onClick: (e) => e.stopPropagation() // Предотвращаем закрытие при клике на backdrop
+                }}
             >
-                <DialogTitle sx={{
-                    backgroundColor: '#f5f5f5',
-                    borderBottom: '1px solid #ddd',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                }}>
+                <DialogTitle
+                    sx={{
+                        backgroundColor: '#f5f5f5',
+                        borderBottom: '1px solid #ddd',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ marginRight: '8px' }}>📦</span>
                         Подбор номенклатуры
@@ -1425,9 +1495,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     </Typography>
                 </DialogTitle>
 
-                <DialogContent sx={{ p: 0, height: '600px', display: 'flex', flexDirection: 'column' }}>
+                <DialogContent
+                    sx={{ p: 0, height: '600px', display: 'flex', flexDirection: 'column' }}
+                    onClick={(e) => e.stopPropagation()}
+                >
                     {/* Верхняя панель с выбранными позициями */}
-                    <Box sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#fafafa' }}>
+                    <Box
+                        sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#fafafa' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
                             <TextField
                                 label="Номенклатура"
@@ -1510,9 +1586,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     </Box>
 
                     {/* Основное содержимое - две колонки */}
-                    <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                    <Box
+                        sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         {/* Левая колонка - список номенклатуры */}
-                        <Box sx={{ flex: 1, borderRight: '1px solid #ddd' }}>
+                        <Box
+                            sx={{ flex: 1, borderRight: '1px solid #ddd' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             {nomenclatureLoading ? (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                                     <LinearProgress />
@@ -1572,7 +1654,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         </Box>
 
                         {/* Правая колонка - группы */}
-                        <Box sx={{ width: '250px', backgroundColor: '#f9f9f9' }}>
+                        <Box
+                            sx={{ width: '250px', backgroundColor: '#f9f9f9' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             <Box sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
                                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Группы</Typography>
@@ -1629,7 +1714,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     </Box>
                 </DialogContent>
 
-                <DialogActions sx={{ backgroundColor: '#f5f5f5', borderTop: '1px solid #ddd' }}>
+                <DialogActions
+                    sx={{ backgroundColor: '#f5f5f5', borderTop: '1px solid #ddd' }}
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <Button onClick={handleCloseNomenclatureDialog}>Отмена</Button>
                 </DialogActions>
             </Dialog>
@@ -1711,8 +1799,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             label="Сумма (руб)"
                             type="number"
                             value={(() => {
-                                const quantity = parseInt(specificationForm.quantity) || 0;
-                                const price = parseFloat(specificationForm.price) || 0;
+                                const quantity = Number(specificationForm.quantity) || 0;
+                                const price = Number(specificationForm.price) || 0;
                                 return (quantity * price).toFixed(2);
                             })()}
                             margin="normal"
@@ -1956,16 +2044,70 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             }}>
                                 <TableHead>
                                     <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>Статус</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>Наименование</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>Артикул</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>Код 1С</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>Производитель</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>Количество</TableCell>
+                                        <TableCell
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                '&:hover': { backgroundColor: '#e0e0e0' }
+                                            }}
+                                            onClick={() => handleSort('isExisting')}
+                                        >
+                                            Статус {sortField === 'isExisting' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                        </TableCell>
+                                        <TableCell
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                '&:hover': { backgroundColor: '#e0e0e0' }
+                                            }}
+                                            onClick={() => handleSort('name')}
+                                        >
+                                            Наименование {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                        </TableCell>
+                                        <TableCell
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                '&:hover': { backgroundColor: '#e0e0e0' }
+                                            }}
+                                            onClick={() => handleSort('article')}
+                                        >
+                                            Артикул {sortField === 'article' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                        </TableCell>
+                                        <TableCell
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                '&:hover': { backgroundColor: '#e0e0e0' }
+                                            }}
+                                            onClick={() => handleSort('code1c')}
+                                        >
+                                            Код 1С {sortField === 'code1c' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                        </TableCell>
+                                        <TableCell
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                '&:hover': { backgroundColor: '#e0e0e0' }
+                                            }}
+                                            onClick={() => handleSort('manufacturer')}
+                                        >
+                                            Производитель {sortField === 'manufacturer' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                        </TableCell>
+                                        <TableCell
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                '&:hover': { backgroundColor: '#e0e0e0' }
+                                            }}
+                                            onClick={() => handleSort('quantity')}
+                                        >
+                                            Количество {sortField === 'quantity' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                        </TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {previewData.map((item, index) => (
+                                    {getSortedPreviewData().map((item, index) => (
                                         <TableRow key={index}>
                                             <TableCell>
                                                 <Chip
