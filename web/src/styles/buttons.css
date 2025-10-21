@@ -574,3 +574,8 @@
 .MuiBox-root.css-e8yhtp {
     padding-right: 0 !important;
 }
+
+/* Устанавливаем line-height: 1 для MuiTableCell-root */
+.css-mi4ox6-MuiTableCell-root {
+    line-height: 1 !important;
+}
