@@ -1325,9 +1325,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{ p: 0.5, position: 'relative', wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                     {editingCell === specification.id ? (
-                                        <Box
-                                            className="nomenclature-selection-window"
-                                            sx={{ position: 'relative' }}
+                                        <Box 
+                                            sx={{ 
+                                                position: 'relative',
+                                                fontSize: '12px !important',
+                                                '& *': {
+                                                    fontSize: '12px !important',
+                                                    fontWeight: 'normal !important'
+                                                }
+                                            }}
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <TextField
@@ -1337,10 +1343,18 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 onChange={(e) => handleCellSearchChange(e.target.value)}
                                                 onClick={(e) => e.stopPropagation()}
                                                 placeholder="Поиск номенклатуры..."
+                                                sx={{
+                                                    '& .MuiInputBase-root': {
+                                                        height: '30px !important',
+                                                        fontSize: '12px !important'
+                                                    },
+                                                    '& .MuiInputBase-input': {
+                                                        fontSize: '12px !important'
+                                                    }
+                                                }}
                                             />
                                             {editingCell === specification.id && (
                                                 <Box
-                                                    className="nomenclature-selection-window"
                                                     sx={{
                                                         position: 'absolute',
                                                         top: '100%',
@@ -1353,7 +1367,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         maxHeight: '200px',
                                                         display: 'flex',
                                                         flexDirection: 'column',
-                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                                        fontSize: '12px !important',
+                                                        '& *': {
+                                                            fontSize: '12px !important',
+                                                            fontWeight: 'normal !important'
+                                                        }
                                                     }}
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
@@ -1384,7 +1403,13 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <Typography variant="body2">
+                                                                    <Typography 
+                                                                        variant="body2"
+                                                                        sx={{
+                                                                            fontSize: '12px !important',
+                                                                            fontWeight: 'normal !important'
+                                                                        }}
+                                                                    >
                                                                         {item.name}
                                                                         {item.code1c && ` (${item.code1c})`}
                                                                     </Typography>
