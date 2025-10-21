@@ -1104,6 +1104,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     overflow: 'auto', // Возвращаем вертикальную прокрутку
                     border: '1px solid #ddd',
                     borderRadius: 1,
+                    // Ограничиваем ширину таблицы
+                    '& .MuiTable-root': {
+                        width: '100%',
+                        maxWidth: '100%',
+                        tableLayout: 'fixed' // Фиксированная ширина колонок
+                    },
                     '&::-webkit-scrollbar': {
                         width: '8px',
                         height: '8px'
@@ -1138,9 +1144,9 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important' },
                         '& .MuiButtonBase-root-MuiIconButton-root': { padding: '0 !important' },
                         '& .MuiIconButton-root': { padding: '0 !important' },
-                        tableLayout: 'auto', // Автоматическая ширина колонок
+                        tableLayout: 'fixed', // Фиксированная ширина колонок
                         width: '100%',
-                        minWidth: 'max-content' // Таблица адаптируется к содержимому
+                        maxWidth: '100%' // Таблица не выезжает за контейнер
                     }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
