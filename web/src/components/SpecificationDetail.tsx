@@ -1107,7 +1107,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     flex: 1,
                     height: '600px !important',
                     maxHeight: '600px !important',
-                    overflow: 'hidden', // Убираем горизонтальную прокрутку
+                    overflowY: 'auto', // Вертикальная прокрутка
+                    overflowX: 'hidden', // Без горизонтальной прокрутки
                     border: '1px solid #ddd',
                     borderRadius: 1,
                     // Ограничиваем ширину таблицы
