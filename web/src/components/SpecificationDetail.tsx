@@ -1325,8 +1325,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{ p: 0.5, position: 'relative', wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                     {editingCell === specification.id ? (
-                                        <Box 
-                                            sx={{ 
+                                        <Box
+                                            sx={{
                                                 position: 'relative',
                                                 fontSize: '12px !important',
                                                 '& *': {
@@ -1403,7 +1403,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <Typography 
+                                                                    <Typography
                                                                         variant="body2"
                                                                         sx={{
                                                                             fontSize: '12px !important',
