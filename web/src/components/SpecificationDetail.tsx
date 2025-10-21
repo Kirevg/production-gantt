@@ -1512,13 +1512,18 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                             onChange={handleQuantityChange}
                                             onBlur={() => handleQuantitySave(specification.id)}
                                             onKeyDown={(e) => handleQuantityKeyDown(e, specification.id)}
+                                            onFocus={(e) => e.target.select()}
                                             style={{
                                                 width: '100%',
                                                 border: 'none',
                                                 outline: 'none',
                                                 textAlign: 'center',
                                                 fontSize: '12px',
-                                                backgroundColor: 'transparent'
+                                                backgroundColor: 'transparent',
+                                                // Убираем стрелки вверх/вниз
+                                                MozAppearance: 'textfield',
+                                                WebkitAppearance: 'none',
+                                                appearance: 'none'
                                             }}
                                             autoFocus
                                         />
