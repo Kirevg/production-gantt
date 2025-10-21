@@ -1436,30 +1436,25 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     )}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}
                                 >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                    sx={{ p: 0.5, textAlign: 'center' }}
                                 >{specification.quantity}</TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                    sx={{ p: 0.5, textAlign: 'center' }}
                                 >
                                     {(specification.nomenclatureItem as any)?.unit?.name ||
                                         (specification.nomenclatureItem as any)?.unit?.code ||
                                         specification.unit || '-'}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                    sx={{ p: 0.5, textAlign: 'right' }}
                                 >
                                     {formatCurrency(specification.price)}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', minWidth: '80px', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
+                                    sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}
                                 >
                                     {formatCurrency(specification.totalPrice)}
                                 </TableCell>
