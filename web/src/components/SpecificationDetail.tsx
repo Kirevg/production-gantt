@@ -1387,7 +1387,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <Typography variant="body2" sx={{ fontSize: '14px', fontWeight: 'normal' }}>
+                                                                    <Typography variant="body2" sx={{ fontSize: '12px', fontWeight: 'normal' }}>
                                                                         {item.name}
                                                                         {item.code1c && ` (${item.code1c})`}
                                                                     </Typography>
