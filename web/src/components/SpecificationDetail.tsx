@@ -226,11 +226,18 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     const [columnWidths, setColumnWidths] = useState(getInitialColumnWidths);
 
+    // Маппинг колонок для правильного изменения размера
+    const columnOrder = ['number', 'name', 'article', 'quantity', 'unit', 'price', 'total', 'group', 'manufacturer'];
+
     // Функция для изменения ширины колонки
     const handleColumnResize = (columnKey: string, newWidth: number) => {
+        // При захвате правой границы ячейки изменяем размер колонки слева
+        const currentIndex = columnOrder.indexOf(columnKey);
+        const targetColumn = currentIndex > 0 ? columnOrder[currentIndex - 1] : columnKey;
+
         const newWidths = {
             ...columnWidths,
-            [columnKey]: Math.max(50, newWidth) // Минимальная ширина 50px
+            [targetColumn]: Math.max(50, newWidth) // Минимальная ширина 50px
         };
 
         setColumnWidths(newWidths);
@@ -252,7 +259,11 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         e.preventDefault();
         setIsResizing(columnKey);
         setStartX(e.clientX);
-        setStartWidth(columnWidths[columnKey as keyof typeof columnWidths]);
+
+        // При захвате правой границы ячейки используем ширину колонки слева
+        const currentIndex = columnOrder.indexOf(columnKey);
+        const targetColumn = currentIndex > 0 ? columnOrder[currentIndex - 1] : columnKey;
+        setStartWidth(columnWidths[targetColumn as keyof typeof columnWidths]);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
