@@ -1503,7 +1503,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell
                                     sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onClick={() => handleQuantityClick(specification.id, specification.quantity)}
+                                    onDoubleClick={() => handleQuantityClick(specification.id, specification.quantity)}
                                 >
                                     {editingQuantity === specification.id ? (
                                         <input
