@@ -139,6 +139,63 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
+    const [columnWidths, setColumnWidths] = useState({
+        number: 40,
+        designation: 100,
+        name: 200,
+        article: 100,
+        quantity: 80,
+        unit: 80,
+        price: 100,
+        total: 100,
+        code1c: 100,
+        group: 120,
+        manufacturer: 120,
+        description: 150
+    });
+
+    // Функция для изменения ширины колонки
+    const handleColumnResize = (columnKey: string, newWidth: number) => {
+        setColumnWidths(prev => ({
+            ...prev,
+            [columnKey]: Math.max(50, newWidth) // Минимальная ширина 50px
+        }));
+    };
+
+    // Обработчики для изменения размера колонок
+    const [isResizing, setIsResizing] = useState<string | null>(null);
+    const [startX, setStartX] = useState(0);
+    const [startWidth, setStartWidth] = useState(0);
+
+    const handleMouseDown = (e: React.MouseEvent, columnKey: string) => {
+        e.preventDefault();
+        setIsResizing(columnKey);
+        setStartX(e.clientX);
+        setStartWidth(columnWidths[columnKey as keyof typeof columnWidths]);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+        if (isResizing) {
+            const newWidth = startWidth + (e.clientX - startX);
+            handleColumnResize(isResizing, newWidth);
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsResizing(null);
+    };
+
+    // Добавляем обработчики событий мыши
+    React.useEffect(() => {
+        if (isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+    }, [isResizing, startX, startWidth]);
     const [specificationForm, setSpecificationForm] = useState({
         nomenclatureItemId: '',
         designation: '',
@@ -242,7 +299,9 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             manufacturer: specification.nomenclatureItem?.manufacturer || specification.manufacturer || '',
             description: specification.nomenclatureItem?.description || specification.description || '',
             quantity: specification.quantity,
-            unit: specification.unit || '',
+            unit: (specification.nomenclatureItem as any)?.unit?.name ||
+                (specification.nomenclatureItem as any)?.unit?.code ||
+                specification.unit || '',
             price: specification.price?.toString() || '',
             totalPrice: specification.totalPrice?.toString() || ''
         });
@@ -913,9 +972,9 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         <VolumeButton
                             variant="contained"
                             onClick={handleOpenCreateForm}
-                            color="blue"
+                            color="purple"
                         >
-                            Добавить
+                            Подбор
                         </VolumeButton>
                     )}
                     <VolumeButton
@@ -937,7 +996,28 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
             <TableContainer
                 component={Paper}
-                sx={{ width: '100%', overflowX: 'auto' }}
+                sx={{ 
+                    width: '100%', 
+                    maxHeight: 600,
+                    overflow: 'auto',
+                    border: '1px solid #ddd',
+                    borderRadius: 1,
+                    '&::-webkit-scrollbar': {
+                        width: '8px',
+                        height: '8px'
+                    },
+                    '&::-webkit-scrollbar-track': {
+                        backgroundColor: '#f1f1f1',
+                        borderRadius: '4px'
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: '#c1c1c1',
+                        borderRadius: '4px',
+                        '&:hover': {
+                            backgroundColor: '#a8a8a8'
+                        }
+                    }
+                }}
                 onClick={handleCancelCellEdit}
             >
                 <Table sx={{
@@ -954,18 +1034,151 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', width: '40px', whiteSpace: 'nowrap' }}>№</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Обозначение</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Наименование</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Артикул</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Код 1С</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Группа</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Производитель</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Описание</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Кол-во</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Ед.</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Цена за ед. (руб)</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>Сумма</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.number}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'number')}
+                            >№</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.designation}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'designation')}
+                            >Обозначение</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.name}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'name')}
+                            >Наименование</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.article}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'article')}
+                            >Артикул</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.quantity}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'quantity')}
+                            >Кол-во</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.unit}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'unit')}
+                            >Ед. изм.</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.price}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'price')}
+                            >Цена за ед.</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.total}px`,
+                                    minWidth: '80px',
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'total')}
+                            >Сумма</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.code1c}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'code1c')}
+                            >Код 1С</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.group}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'group')}
+                            >Группа</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.manufacturer}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'manufacturer')}
+                            >Производитель</TableCell>
+                            <TableCell
+                                sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    width: `${columnWidths.description}px`,
+                                    position: 'relative',
+                                    cursor: 'col-resize',
+                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                }}
+                                onMouseDown={(e) => handleMouseDown(e, 'description')}
+                            >Описание</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '20px', fontSize: '12px', p: 0.5, whiteSpace: 'nowrap' }}>
                             </TableCell>
                         </TableRow>
@@ -979,7 +1192,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             >
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.designation || specification.designation || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, position: 'relative' }}>
+                                <TableCell sx={{ p: 0.5, position: 'relative', wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                     {editingCell === specification.id ? (
                                         <Box sx={{ position: 'relative' }}>
                                             <TextField
@@ -1147,19 +1360,23 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         </Box>
                                     )}
                                 </TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.code1c || specification.code1c || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.group?.name || (specification.group as any)?.name || (specification.group as string) || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
-                                <TableCell sx={{ p: 0.5 }}>{specification.nomenclatureItem?.description || specification.description || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{specification.quantity}</TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>{(specification.nomenclatureItem as any)?.unit || specification.unit || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center' }}>
+                                    {(specification.nomenclatureItem as any)?.unit?.name ||
+                                        (specification.nomenclatureItem as any)?.unit?.code ||
+                                        specification.unit || '-'}
+                                </TableCell>
                                 <TableCell sx={{ p: 0.5, textAlign: 'right' }}>
                                     {formatCurrency(specification.price)}
                                 </TableCell>
-                                <TableCell sx={{ p: 0.5, textAlign: 'right' }}>
+                                <TableCell sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}>
                                     {formatCurrency(specification.totalPrice)}
                                 </TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.code1c || specification.code1c || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.group?.name || (specification.group as any)?.name || (specification.group as string) || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.manufacturer || specification.manufacturer || '-'}</TableCell>
+                                <TableCell sx={{ p: 0.5, wordWrap: 'break-word', whiteSpace: 'normal' }}>{specification.nomenclatureItem?.description || specification.description || '-'}</TableCell>
                                 <TableCell sx={{ textAlign: 'center', p: 0.5, width: '20px' }}>
                                     {canDelete() && (
                                         <IconButton
@@ -1436,14 +1653,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 </DialogTitle>
                 <DialogContent>
                     <TextField
-                        fullWidth
-                        label="Обозначение"
-                        value={specificationForm.designation}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, designation: e.target.value })}
-                        margin="normal"
-                        placeholder="ПЗ.123456, СБ.001 и т.д."
-                    />
-                    <TextField
                         autoFocus
                         fullWidth
                         label="Наименование"
@@ -1452,79 +1661,71 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         margin="normal"
                         required
                     />
-                    <TextField
-                        fullWidth
-                        label="Артикул"
-                        value={specificationForm.article}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, article: e.target.value })}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Код 1С"
-                        value={specificationForm.code1c}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, code1c: e.target.value })}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Группа"
-                        value={specificationForm.group}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, group: e.target.value })}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Производитель"
-                        value={specificationForm.manufacturer}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, manufacturer: e.target.value })}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Описание"
-                        value={specificationForm.description}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, description: e.target.value })}
-                        margin="normal"
-                        multiline
-                        rows={2}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Количество"
-                        type="number"
-                        value={specificationForm.quantity}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, quantity: parseInt(e.target.value) || 1 })}
-                        margin="normal"
-                        required
-                        inputProps={{ min: 1 }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Единица измерения"
-                        value={specificationForm.unit}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, unit: e.target.value })}
-                        margin="normal"
-                        placeholder="шт, кг, м, м² и т.д."
-                    />
-                    <TextField
-                        fullWidth
-                        label="Цена за единицу (руб)"
-                        type="number"
-                        value={specificationForm.price}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, price: e.target.value })}
-                        margin="normal"
-                        inputProps={{ min: 0, step: 0.01 }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Общая стоимость (руб)"
-                        type="number"
-                        value={specificationForm.totalPrice}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, totalPrice: e.target.value })}
-                        margin="normal"
-                        inputProps={{ min: 0, step: 0.01 }}
-                    />
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <TextField
+                            fullWidth
+                            label="Количество"
+                            type="number"
+                            value={specificationForm.quantity}
+                            onChange={(e) => setSpecificationForm({ ...specificationForm, quantity: parseInt(e.target.value) || 1 })}
+                            margin="normal"
+                            required
+                            inputProps={{ min: 1 }}
+                            sx={{
+                                '& .MuiInputBase-input': {
+                                    textAlign: 'right'
+                                }
+                            }}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Единица измерения"
+                            value={specificationForm.unit}
+                            margin="normal"
+                            InputProps={{ readOnly: true }}
+                            sx={{
+                                '& .MuiInputBase-input': {
+                                    backgroundColor: '#f5f5f5',
+                                    color: '#666'
+                                }
+                            }}
+                        />
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <TextField
+                            fullWidth
+                            label="Цена за единицу (руб)"
+                            type="number"
+                            value={specificationForm.price ? parseFloat(specificationForm.price).toFixed(2) : ''}
+                            onChange={(e) => setSpecificationForm({ ...specificationForm, price: e.target.value })}
+                            margin="normal"
+                            inputProps={{ min: 0, step: 0.01 }}
+                            sx={{
+                                '& .MuiInputBase-input': {
+                                    textAlign: 'right'
+                                }
+                            }}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Сумма (руб)"
+                            type="number"
+                            value={(() => {
+                                const quantity = parseInt(specificationForm.quantity) || 0;
+                                const price = parseFloat(specificationForm.price) || 0;
+                                return (quantity * price).toFixed(2);
+                            })()}
+                            margin="normal"
+                            InputProps={{ readOnly: true }}
+                            sx={{
+                                '& .MuiInputBase-input': {
+                                    backgroundColor: '#f5f5f5',
+                                    color: '#666',
+                                    textAlign: 'right'
+                                }
+                            }}
+                        />
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseForms}>Отмена</Button>

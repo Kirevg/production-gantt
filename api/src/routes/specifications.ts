@@ -77,6 +77,13 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
                         manufacturer: true,
                         description: true,
                         price: true,
+                        unit: {
+                            select: {
+                                id: true,
+                                code: true,
+                                name: true
+                            }
+                        },
                         group: {
                             select: {
                                 id: true,
