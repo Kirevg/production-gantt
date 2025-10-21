@@ -2355,12 +2355,12 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
             width: '100%',
             p: 0,
             '& .MuiTable-root': {
-              minWidth: 1600 // Минимальная ширина таблицы
+              minWidth: 'max-content' // Минимальная ширина таблицы
             }
           }}
         >
           <Table sx={{
-            minWidth: 1600,
+            minWidth: 'max-content',
             tableLayout: 'fixed',
             '& .MuiTableCell-root': {
               borderRight: '1px solid #e0e0e0',

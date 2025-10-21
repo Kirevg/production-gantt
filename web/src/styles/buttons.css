@@ -42,8 +42,8 @@
 
 /* Основной контейнер страницы */
 .page-container {
-    min-width: 900px !important;
-    max-width: 1600px !important;
+    min-width: 1200px !important;
+    max-width: 1200px !important;
 }
 
 /* Заголовок страницы с кнопкой */

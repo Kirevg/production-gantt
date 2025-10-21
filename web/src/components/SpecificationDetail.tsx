@@ -21,7 +21,9 @@ import {
     FormControl,
     Select,
     MenuItem,
-    Chip
+    Chip,
+    Checkbox,
+    FormControlLabel
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
@@ -139,6 +141,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
+    const [showExcelImportDialog, setShowExcelImportDialog] = useState(false);
+    const [importSettings, setImportSettings] = useState({
+        updateMatched: false,
+        createNew: false,
+        group: ''
+    });
     const [sortField, setSortField] = useState<string>('');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -542,6 +550,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
                 parseExcelFile(file);
+                // После парсинга открываем новый диалог
+                setShowExcelImportDialog(true);
             }
         };
         input.click();
@@ -2169,6 +2179,198 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             Добавить в спецификацию ({importStats.existing})
                         </Button>
                     </Box>
+                </DialogActions>
+            </Dialog>
+
+            {/* Диалог загрузки данных из Excel в стиле 1С */}
+            <Dialog
+                open={showExcelImportDialog}
+                onClose={() => setShowExcelImportDialog(false)}
+                maxWidth="md"
+                fullWidth
+                hideBackdrop={true}
+                disablePortal={true}
+                sx={{
+                    '& .MuiDialog-paper': {
+                        borderRadius: 2,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    backgroundColor: '#f5f5f5',
+                    borderBottom: '1px solid #ddd',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                }}>
+                    <span style={{ fontSize: '20px' }}>📊</span>
+                    Загрузка данных из Excel
+                </DialogTitle>
+
+                <DialogContent sx={{ p: 3 }}>
+                    {/* Информационный блок */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 3,
+                        p: 2,
+                        backgroundColor: '#fff3cd',
+                        borderRadius: 1,
+                        border: '1px solid #ffeaa7'
+                    }}>
+                        <span style={{ fontSize: '16px' }}>ℹ️</span>
+                        <Typography variant="body2" color="text.secondary">
+                            Загрузка табличной части. Предварительный анализ и настройка.
+                        </Typography>
+                    </Box>
+
+                    {/* Статистика импорта */}
+                    <Box sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                {importStats.total} строки получено
+                            </Typography>
+                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                                показать строки...
+                            </Button>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                {importStats.existing} из них сопоставлены
+                            </Typography>
+                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                                показать строки...
+                            </Button>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={importSettings.updateMatched}
+                                        onChange={(e) => setImportSettings({
+                                            ...importSettings,
+                                            updateMatched: e.target.checked
+                                        })}
+                                    />
+                                }
+                                label="Обновлять сопоставленные элементы полученными данными"
+                            />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={importSettings.createNew}
+                                        onChange={(e) => setImportSettings({
+                                            ...importSettings,
+                                            createNew: e.target.checked
+                                        })}
+                                    />
+                                }
+                                label="Создавать новые элементы, если полученные данные не сопоставлены"
+                            />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                {importStats.new} строк будет пропущено
+                            </Typography>
+                            <Typography variant="body2" color="error">
+                                строк будет пропущено
+                            </Typography>
+                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                                показать строки...
+                            </Button>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                0 строк, которые невозможно загрузить
+                            </Typography>
+                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                                строк...
+                            </Button>
+                        </Box>
+                    </Box>
+
+                    {/* Настройки загрузки */}
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                            Настройки загрузки
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1" sx={{ minWidth: '80px' }}>
+                                Группа:
+                            </Typography>
+                            <TextField
+                                size="small"
+                                value={importSettings.group}
+                                onChange={(e) => setImportSettings({
+                                    ...importSettings,
+                                    group: e.target.value
+                                })}
+                                sx={{
+                                    flex: 1,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderColor: '#ffc107',
+                                        '&:hover': {
+                                            borderColor: '#ffc107'
+                                        }
+                                    }
+                                }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                            <IconButton size="small">
+                                                <span>⋯</span>
+                                            </IconButton>
+                                            <IconButton size="small">
+                                                <span>✕</span>
+                                            </IconButton>
+                                            <IconButton size="small">
+                                                <span>?</span>
+                                            </IconButton>
+                                        </Box>
+                                    )
+                                }}
+                            />
+                        </Box>
+                    </Box>
+                </DialogContent>
+
+                <DialogActions sx={{
+                    backgroundColor: '#f5f5f5',
+                    borderTop: '1px solid #ddd',
+                    justifyContent: 'space-between',
+                    p: 2
+                }}>
+                    <Button
+                        onClick={() => setShowExcelImportDialog(false)}
+                        sx={{
+                            backgroundColor: '#6c757d',
+                            color: 'white',
+                            '&:hover': { backgroundColor: '#5a6268' }
+                        }}
+                    >
+                        ← Назад
+                    </Button>
+                    <Button
+                        onClick={importFromExcel}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#ffc107',
+                            color: 'black',
+                            fontWeight: 'bold',
+                            '&:hover': { backgroundColor: '#ffb300' }
+                        }}
+                    >
+                        Загрузить данные в приложение
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>
