@@ -193,7 +193,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         console.log('Сохранение количества:', newQuantity, 'для спецификации:', specificationId);
 
         try {
-            const response = await fetch(`/api/specifications/${specificationId}`, {
+            const response = await fetch(`http://localhost:4000/api/specifications/${specificationId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
