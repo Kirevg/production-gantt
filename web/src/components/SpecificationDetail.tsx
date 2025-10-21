@@ -1338,7 +1338,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 sx={{
                                                     '& .MuiInputBase-root': {
                                                         height: '30px',
-                                                        fontSize: '12px'
+                                                        fontSize: '12px !important'
                                                     }
                                                 }}
                                             />
