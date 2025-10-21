@@ -1439,7 +1439,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}
                                 >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center' }}
+                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    onDoubleClick={canEdit() ? () => handleOpenEditForm(specification) : undefined}
                                 >{specification.quantity}</TableCell>
                                 <TableCell
                                     sx={{ p: 0.5, textAlign: 'center' }}
