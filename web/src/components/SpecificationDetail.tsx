@@ -157,18 +157,38 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         if (!sortField) return previewData;
 
         return [...previewData].sort((a, b) => {
-            const aValue = a[sortField] || '';
-            const bValue = b[sortField] || '';
+            const aValue = a[sortField];
+            const bValue = b[sortField];
 
+            // Обработка булевых значений (для статуса)
+            if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+                if (sortField === 'isExisting') {
+                    // Для статуса: true (существующие) идут первыми при asc
+                    return sortDirection === 'asc'
+                        ? (aValue === bValue ? 0 : aValue ? -1 : 1)
+                        : (aValue === bValue ? 0 : aValue ? 1 : -1);
+                }
+                return sortDirection === 'asc'
+                    ? (aValue === bValue ? 0 : aValue ? -1 : 1)
+                    : (aValue === bValue ? 0 : aValue ? 1 : -1);
+            }
+
+            // Обработка строк
             if (typeof aValue === 'string' && typeof bValue === 'string') {
                 return sortDirection === 'asc'
                     ? aValue.localeCompare(bValue, 'ru')
                     : bValue.localeCompare(aValue, 'ru');
             }
 
+            // Обработка чисел
             if (typeof aValue === 'number' && typeof bValue === 'number') {
                 return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
             }
+
+            // Обработка null/undefined
+            if (aValue == null && bValue == null) return 0;
+            if (aValue == null) return sortDirection === 'asc' ? 1 : -1;
+            if (bValue == null) return sortDirection === 'asc' ? -1 : 1;
 
             return 0;
         });
