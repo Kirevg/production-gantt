@@ -177,13 +177,20 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     };
 
     const handleQuantitySave = async (specificationId: string) => {
-        if (!canEdit()) return;
-
-        const newQuantity = parseFloat(quantityValue);
-        if (isNaN(newQuantity) || newQuantity < 0) {
+        if (!canEdit()) {
+            console.log('Нет прав на редактирование');
             setEditingQuantity(null);
             return;
         }
+
+        const newQuantity = parseFloat(quantityValue);
+        if (isNaN(newQuantity) || newQuantity < 0) {
+            console.log('Некорректное значение количества:', quantityValue);
+            setEditingQuantity(null);
+            return;
+        }
+
+        console.log('Сохранение количества:', newQuantity, 'для спецификации:', specificationId);
 
         try {
             const response = await fetch(`/api/specifications/${specificationId}`, {
@@ -195,6 +202,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 body: JSON.stringify({ quantity: newQuantity })
             });
 
+            console.log('Ответ сервера:', response.status);
+
             if (response.ok) {
                 // Обновляем локальное состояние
                 setSpecifications(prev => prev.map(spec =>
@@ -202,6 +211,9 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         ? { ...spec, quantity: newQuantity, totalPrice: newQuantity * (spec.price || 0) }
                         : spec
                 ));
+                console.log('Количество успешно обновлено');
+            } else {
+                console.error('Ошибка сервера:', response.status, response.statusText);
             }
         } catch (error) {
             console.error('Ошибка обновления количества:', error);
