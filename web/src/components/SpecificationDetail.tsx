@@ -458,26 +458,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         setShowNomenclatureDialog(true);
     };
 
-    const handleOpenEditForm = (specification: Specification) => {
-        setEditingSpecification(specification);
-        setSpecificationForm({
-            nomenclatureItemId: specification.nomenclatureItem?.id || '',
-            designation: specification.nomenclatureItem?.designation || specification.designation || '',
-            name: specification.nomenclatureItem?.name || specification.name || '',
-            article: specification.nomenclatureItem?.article || specification.article || '',
-            code1c: specification.nomenclatureItem?.code1c || specification.code1c || '',
-            group: specification.group || '',
-            manufacturer: specification.nomenclatureItem?.manufacturer || specification.manufacturer || '',
-            description: specification.nomenclatureItem?.description || specification.description || '',
-            quantity: specification.quantity,
-            unit: (specification.nomenclatureItem as any)?.unit?.name ||
-                (specification.nomenclatureItem as any)?.unit?.code ||
-                specification.unit || '',
-            price: specification.price?.toString() || '',
-            totalPrice: specification.totalPrice?.toString() || ''
-        });
-        setShowEditForm(true);
-    };
 
 
     const handleCloseNomenclatureDialog = () => {
@@ -1344,12 +1324,16 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{ p: 0.5, position: 'relative', wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                     {editingCell === specification.id ? (
-                                        <Box sx={{ position: 'relative' }}>
+                                        <Box
+                                            sx={{ position: 'relative' }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             <TextField
                                                 fullWidth
                                                 size="small"
                                                 value={cellSearchQuery}
                                                 onChange={(e) => handleCellSearchChange(e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
                                                 placeholder="Поиск номенклатуры..."
                                                 sx={{
                                                     '& .MuiInputBase-root': {
