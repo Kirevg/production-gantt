@@ -1245,6 +1245,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             <TableCell sx={{
                                 fontWeight: 'bold',
                                 textAlign: 'center',
+                                verticalAlign: 'middle', // Вертикальное центрирование
                                 width: '40px',
                                 fontSize: '12px',
                                 p: 0.5,
