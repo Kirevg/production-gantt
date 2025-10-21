@@ -579,3 +579,8 @@
 .css-mi4ox6-MuiTableCell-root {
     line-height: 1 !important;
 }
+
+/* Изменяем padding-right для класса css-563s3m */
+.css-563s3m {
+    padding-right: 110px !important;
+}
