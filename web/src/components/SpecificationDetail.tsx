@@ -1254,8 +1254,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 <Delete
                                     fontSize="small"
                                     sx={{
-                                        color: '#d32f2f', // Красный цвет как в ячейках
-                                        fontSize: '16px'
+                                        color: '#d32f2f' // Красный цвет как в ячейках
                                     }}
                                 />
                             </TableCell>
