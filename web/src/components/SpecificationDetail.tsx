@@ -1090,7 +1090,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     flex: 1,
                     height: '600px !important',
                     maxHeight: '600px !important',
-                    overflow: 'auto',
+                    overflow: 'auto', // Возвращаем вертикальную прокрутку
                     border: '1px solid #ddd',
                     borderRadius: 1,
                     '&::-webkit-scrollbar': {
@@ -1127,9 +1127,9 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important' },
                         '& .MuiButtonBase-root-MuiIconButton-root': { padding: '0 !important' },
                         '& .MuiIconButton-root': { padding: '0 !important' },
-                        tableLayout: 'auto',
+                        tableLayout: 'auto', // Автоматическая ширина колонок
                         width: '100%',
-                        minWidth: 'max-content'
+                        minWidth: 'max-content' // Таблица адаптируется к содержимому
                     }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
