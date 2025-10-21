@@ -1486,6 +1486,22 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 </Table>
             </TableContainer>
 
+            {/* Общая сумма под таблицей */}
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                mt: 1,
+                pr: 2 // Отступ справа для выравнивания с колонкой "Сумма"
+            }}>
+                <Typography variant="h6" sx={{
+                    fontWeight: 'bold',
+                    color: '#1976d2',
+                    fontSize: '16px'
+                }}>
+                    Итого: {formatCurrency(specifications.reduce((sum, spec) => sum + (spec.totalPrice || 0), 0))}
+                </Typography>
+            </Box>
+
             {/* Диалог выбора номенклатуры */}
             <Dialog
                 open={showNomenclatureDialog}
