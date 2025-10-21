@@ -240,13 +240,19 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             [targetColumn]: Math.max(50, newWidth) // Минимальная ширина 50px
         };
 
-        setColumnWidths(newWidths);
+        // Проверяем, что суммарная ширина не превышает контейнер
+        const totalWidth = Object.values(newWidths).reduce((sum: number, width: unknown) => sum + (width as number), 0);
+        const containerWidth = 1200; // Примерная ширина контейнера
 
-        // Сохраняем в localStorage
-        try {
-            localStorage.setItem('specification-column-widths', JSON.stringify(newWidths));
-        } catch (error) {
-            console.warn('Ошибка сохранения ширин колонок:', error);
+        if (totalWidth <= containerWidth) {
+            setColumnWidths(newWidths);
+
+            // Сохраняем в localStorage
+            try {
+                localStorage.setItem('specification-column-widths', JSON.stringify(newWidths));
+            } catch (error) {
+                console.warn('Ошибка сохранения ширин колонок:', error);
+            }
         }
     };
 
@@ -1101,7 +1107,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     flex: 1,
                     height: '600px !important',
                     maxHeight: '600px !important',
-                    overflow: 'auto', // Возвращаем вертикальную прокрутку
+                    overflow: 'hidden', // Убираем горизонтальную прокрутку
                     border: '1px solid #ddd',
                     borderRadius: 1,
                     // Ограничиваем ширину таблицы
@@ -1112,7 +1118,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     },
                     '&::-webkit-scrollbar': {
                         width: '8px',
-                        height: '8px'
+                        height: '0px' // Убираем горизонтальную прокрутку
                     },
                     '&::-webkit-scrollbar-track': {
                         backgroundColor: '#f1f1f1',
@@ -1146,7 +1152,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         '& .MuiIconButton-root': { padding: '0 !important' },
                         tableLayout: 'fixed', // Фиксированная ширина колонок
                         width: '100%',
-                        maxWidth: '100%' // Таблица не выезжает за контейнер
+                        maxWidth: '100%', // Таблица не выезжает за контейнер
+                        minWidth: '100%' // Минимальная ширина = ширина контейнера
                     }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
