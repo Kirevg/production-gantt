@@ -602,3 +602,21 @@ input[type="number"]:focus {
     background-color: transparent !important;
     color: inherit !important;
 }
+
+/* ===== ОКНО ВЫБОРА НОМЕНКЛАТУРЫ ===== */
+
+/* Специальные стили для окна выбора номенклатуры */
+.nomenclature-selection-window {
+    font-size: 12px !important;
+    font-weight: normal !important;
+}
+
+.nomenclature-selection-window .MuiInputBase-root {
+    font-size: 12px !important;
+    height: 30px !important;
+}
+
+.nomenclature-selection-window .MuiTypography-root {
+    font-size: 12px !important;
+    font-weight: normal !important;
+}
