@@ -596,3 +596,9 @@ input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
 }
+
+/* Убираем выделение текста в input полях таблицы */
+input[type="number"]:focus {
+    background-color: transparent !important;
+    color: inherit !important;
+}
