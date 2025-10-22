@@ -37,7 +37,6 @@ interface ProjectSpecification {
     name: string;
     description?: string;
     sum?: number; // Сумма спецификации
-    totalPrice?: number; // Итоговая сумма из спецификации
     version?: number; // Версия спецификации
     createdAt: string;
     updatedAt: string;
@@ -980,7 +979,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'right', width: '100px' }}>
                                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                {specification.totalPrice ? `${specification.totalPrice.toLocaleString('ru-RU')} ₽` : '0,00'}
+                                                {specification.sum ? `${specification.sum.toLocaleString('ru-RU')} ₽` : '0,00'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ textAlign: 'center', py: 0.5, width: '40px' }}>

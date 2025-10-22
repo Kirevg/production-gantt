@@ -104,7 +104,14 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
             orderBy: { orderIndex: 'asc' }
         });
 
-        console.log('Specifications data:', JSON.stringify(specifications, null, 2));
+        console.log('=== SPECIFICATIONS API CALLED ===');
+        console.log('Product Specification ID:', id);
+        console.log('Number of specifications:', specifications.length);
+        if (specifications.length > 0) {
+            console.log('First specification keys:', Object.keys(specifications[0]));
+            console.log('First specification totalPrice:', specifications[0].totalPrice);
+        }
+        console.log('================================');
         res.json(specifications);
     } catch (error) {
         console.error('Ошибка получения спецификаций:', error);
