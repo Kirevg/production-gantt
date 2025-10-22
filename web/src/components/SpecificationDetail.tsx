@@ -91,6 +91,10 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
     const [quantityValue, setQuantityValue] = useState<string>('');
 
+    // Состояние для inline редактирования цены за единицу
+    const [editingPrice, setEditingPrice] = useState<string | null>(null);
+    const [priceValue, setPriceValue] = useState<string>('');
+
     // Состояние для диалога выбора номенклатуры
     const [showNomenclatureDialog, setShowNomenclatureDialog] = useState(false);
     const [nomenclatureItems, setNomenclatureItems] = useState<Array<{
@@ -227,6 +231,73 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const handleQuantityCancel = () => {
         setEditingQuantity(null);
         setQuantityValue('');
+    };
+
+    // Функции для inline редактирования цены за единицу
+    const handlePriceClick = (specificationId: string, currentPrice: number) => {
+        if (canEdit()) {
+            setEditingPrice(specificationId);
+            setPriceValue(currentPrice.toString());
+        }
+    };
+
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPriceValue(e.target.value);
+    };
+
+    const handlePriceSave = async (specificationId: string) => {
+        if (!canEdit()) {
+            console.log('Нет прав на редактирование');
+            setEditingPrice(null);
+            return;
+        }
+
+        const newPrice = parseFloat(priceValue);
+        if (isNaN(newPrice) || newPrice < 0) {
+            console.log('Некорректное значение цены:', priceValue);
+            setEditingPrice(null);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:4000/specifications/${specificationId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    price: newPrice
+                })
+            });
+
+            if (response.ok) {
+                const updatedSpecification = await response.json();
+                setSpecifications(prev => prev.map(spec => 
+                    spec.id === specificationId ? updatedSpecification : spec
+                ));
+                console.log('Цена обновлена:', updatedSpecification);
+            } else {
+                console.error('Ошибка обновления цены');
+            }
+        } catch (error) {
+            console.error('Ошибка обновления цены:', error);
+        }
+
+        setEditingPrice(null);
+    };
+
+    const handlePriceCancel = () => {
+        setEditingPrice(null);
+        setPriceValue('');
+    };
+
+    const handlePriceKeyDown = (e: React.KeyboardEvent, specificationId: string) => {
+        if (e.key === 'Enter') {
+            handlePriceSave(specificationId);
+        } else if (e.key === 'Escape') {
+            handlePriceCancel();
+        }
     };
 
     const handleQuantityKeyDown = (e: React.KeyboardEvent, specificationId: string) => {
@@ -1616,9 +1687,35 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         specification.unit || '-'}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right' }}
+                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    onDoubleClick={() => handlePriceClick(specification.id, specification.price)}
                                 >
-                                    {formatCurrency(specification.price)}
+                                    {editingPrice === specification.id ? (
+                                        <input
+                                            type="number"
+                                            value={priceValue}
+                                            onChange={handlePriceChange}
+                                            onBlur={() => handlePriceSave(specification.id)}
+                                            onKeyDown={(e) => handlePriceKeyDown(e, specification.id)}
+                                            onFocus={(e) => e.target.select()}
+                                            style={{
+                                                width: '100%',
+                                                border: 'none',
+                                                outline: 'none',
+                                                background: 'transparent',
+                                                textAlign: 'right',
+                                                fontSize: '12px',
+                                                fontFamily: 'inherit',
+                                                // Убираем стрелки вверх/вниз
+                                                MozAppearance: 'textfield',
+                                                WebkitAppearance: 'none',
+                                                appearance: 'none'
+                                            }}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        formatCurrency(specification.price)
+                                    )}
                                 </TableCell>
                                 <TableCell
                                     sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}
