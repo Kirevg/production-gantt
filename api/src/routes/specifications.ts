@@ -248,7 +248,11 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
 
         const specification = await prisma.specification.update({
             where: { id },
-            data: updateData
+            data: updateData,
+            include: {
+                nomenclatureItem: true,
+                unit: true
+            }
         });
 
         // Пересчитываем итоговую сумму документа
