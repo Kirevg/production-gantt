@@ -1557,7 +1557,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                 <MenuItem value="">Не указана</MenuItem>
                                 {units.map((unit) => (
                                     <MenuItem key={unit.id} value={unit.id}>
-                                        {unit.code} - {unit.name}
+                                        {unit.code}
                                     </MenuItem>
                                 ))}
                             </Select>
