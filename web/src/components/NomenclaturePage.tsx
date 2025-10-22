@@ -1025,7 +1025,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const handleTypeFilterChange = (type: keyof typeof typeFilters, event: React.MouseEvent) => {
         // Убираем фокус с кнопки после нажатия
         (event.target as HTMLElement).blur();
-        
+
         const newFilters = {
             ...typeFilters,
             [type]: !typeFilters[type]
@@ -1173,7 +1173,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                                 Номенклатура
                             </Typography>
-                            
+
                             {/* Фильтры по типам номенклатуры */}
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                                 <Button
@@ -1183,8 +1183,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     sx={{
                                         textTransform: 'none !important',
                                         fontSize: '14px !important',
-                                        boxShadow: typeFilters.product 
-                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                        boxShadow: typeFilters.product
+                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                             : '0 2px 4px rgba(0, 0, 0, 0.1) !important',
                                         border: typeFilters.product ? '2px solid #1565c0 !important' : '1px solid #c4c4c4 !important',
                                         backgroundColor: typeFilters.product ? '#1976d2 !important' : 'transparent !important',
@@ -1194,16 +1194,16 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                         height: '40px !important',
                                         padding: '8px 16px !important',
                                         '&:hover': {
-                                            boxShadow: typeFilters.product 
-                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                            boxShadow: typeFilters.product
+                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                                 : '0 4px 8px rgba(0, 0, 0, 0.2) !important',
                                             transform: 'translateY(-1px) !important',
                                             backgroundColor: typeFilters.product ? '#1565c0 !important' : '#e3f2fd !important'
                                         },
                                         '&:active': {
                                             transform: 'none !important',
-                                            boxShadow: typeFilters.product 
-                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                            boxShadow: typeFilters.product
+                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                                 : '0 1px 2px rgba(0, 0, 0, 0.2) !important'
                                         },
                                         transition: 'all 0.2s ease-in-out !important'
@@ -1218,8 +1218,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     sx={{
                                         textTransform: 'none !important',
                                         fontSize: '14px !important',
-                                        boxShadow: typeFilters.service 
-                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                        boxShadow: typeFilters.service
+                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                             : '0 2px 4px rgba(0, 0, 0, 0.1) !important',
                                         border: typeFilters.service ? '2px solid #388e3c !important' : '1px solid #c4c4c4 !important',
                                         backgroundColor: typeFilters.service ? '#4caf50 !important' : 'transparent !important',
@@ -1229,16 +1229,16 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                         height: '40px !important',
                                         padding: '8px 16px !important',
                                         '&:hover': {
-                                            boxShadow: typeFilters.service 
-                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                            boxShadow: typeFilters.service
+                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                                 : '0 4px 8px rgba(0, 0, 0, 0.2) !important',
                                             transform: 'translateY(-1px) !important',
                                             backgroundColor: typeFilters.service ? '#45a049 !important' : '#e8f5e8 !important'
                                         },
                                         '&:active': {
                                             transform: 'none !important',
-                                            boxShadow: typeFilters.service 
-                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                            boxShadow: typeFilters.service
+                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                                 : '0 1px 2px rgba(0, 0, 0, 0.2) !important'
                                         },
                                         transition: 'all 0.2s ease-in-out !important'
@@ -1253,8 +1253,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     sx={{
                                         textTransform: 'none !important',
                                         fontSize: '14px !important',
-                                        boxShadow: typeFilters.work 
-                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                        boxShadow: typeFilters.work
+                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                             : '0 2px 4px rgba(0, 0, 0, 0.1) !important',
                                         border: typeFilters.work ? '2px solid #f57c00 !important' : '1px solid #c4c4c4 !important',
                                         backgroundColor: typeFilters.work ? '#ff9800 !important' : 'transparent !important',
@@ -1264,16 +1264,16 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                         height: '40px !important',
                                         padding: '8px 16px !important',
                                         '&:hover': {
-                                            boxShadow: typeFilters.work 
-                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                            boxShadow: typeFilters.work
+                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                                 : '0 4px 8px rgba(0, 0, 0, 0.2) !important',
                                             transform: 'translateY(-1px) !important',
                                             backgroundColor: typeFilters.work ? '#f57c00 !important' : '#fff3e0 !important'
                                         },
                                         '&:active': {
                                             transform: 'none !important',
-                                            boxShadow: typeFilters.work 
-                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
+                                            boxShadow: typeFilters.work
+                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important'
                                                 : '0 1px 2px rgba(0, 0, 0, 0.2) !important'
                                         },
                                         transition: 'all 0.2s ease-in-out !important'
