@@ -976,13 +976,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    nomenclatureItemId: item.id,
-                    name: item.name,
-                    designation: item.designation,
-                    article: item.article,
-                    code1c: item.code1c,
-                    group: item.group,
-                    manufacturer: item.manufacturer
+                    nomenclatureItemId: item.id
                 })
             });
 
