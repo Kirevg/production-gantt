@@ -895,10 +895,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                                                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                    {specification.version || '1'}
-                                                </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                                                 <Box
                                                     onClick={() => {
                                                         console.log('Кнопка + для версии нажата');
@@ -936,6 +933,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                         +
                                                     </Typography>
                                                 </Box>
+                                                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                    {specification.version || '1'}
+                                                </Typography>
                                             </Box>
                                         </TableCell>
                                         <TableCell
