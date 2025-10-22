@@ -676,8 +676,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
             // Создаем копию спецификации с увеличенной версией
             const newVersion = (originalSpecification.version || 1) + 1;
             const copyData = {
-                name: `${originalSpecification.name} (v${newVersion})`,
-                description: originalSpecification.description || '',
+                name: originalSpecification.name, // Копируем исходное название
+                description: '', // Описание не копируется
                 version: newVersion
             };
 
@@ -708,7 +708,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         } catch (error) {
             console.error('Ошибка создания копии спецификации:', error);
-            alert('Произошла ошибка при создании копии спецификации');
         }
     };
 
