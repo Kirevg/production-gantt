@@ -653,3 +653,19 @@ p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     font-family: Arial, sans-serif;
     justify-content: center;
 }
+
+/* Стили для границ Material-UI input полей */
+.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline {
+    border-color: #c4c4c4 !important;
+    border-width: 1px !important;
+}
+
+.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline:hover {
+    border-color: #1976d2 !important;
+    border-width: 1px !important;
+}
+
+.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline.Mui-focused {
+    border-color: #1976d2 !important;
+    border-width: 2px !important;
+}
