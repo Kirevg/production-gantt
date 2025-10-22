@@ -925,7 +925,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                 />
                                             ) : (
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {specification.description || '-'}
+                                                    {specification.description || ''}
                                                 </Typography>
                                             )}
                                         </TableCell>
