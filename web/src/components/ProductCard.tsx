@@ -106,6 +106,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     onBack,
     onOpenSpecification,
     onProductNameUpdate,
+    canEdit,
     canCreate,
     canDelete
 }) => {
@@ -892,9 +893,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                 {specification.name}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell 
-                                            sx={{ 
-                                                py: 0.5, 
+                                        <TableCell
+                                            sx={{
+                                                py: 0.5,
                                                 cursor: canEdit() ? 'pointer' : 'default',
                                                 position: 'relative'
                                             }}
