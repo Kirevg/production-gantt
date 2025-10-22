@@ -1165,11 +1165,85 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', width: '100%', overflow: 'hidden', justifyContent: 'space-between' }}>
                     {/* Левая колонка - Таблица номенклатуры */}
                     <Box sx={{ flex: '0 0 68%', minWidth: '232px', display: 'flex', flexDirection: 'column' }}>
-                        {/* Заголовок и кнопки управления */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, mt: 2 }}>
+                        {/* Заголовок, фильтры и кнопки управления */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, mt: 2, gap: 2 }}>
                             <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                                 Номенклатура
                             </Typography>
+                            
+                            {/* Фильтры по типам номенклатуры */}
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={typeFilters.product}
+                                            onChange={() => handleTypeFilterChange('product')}
+                                            color="primary"
+                                            size="small"
+                                        />
+                                    }
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <Chip
+                                                label="Товар"
+                                                color="primary"
+                                                size="small"
+                                                sx={{ borderRadius: '6px', fontSize: '11px' }}
+                                            />
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '11px' }}>
+                                                ({items.filter(item => item.type === 'Product').length})
+                                            </Typography>
+                                        </Box>
+                                    }
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={typeFilters.service}
+                                            onChange={() => handleTypeFilterChange('service')}
+                                            color="success"
+                                            size="small"
+                                        />
+                                    }
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <Chip
+                                                label="Услуга"
+                                                color="success"
+                                                size="small"
+                                                sx={{ borderRadius: '6px', fontSize: '11px' }}
+                                            />
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '11px' }}>
+                                                ({items.filter(item => item.type === 'Service').length})
+                                            </Typography>
+                                        </Box>
+                                    }
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={typeFilters.work}
+                                            onChange={() => handleTypeFilterChange('work')}
+                                            color="warning"
+                                            size="small"
+                                        />
+                                    }
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <Chip
+                                                label="Работа"
+                                                color="warning"
+                                                size="small"
+                                                sx={{ borderRadius: '6px', fontSize: '11px' }}
+                                            />
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '11px' }}>
+                                                ({items.filter(item => item.type === 'Work').length})
+                                            </Typography>
+                                        </Box>
+                                    }
+                                />
+                            </Box>
+
                             {canCreate() && (
                                 <Box sx={{ display: 'flex', gap: 2 }}>
                                     <VolumeButton
@@ -1190,78 +1264,6 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                 </Box>
                             )}
                         </Box>
-
-                        {/* Фильтры по типам номенклатуры */}
-                        <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f8f9fa' }}>
-                            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={typeFilters.product}
-                                            onChange={() => handleTypeFilterChange('product')}
-                                            color="primary"
-                                        />
-                                    }
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                            <Chip
-                                                label="Товар"
-                                                color="primary"
-                                                size="small"
-                                                sx={{ borderRadius: '6px' }}
-                                            />
-                                            <Typography variant="body2" color="text.secondary">
-                                                ({items.filter(item => item.type === 'Product').length})
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={typeFilters.service}
-                                            onChange={() => handleTypeFilterChange('service')}
-                                            color="success"
-                                        />
-                                    }
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                            <Chip
-                                                label="Услуга"
-                                                color="success"
-                                                size="small"
-                                                sx={{ borderRadius: '6px' }}
-                                            />
-                                            <Typography variant="body2" color="text.secondary">
-                                                ({items.filter(item => item.type === 'Service').length})
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={typeFilters.work}
-                                            onChange={() => handleTypeFilterChange('work')}
-                                            color="warning"
-                                        />
-                                    }
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                            <Chip
-                                                label="Работа"
-                                                color="warning"
-                                                size="small"
-                                                sx={{ borderRadius: '6px' }}
-                                            />
-                                            <Typography variant="body2" color="text.secondary">
-                                                ({items.filter(item => item.type === 'Work').length})
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
-                            </Box>
-                        </Paper>
 
                         <TableContainer component={Paper} sx={{ flex: 1, overflow: 'auto' }}>
                             <Table sx={{
