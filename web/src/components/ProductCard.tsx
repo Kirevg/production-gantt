@@ -664,6 +664,54 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
+    // Функция создания копии спецификации с увеличением версии
+    const handleCreateSpecificationCopy = async (originalSpecification: ProjectSpecification) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            // Создаем копию спецификации с увеличенной версией
+            const newVersion = (originalSpecification.version || 1) + 1;
+            const copyData = {
+                name: `${originalSpecification.name} (v${newVersion})`,
+                description: originalSpecification.description || '',
+                version: newVersion
+            };
+
+            const response = await fetch(`http://localhost:4000/product-specifications`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    ...copyData,
+                    productId: currentProductId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const newSpecification = await response.json();
+            console.log('Копия спецификации создана:', newSpecification);
+
+            // Обновляем список спецификаций
+            await fetchSpecifications();
+
+            // Открываем окно "Спецификация" для новой спецификации
+            onOpenSpecification(newSpecification.id, newSpecification.name);
+
+        } catch (error) {
+            console.error('Ошибка создания копии спецификации:', error);
+            alert('Произошла ошибка при создании копии спецификации');
+        }
+    };
+
     // Обработчики для этапов работ
     const handleOpenStageDialog = (stage?: Stage) => {
         if (stage) {
@@ -898,8 +946,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                                                 <Box
                                                     onClick={() => {
-                                                        console.log('Кнопка + для версии нажата');
-                                                        // TODO: Добавить функционал увеличения версии
+                                                        handleCreateSpecificationCopy(specification);
                                                     }}
                                                     sx={{
                                                         width: '20px',
