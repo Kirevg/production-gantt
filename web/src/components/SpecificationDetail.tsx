@@ -943,7 +943,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             // Вычисляем позицию окна относительно ячейки
             const rect = event.currentTarget.getBoundingClientRect();
             setWindowPosition({
-                top: rect.bottom + window.scrollY + 10, // 10px отступ от ячейки
+                top: rect.bottom + window.scrollY + 12, // 12px отступ от ячейки
                 left: rect.left + window.scrollX // Левый край ячейки
             });
 
