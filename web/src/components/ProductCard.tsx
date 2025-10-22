@@ -681,16 +681,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 version: newVersion
             };
 
-            const response = await fetch(`http://localhost:4000/product-specifications`, {
+            const response = await fetch(`http://localhost:4000/product-specifications/products/${currentProductId}/specifications`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    ...copyData,
-                    productId: currentProductId
-                })
+                body: JSON.stringify(copyData)
             });
 
             if (!response.ok) {
