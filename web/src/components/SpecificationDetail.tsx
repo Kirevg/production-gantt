@@ -1360,8 +1360,11 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                     sx={{
                                                         position: 'absolute',
                                                         top: '100%',
-                                                        left: 0,
-                                                        right: 0,
+                                                        left: 0, // Только начальное положение привязано к ячейке
+                                                        // right: 0, // Убираем привязку к правому краю
+                                                        width: '400px', // Фиксированная ширина окна
+                                                        minWidth: '300px', // Минимальная ширина
+                                                        maxWidth: '500px', // Максимальная ширина
                                                         zIndex: 1000,
                                                         backgroundColor: 'white',
                                                         border: '1px solid #ccc',
