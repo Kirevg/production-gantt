@@ -238,9 +238,10 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
             totalPrice = data.price * data.quantity;
         }
 
-        // По принципу 1С: обновляем только количество, цену и сумму
+        // По принципу 1С: обновляем количество, цену, сумму и номенклатуру
         const updateData: any = {};
 
+        if (data.nomenclatureItemId !== undefined) updateData.nomenclatureItemId = data.nomenclatureItemId;
         if (data.quantity !== undefined) updateData.quantity = data.quantity;
         if (data.price !== undefined) updateData.price = data.price;
         if (totalPrice !== undefined) updateData.totalPrice = totalPrice;
