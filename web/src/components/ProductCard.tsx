@@ -899,7 +899,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                 cursor: canEdit() ? 'pointer' : 'default',
                                                 position: 'relative'
                                             }}
-                                            onDoubleClick={() => handleDescriptionClick(specification.id, specification.description || '')}
+                                            onDoubleClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDescriptionClick(specification.id, specification.description || '');
+                                            }}
                                         >
                                             {editingDescription === specification.id ? (
                                                 <input
