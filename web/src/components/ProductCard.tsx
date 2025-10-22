@@ -37,6 +37,7 @@ interface ProjectSpecification {
     name: string;
     description?: string;
     sum?: number; // Сумма спецификации
+    version?: number; // Версия спецификации
     createdAt: string;
     updatedAt: string;
 }
@@ -857,6 +858,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <TableHead>
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Название</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Версия</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата создания</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
@@ -868,13 +870,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <TableBody>
                             {specificationsLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                                         <LinearProgress />
                                     </TableCell>
                                 </TableRow>
                             ) : specifications.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                                         <Typography variant="body1" color="text.secondary">
                                             Список спецификаций пуст
                                         </Typography>
@@ -890,6 +892,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         <TableCell sx={{ py: 0.5 }}>
                                             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
                                                 {specification.name}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                {specification.version || '1'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell
