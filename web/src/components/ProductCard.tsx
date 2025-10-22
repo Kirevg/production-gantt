@@ -151,6 +151,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         description: ''
     });
 
+    // Состояние для inline редактирования описания спецификации
+    const [editingDescription, setEditingDescription] = useState<string | null>(null);
+    const [descriptionValue, setDescriptionValue] = useState<string>('');
+
     // Состояние для этапов работ
     const [stages, setStages] = useState<Stage[]>([]);
     const [workTypes, setWorkTypes] = useState<Array<{ id: string, name: string }>>([]);
@@ -594,6 +598,70 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
+    // Функции для inline редактирования описания спецификации
+    const handleDescriptionClick = (specificationId: string, currentDescription: string) => {
+        if (canEdit()) {
+            setEditingDescription(specificationId);
+            setDescriptionValue(currentDescription || '');
+        }
+    };
+
+    const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDescriptionValue(e.target.value);
+    };
+
+    const handleDescriptionSave = async (specificationId: string) => {
+        if (!canEdit()) {
+            console.log('Нет прав на редактирование');
+            setEditingDescription(null);
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${specificationId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    description: descriptionValue
+                })
+            });
+
+            if (response.ok) {
+                const updatedSpecification = await response.json();
+                setSpecifications(prev => prev.map(spec =>
+                    spec.id === specificationId ? {
+                        ...spec,
+                        description: updatedSpecification.description
+                    } : spec
+                ));
+                console.log('Описание обновлено:', updatedSpecification);
+            } else {
+                console.error('Ошибка обновления описания');
+            }
+        } catch (error) {
+            console.error('Ошибка обновления описания:', error);
+        }
+
+        setEditingDescription(null);
+    };
+
+    const handleDescriptionCancel = () => {
+        setEditingDescription(null);
+        setDescriptionValue('');
+    };
+
+    const handleDescriptionKeyDown = (e: React.KeyboardEvent, specificationId: string) => {
+        if (e.key === 'Enter') {
+            handleDescriptionSave(specificationId);
+        } else if (e.key === 'Escape') {
+            handleDescriptionCancel();
+        }
+    };
+
     // Обработчики для этапов работ
     const handleOpenStageDialog = (stage?: Stage) => {
         if (stage) {
@@ -824,10 +892,38 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                 {specification.name}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell sx={{ py: 0.5 }}>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {specification.description || '-'}
-                                            </Typography>
+                                        <TableCell 
+                                            sx={{ 
+                                                py: 0.5, 
+                                                cursor: canEdit() ? 'pointer' : 'default',
+                                                position: 'relative'
+                                            }}
+                                            onDoubleClick={() => handleDescriptionClick(specification.id, specification.description || '')}
+                                        >
+                                            {editingDescription === specification.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={descriptionValue}
+                                                    onChange={handleDescriptionChange}
+                                                    onBlur={() => handleDescriptionSave(specification.id)}
+                                                    onKeyDown={(e) => handleDescriptionKeyDown(e, specification.id)}
+                                                    onFocus={(e) => e.target.select()}
+                                                    style={{
+                                                        width: '100%',
+                                                        border: 'none',
+                                                        outline: 'none',
+                                                        background: 'transparent',
+                                                        fontSize: '14px',
+                                                        fontFamily: 'inherit',
+                                                        color: 'inherit'
+                                                    }}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {specification.description || '-'}
+                                                </Typography>
+                                            )}
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
                                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
