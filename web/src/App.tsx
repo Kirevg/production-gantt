@@ -1,4 +1,5 @@
 // Импорт React хуков для управления состоянием компонентов
+// Production Gantt - Система управления проектами
 import React, { useState, useEffect, useCallback } from 'react';
 
 
