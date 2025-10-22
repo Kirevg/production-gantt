@@ -943,7 +943,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             // Вычисляем позицию окна относительно ячейки
             const rect = event.currentTarget.getBoundingClientRect();
             setWindowPosition({
-                top: rect.bottom + window.scrollY + 12, // 12px отступ от ячейки
+                top: rect.bottom + window.scrollY + 10, // 10px отступ от ячейки
                 left: rect.left + window.scrollX // Левый край ячейки
             });
 
@@ -1349,10 +1349,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 sx={{ height: '30px !important' }}
                             >
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                                <TableCell sx={{ 
-                                    p: 0.5, 
-                                    position: 'relative', 
-                                    wordWrap: 'break-word', 
+                                <TableCell sx={{
+                                    p: 0.5,
+                                    position: 'relative',
+                                    wordWrap: 'break-word',
                                     whiteSpace: 'normal'
                                 }}>
                                     {editingCell === specification.id ? (
