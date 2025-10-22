@@ -277,7 +277,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                     spec.id === specificationId ? {
                         ...spec,
                         price: updatedSpecification.price,
-                        totalPrice: updatedSpecification.totalPrice
+                        totalPrice: updatedSpecification.price * spec.quantity // Пересчитываем сумму: цена * количество
                     } : spec
                 ));
                 console.log('Цена обновлена:', updatedSpecification);
