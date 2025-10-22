@@ -1022,7 +1022,10 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     };
 
     // Обработчик изменения фильтров типов с сохранением в localStorage
-    const handleTypeFilterChange = (type: keyof typeof typeFilters) => {
+    const handleTypeFilterChange = (type: keyof typeof typeFilters, event: React.MouseEvent) => {
+        // Убираем фокус с кнопки после нажатия
+        (event.target as HTMLElement).blur();
+        
         const newFilters = {
             ...typeFilters,
             [type]: !typeFilters[type]
@@ -1176,7 +1179,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                 <Button
                                     variant={typeFilters.product ? "contained" : "outlined"}
                                     size="small"
-                                    onClick={() => handleTypeFilterChange('product')}
+                                    onClick={(e) => handleTypeFilterChange('product', e)}
                                     sx={{
                                         textTransform: 'none !important',
                                         fontSize: '14px !important',
@@ -1211,7 +1214,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                 <Button
                                     variant={typeFilters.service ? "contained" : "outlined"}
                                     size="small"
-                                    onClick={() => handleTypeFilterChange('service')}
+                                    onClick={(e) => handleTypeFilterChange('service', e)}
                                     sx={{
                                         textTransform: 'none !important',
                                         fontSize: '14px !important',
@@ -1246,7 +1249,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                 <Button
                                     variant={typeFilters.work ? "contained" : "outlined"}
                                     size="small"
-                                    onClick={() => handleTypeFilterChange('work')}
+                                    onClick={(e) => handleTypeFilterChange('work', e)}
                                     sx={{
                                         textTransform: 'none !important',
                                         fontSize: '14px !important',
