@@ -273,7 +273,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
             if (response.ok) {
                 const updatedSpecification = await response.json();
-                setSpecifications(prev => prev.map(spec => 
+                setSpecifications(prev => prev.map(spec =>
                     spec.id === specificationId ? {
                         ...spec,
                         price: updatedSpecification.price,
@@ -1692,7 +1692,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 </TableCell>
                                 <TableCell
                                     sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={() => handlePriceClick(specification.id, specification.price)}
+                                    onDoubleClick={() => handlePriceClick(specification.id, specification.price || 0)}
                                 >
                                     {editingPrice === specification.id ? (
                                         <input
