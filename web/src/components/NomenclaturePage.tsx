@@ -1179,24 +1179,31 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     onClick={() => handleTypeFilterChange('product')}
                                     sx={{
                                         textTransform: 'none !important',
+                                        fontSize: '14px !important',
                                         boxShadow: typeFilters.product 
                                             ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                             : '0 2px 4px rgba(0, 0, 0, 0.1) !important',
-                                        border: typeFilters.product ? '2px solid #0d47a1 !important' : '1px solid #c4c4c4 !important',
+                                        border: typeFilters.product ? '2px solid #1565c0 !important' : '1px solid #c4c4c4 !important',
                                         backgroundColor: typeFilters.product ? '#1976d2 !important' : 'transparent !important',
                                         color: typeFilters.product ? 'white !important' : '#1976d2 !important',
+                                        borderRadius: '8px !important',
+                                        minWidth: 'auto !important',
+                                        height: '40px !important',
+                                        padding: '8px 16px !important',
                                         '&:hover': {
                                             boxShadow: typeFilters.product 
                                                 ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                                 : '0 4px 8px rgba(0, 0, 0, 0.2) !important',
-                                            transform: 'translateY(-1px) !important'
+                                            transform: 'translateY(-1px) !important',
+                                            backgroundColor: typeFilters.product ? '#1565c0 !important' : '#e3f2fd !important'
                                         },
                                         '&:active': {
-                                            transform: 'translateY(1px) !important',
+                                            transform: 'none !important',
                                             boxShadow: typeFilters.product 
-                                                ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3) !important' 
+                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                                 : '0 1px 2px rgba(0, 0, 0, 0.2) !important'
-                                        }
+                                        },
+                                        transition: 'all 0.2s ease-in-out !important'
                                     }}
                                 >
                                     Товар ({items.filter(item => item.type === 'Product').length})
@@ -1207,24 +1214,31 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     onClick={() => handleTypeFilterChange('service')}
                                     sx={{
                                         textTransform: 'none !important',
+                                        fontSize: '14px !important',
                                         boxShadow: typeFilters.service 
                                             ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                             : '0 2px 4px rgba(0, 0, 0, 0.1) !important',
                                         border: typeFilters.service ? '2px solid #388e3c !important' : '1px solid #c4c4c4 !important',
                                         backgroundColor: typeFilters.service ? '#4caf50 !important' : 'transparent !important',
                                         color: typeFilters.service ? 'white !important' : '#4caf50 !important',
+                                        borderRadius: '8px !important',
+                                        minWidth: 'auto !important',
+                                        height: '40px !important',
+                                        padding: '8px 16px !important',
                                         '&:hover': {
                                             boxShadow: typeFilters.service 
                                                 ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                                 : '0 4px 8px rgba(0, 0, 0, 0.2) !important',
-                                            transform: 'translateY(-1px) !important'
+                                            transform: 'translateY(-1px) !important',
+                                            backgroundColor: typeFilters.service ? '#45a049 !important' : '#e8f5e8 !important'
                                         },
                                         '&:active': {
-                                            transform: 'translateY(1px) !important',
+                                            transform: 'none !important',
                                             boxShadow: typeFilters.service 
-                                                ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3) !important' 
+                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                                 : '0 1px 2px rgba(0, 0, 0, 0.2) !important'
-                                        }
+                                        },
+                                        transition: 'all 0.2s ease-in-out !important'
                                     }}
                                 >
                                     Услуга ({items.filter(item => item.type === 'Service').length})
@@ -1235,24 +1249,31 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     onClick={() => handleTypeFilterChange('work')}
                                     sx={{
                                         textTransform: 'none !important',
+                                        fontSize: '14px !important',
                                         boxShadow: typeFilters.work 
                                             ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                             : '0 2px 4px rgba(0, 0, 0, 0.1) !important',
                                         border: typeFilters.work ? '2px solid #f57c00 !important' : '1px solid #c4c4c4 !important',
                                         backgroundColor: typeFilters.work ? '#ff9800 !important' : 'transparent !important',
                                         color: typeFilters.work ? 'white !important' : '#ff9800 !important',
+                                        borderRadius: '8px !important',
+                                        minWidth: 'auto !important',
+                                        height: '40px !important',
+                                        padding: '8px 16px !important',
                                         '&:hover': {
                                             boxShadow: typeFilters.work 
                                                 ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                                 : '0 4px 8px rgba(0, 0, 0, 0.2) !important',
-                                            transform: 'translateY(-1px) !important'
+                                            transform: 'translateY(-1px) !important',
+                                            backgroundColor: typeFilters.work ? '#f57c00 !important' : '#fff3e0 !important'
                                         },
                                         '&:active': {
-                                            transform: 'translateY(1px) !important',
+                                            transform: 'none !important',
                                             boxShadow: typeFilters.work 
-                                                ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3) !important' 
+                                                ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important' 
                                                 : '0 1px 2px rgba(0, 0, 0, 0.2) !important'
-                                        }
+                                        },
+                                        transition: 'all 0.2s ease-in-out !important'
                                     }}
                                 >
                                     Работа ({items.filter(item => item.type === 'Work').length})
