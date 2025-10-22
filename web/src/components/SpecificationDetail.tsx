@@ -939,24 +939,24 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
         try {
             // Сохраняем текущую позицию для замены в состоянии
             setEditingSpecification(specification);
-            
+
             // Вычисляем позицию окна относительно ячейки
             const rect = event.currentTarget.getBoundingClientRect();
             setWindowPosition({
                 top: rect.bottom + window.scrollY + 5, // 5px отступ от ячейки
                 left: rect.left + window.scrollX // Левый край ячейки
             });
-            
+
             // Активируем режим редактирования ячейки - открываем "Окно выбора номенклатуры"
             setEditingCell(specification.id);
-            
+
             // Очищаем предыдущие результаты поиска и текст
             setCellFilteredItems([]);
             setCellSearchQuery('');
-            
+
             // Загружаем полный список номенклатуры для поиска и фильтрации (асинхронно)
             await fetchNomenclature();
-            
+
             console.log('Окно выбора номенклатуры открыто:', {
                 editingCell: specification.id,
                 windowPosition,
@@ -1402,7 +1402,23 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         sx={{
                                                             flex: 1,
                                                             overflow: 'auto',
-                                                            maxHeight: '150px'
+                                                            maxHeight: '150px',
+                                                            // Стили ползунка как у основной таблицы
+                                                            '&::-webkit-scrollbar': {
+                                                                width: '8px',
+                                                                height: '0px' // Убираем горизонтальную прокрутку
+                                                            },
+                                                            '&::-webkit-scrollbar-track': {
+                                                                backgroundColor: '#f1f1f1',
+                                                                borderRadius: '4px'
+                                                            },
+                                                            '&::-webkit-scrollbar-thumb': {
+                                                                backgroundColor: '#c1c1c1',
+                                                                borderRadius: '4px',
+                                                                '&:hover': {
+                                                                    backgroundColor: '#a8a8a8'
+                                                                }
+                                                            }
                                                         }}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
