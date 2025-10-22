@@ -650,4 +650,7 @@ p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     border: 1px solid #808080;
     font-family: Arial, sans-serif;
     justify-content: center;
+    color: #1976d2; /* Синий цвет текста */
+    font-weight: bold; /* Жирный шрифт */
+    font-size: 14px; /* Размер шрифта для лучшей читаемости */
 }
