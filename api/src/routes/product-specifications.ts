@@ -17,6 +17,7 @@ const prisma = new PrismaClient();
 const productSpecificationCreateSchema = z.object({
     name: z.string().min(1, 'Название обязательно'),
     description: z.string().optional(),
+    version: z.number().int().min(1).optional(),
 });
 
 // Схема для обновления спецификации изделия
@@ -82,6 +83,7 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
             data: {
                 name: validatedData.name,
                 description: validatedData.description,
+                version: validatedData.version || 1,
                 product: {
                     connect: { id: productId }
                 }
