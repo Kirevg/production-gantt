@@ -120,6 +120,23 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const [selectedKindId, setSelectedKindId] = useState<string | null>(null); // Фильтр по виду
     const [rightPanelMode, setRightPanelMode] = useState<'groups' | 'kinds'>('groups'); // Режим правой панели
 
+    // Состояние для фильтров типов номенклатуры с сохранением в localStorage
+    const [typeFilters, setTypeFilters] = useState(() => {
+        const saved = localStorage.getItem('nomenclature-type-filters');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error('Ошибка загрузки фильтров номенклатуры:', e);
+            }
+        }
+        return {
+            product: true,
+            service: true,
+            work: true
+        };
+    });
+
     // Состояние для меню управления группами
     const [groupsMenuAnchor, setGroupsMenuAnchor] = useState<null | HTMLElement>(null);
     const [showNestedGroups, setShowNestedGroups] = useState(false); // Показывать номенклатуру вложенных групп
@@ -1004,6 +1021,16 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
         handleGroupsMenuClose();
     };
 
+    // Обработчик изменения фильтров типов с сохранением в localStorage
+    const handleTypeFilterChange = (type: keyof typeof typeFilters) => {
+        const newFilters = {
+            ...typeFilters,
+            [type]: !typeFilters[type]
+        };
+        setTypeFilters(newFilters);
+        localStorage.setItem('nomenclature-type-filters', JSON.stringify(newFilters));
+    };
+
     // Рекурсивное отображение дерева групп
     const renderGroupTree = (groupTree: NomenclatureGroupTree[], level = 0) => {
         return groupTree.map((group) => (
@@ -1090,6 +1117,14 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const getFilteredItems = () => {
         let filtered = items;
 
+        // Фильтр по типам номенклатуры
+        filtered = filtered.filter(item => {
+            if (item.type === 'Product' && !typeFilters.product) return false;
+            if (item.type === 'Service' && !typeFilters.service) return false;
+            if (item.type === 'Work' && !typeFilters.work) return false;
+            return true;
+        });
+
         // Если активен режим "Группы" - применяем фильтр по группам
         if (rightPanelMode === 'groups' && selectedGroupId !== null) {
             if (selectedGroupId === '') {
@@ -1155,6 +1190,79 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                 </Box>
                             )}
                         </Box>
+
+                        {/* Фильтры по типам номенклатуры */}
+                        <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f8f9fa' }}>
+                            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={typeFilters.product}
+                                            onChange={() => handleTypeFilterChange('product')}
+                                            color="primary"
+                                        />
+                                    }
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                            <Chip
+                                                label="Товар"
+                                                color="primary"
+                                                size="small"
+                                                sx={{ borderRadius: '6px' }}
+                                            />
+                                            <Typography variant="body2" color="text.secondary">
+                                                ({items.filter(item => item.type === 'Product').length})
+                                            </Typography>
+                                        </Box>
+                                    }
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={typeFilters.service}
+                                            onChange={() => handleTypeFilterChange('service')}
+                                            color="success"
+                                        />
+                                    }
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                            <Chip
+                                                label="Услуга"
+                                                color="success"
+                                                size="small"
+                                                sx={{ borderRadius: '6px' }}
+                                            />
+                                            <Typography variant="body2" color="text.secondary">
+                                                ({items.filter(item => item.type === 'Service').length})
+                                            </Typography>
+                                        </Box>
+                                    }
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={typeFilters.work}
+                                            onChange={() => handleTypeFilterChange('work')}
+                                            color="warning"
+                                        />
+                                    }
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                            <Chip
+                                                label="Работа"
+                                                color="warning"
+                                                size="small"
+                                                sx={{ borderRadius: '6px' }}
+                                            />
+                                            <Typography variant="body2" color="text.secondary">
+                                                ({items.filter(item => item.type === 'Work').length})
+                                            </Typography>
+                                        </Box>
+                                    }
+                                />
+                            </Box>
+                        </Paper>
+
                         <TableContainer component={Paper} sx={{ flex: 1, overflow: 'auto' }}>
                             <Table sx={{
                                 '& .MuiTableCell-root': { border: '1px solid #e0e0e0', padding: '0 4px !important' },
