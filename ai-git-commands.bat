@@ -17,6 +17,7 @@ echo [AI] Создание снапшота...
 git add .
 for /f "tokens=1-3 delims=/" %%a in ('date /t') do (set mydate=%%c-%%b-%%a)
 for /f "tokens=1-3 delims=:" %%a in ('time /t') do (set mytime=%%a:%%b:%%c)
+if "%mytime:~-1%"==" " set mytime=%mytime:~0,-1%
 if "%~2"=="" (
     set desc=AI checkpoint
 ) else (
