@@ -936,23 +936,35 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
     // Функции для работы с "Окном выбора номенклатуры" - диалогом замены позиций
     const handleReplaceNomenclatureItem = async (specification: Specification, event: React.MouseEvent) => {
-        // Сохраняем текущую позицию для замены в состоянии
-        setEditingSpecification(specification);
-        // Загружаем полный список номенклатуры для поиска и фильтрации
-        await fetchNomenclature();
-        // Очищаем предыдущие результаты поиска и текст
-        setCellFilteredItems([]);
-        setCellSearchQuery('');
-        
-        // Вычисляем позицию окна относительно ячейки
-        const rect = event.currentTarget.getBoundingClientRect();
-        setWindowPosition({
-            top: rect.bottom + window.scrollY + 5, // 5px отступ от ячейки
-            left: rect.left + window.scrollX // Левый край ячейки
-        });
-        
-        // Активируем режим редактирования ячейки - открываем "Окно выбора номенклатуры"
-        setEditingCell(specification.id);
+        try {
+            // Сохраняем текущую позицию для замены в состоянии
+            setEditingSpecification(specification);
+            
+            // Вычисляем позицию окна относительно ячейки
+            const rect = event.currentTarget.getBoundingClientRect();
+            setWindowPosition({
+                top: rect.bottom + window.scrollY + 5, // 5px отступ от ячейки
+                left: rect.left + window.scrollX // Левый край ячейки
+            });
+            
+            // Активируем режим редактирования ячейки - открываем "Окно выбора номенклатуры"
+            setEditingCell(specification.id);
+            
+            // Очищаем предыдущие результаты поиска и текст
+            setCellFilteredItems([]);
+            setCellSearchQuery('');
+            
+            // Загружаем полный список номенклатуры для поиска и фильтрации (асинхронно)
+            await fetchNomenclature();
+            
+            console.log('Окно выбора номенклатуры открыто:', {
+                editingCell: specification.id,
+                windowPosition,
+                allNomenclatureItems: allNomenclatureItems.length
+            });
+        } catch (error) {
+            console.error('Ошибка при открытии окна выбора номенклатуры:', error);
+        }
     };
 
     // Обработчик изменения текста поиска в "Окне выбора номенклатуры"
