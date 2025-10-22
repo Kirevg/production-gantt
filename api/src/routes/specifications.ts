@@ -34,6 +34,7 @@ const specificationCreateSchema = z.object({
     quantity: z.number().int().min(1).default(1),
     price: z.number().positive().optional().or(z.null()),
     totalPrice: z.number().positive().optional().or(z.null()),
+    unitId: z.string().uuid().optional(),
 });
 
 // Схема для обновления спецификации
