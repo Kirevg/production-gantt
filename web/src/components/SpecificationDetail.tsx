@@ -943,7 +943,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             // Вычисляем позицию окна относительно ячейки
             const rect = event.currentTarget.getBoundingClientRect();
             setWindowPosition({
-                top: rect.bottom + window.scrollY + 5, // 5px отступ от ячейки
+                top: rect.bottom + window.scrollY + 10, // 10px отступ от ячейки
                 left: rect.left + window.scrollX // Левый край ячейки
             });
 
@@ -1181,22 +1181,22 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
 
             <TableContainer
-                    component={Paper}
-                    sx={{
+                component={Paper}
+                sx={{
+                    width: '100%',
+                    flex: 1,
+                    height: '600px !important',
+                    maxHeight: '600px !important',
+                    overflowY: 'auto', // Вертикальная прокрутка
+                    overflowX: 'hidden', // Без горизонтальной прокрутки
+                    border: '1px solid #ddd',
+                    borderRadius: 1,
+                    // Ограничиваем ширину таблицы
+                    '& .MuiTable-root': {
                         width: '100%',
-                        flex: 1,
-                        height: '600px !important',
-                        maxHeight: '600px !important',
-                        overflowY: 'auto', // Вертикальная прокрутка
-                        overflowX: 'hidden', // Без горизонтальной прокрутки
-                        border: '1px solid #ddd',
-                        borderRadius: 1,
-                        // Ограничиваем ширину таблицы
-                        '& .MuiTable-root': {
-                            width: '100%',
-                            maxWidth: '100%',
-                            tableLayout: 'fixed' // Фиксированная ширина колонок
-                        },
+                        maxWidth: '100%',
+                        tableLayout: 'fixed' // Фиксированная ширина колонок
+                    },
                     '&::-webkit-scrollbar': {
                         width: '8px',
                         height: '0px' // Убираем горизонтальную прокрутку
