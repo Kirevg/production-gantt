@@ -857,7 +857,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '200px' }}>Название</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '300px' }}>Название</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '100px' }}>Версия</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '140px' }}>Дата создания</TableCell>
@@ -889,7 +889,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         sx={{ height: '35px', cursor: 'pointer' }}
                                         onDoubleClick={() => onOpenSpecification(specification.id, specification.name)}
                                     >
-                                        <TableCell sx={{ py: 0.5, width: '200px' }}>
+                                        <TableCell sx={{ py: 0.5, width: '300px' }}>
                                             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
                                                 {specification.name}
                                             </Typography>
