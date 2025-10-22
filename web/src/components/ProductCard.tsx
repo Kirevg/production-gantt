@@ -895,9 +895,48 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-                                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                {specification.version || '1'}
-                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                    {specification.version || '1'}
+                                                </Typography>
+                                                <Box
+                                                    onClick={() => {
+                                                        console.log('Кнопка + для версии нажата');
+                                                        // TODO: Добавить функционал увеличения версии
+                                                    }}
+                                                    sx={{
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        p: '2px 4px',
+                                                        cursor: 'pointer',
+                                                        backgroundColor: '#f0f0f0',
+                                                        border: '1px solid #808080',
+                                                        fontFamily: 'Arial, sans-serif',
+                                                        fontSize: '11px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        '&:hover': {
+                                                            backgroundColor: '#e8e8e8'
+                                                        },
+                                                        '&:active': {
+                                                            backgroundColor: '#d8d8d8',
+                                                            border: '1px solid #404040'
+                                                        }
+                                                    }}
+                                                >
+                                                    <Typography variant="body2" sx={{
+                                                        fontWeight: 'bold',
+                                                        color: '#000',
+                                                        fontFamily: 'Arial, sans-serif',
+                                                        fontSize: '12px',
+                                                        textAlign: 'center',
+                                                        lineHeight: 1
+                                                    }}>
+                                                        +
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
                                         </TableCell>
                                         <TableCell
                                             sx={{
