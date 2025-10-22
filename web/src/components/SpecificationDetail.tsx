@@ -85,6 +85,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [editingCell, setEditingCell] = useState<string | null>(null); // ID редактируемой ячейки (null = окно закрыто)
     const [cellSearchQuery, setCellSearchQuery] = useState(''); // Текст поиска в окне выбора номенклатуры
     const [cellFilteredItems, setCellFilteredItems] = useState<any[]>([]); // Отфильтрованные элементы номенклатуры для отображения
+    const [windowPosition, setWindowPosition] = useState({ top: 0, left: 0 }); // Позиция окна выбора номенклатуры
 
     // Состояние для inline редактирования количества
     const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
@@ -934,7 +935,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
     };
 
     // Функции для работы с "Окном выбора номенклатуры" - диалогом замены позиций
-    const handleReplaceNomenclatureItem = async (specification: Specification) => {
+    const handleReplaceNomenclatureItem = async (specification: Specification, event: React.MouseEvent) => {
         // Сохраняем текущую позицию для замены в состоянии
         setEditingSpecification(specification);
         // Загружаем полный список номенклатуры для поиска и фильтрации
@@ -942,6 +943,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
         // Очищаем предыдущие результаты поиска и текст
         setCellFilteredItems([]);
         setCellSearchQuery('');
+        
+        // Вычисляем позицию окна относительно ячейки
+        const rect = event.currentTarget.getBoundingClientRect();
+        setWindowPosition({
+            top: rect.bottom + window.scrollY + 5, // 5px отступ от ячейки
+            left: rect.left + window.scrollX // Левый край ячейки
+        });
+        
         // Активируем режим редактирования ячейки - открываем "Окно выбора номенклатуры"
         setEditingCell(specification.id);
     };
@@ -1358,9 +1367,9 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 <Box
                                                     className="nomenclature-selection-window"
                                                     sx={{
-                                                        position: 'absolute',
-                                                        top: '100%',
-                                                        left: 0, // Только начальное положение привязано к ячейке
+                                                        position: 'fixed', // Fixed позиционирование для полной независимости от ячейки
+                                                        top: `${windowPosition.top}px`, // Вычисленная позиция сверху
+                                                        left: `${windowPosition.left}px`, // Вычисленная позиция слева
                                                         // right: 0, // Убираем привязку к правому краю
                                                         // width: '400px', // Убираем фиксированную ширину
                                                         minWidth: '300px', // Минимальная ширина для читаемости
@@ -1521,7 +1530,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         </Box>
                                     ) : (
                                         <Box
-                                            onDoubleClick={() => handleReplaceNomenclatureItem(specification)}
+                                            onDoubleClick={(e) => handleReplaceNomenclatureItem(specification, e)}
                                             sx={{
                                                 cursor: canEdit() ? 'pointer' : 'default',
                                                 '&:hover': canEdit() ? { backgroundColor: '#f5f5f5' } : {}
