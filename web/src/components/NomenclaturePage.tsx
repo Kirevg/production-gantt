@@ -1178,27 +1178,22 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     size="small"
                                     onClick={() => handleTypeFilterChange('product')}
                                     sx={{
-                                        minWidth: 'auto',
-                                        px: 1.5,
-                                        py: 0.5,
-                                        fontSize: '11px',
                                         textTransform: 'none',
-                                        borderRadius: '6px',
                                         boxShadow: typeFilters.product 
-                                            ? '0 4px 8px rgba(25, 118, 210, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
-                                            : '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
-                                        border: typeFilters.product ? '2px solid #1565c0' : '1px solid #c4c4c4',
+                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2)' 
+                                            : '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                        border: typeFilters.product ? '2px solid #0d47a1' : '1px solid #c4c4c4',
                                         '&:hover': {
                                             boxShadow: typeFilters.product 
-                                                ? '0 6px 12px rgba(25, 118, 210, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
-                                                : '0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2)' 
+                                                : '0 4px 8px rgba(0, 0, 0, 0.2)',
                                             transform: 'translateY(-1px)'
                                         },
                                         '&:active': {
-                                            transform: 'translateY(0px)',
+                                            transform: 'translateY(1px)',
                                             boxShadow: typeFilters.product 
-                                                ? '0 2px 4px rgba(25, 118, 210, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
-                                                : '0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.2)'
+                                                ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
+                                                : '0 1px 2px rgba(0, 0, 0, 0.2)'
                                         }
                                     }}
                                 >
@@ -1209,27 +1204,22 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     size="small"
                                     onClick={() => handleTypeFilterChange('service')}
                                     sx={{
-                                        minWidth: 'auto',
-                                        px: 1.5,
-                                        py: 0.5,
-                                        fontSize: '11px',
                                         textTransform: 'none',
-                                        borderRadius: '6px',
                                         boxShadow: typeFilters.service 
-                                            ? '0 4px 8px rgba(76, 175, 80, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
-                                            : '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2)' 
+                                            : '0 2px 4px rgba(0, 0, 0, 0.1)',
                                         border: typeFilters.service ? '2px solid #388e3c' : '1px solid #c4c4c4',
                                         '&:hover': {
                                             boxShadow: typeFilters.service 
-                                                ? '0 6px 12px rgba(76, 175, 80, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
-                                                : '0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2)' 
+                                                : '0 4px 8px rgba(0, 0, 0, 0.2)',
                                             transform: 'translateY(-1px)'
                                         },
                                         '&:active': {
-                                            transform: 'translateY(0px)',
+                                            transform: 'translateY(1px)',
                                             boxShadow: typeFilters.service 
-                                                ? '0 2px 4px rgba(76, 175, 80, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
-                                                : '0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.2)'
+                                                ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
+                                                : '0 1px 2px rgba(0, 0, 0, 0.2)'
                                         }
                                     }}
                                 >
@@ -1240,27 +1230,22 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                                     size="small"
                                     onClick={() => handleTypeFilterChange('work')}
                                     sx={{
-                                        minWidth: 'auto',
-                                        px: 1.5,
-                                        py: 0.5,
-                                        fontSize: '11px',
                                         textTransform: 'none',
-                                        borderRadius: '6px',
                                         boxShadow: typeFilters.work 
-                                            ? '0 4px 8px rgba(255, 152, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
-                                            : '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                            ? '0 8px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2)' 
+                                            : '0 2px 4px rgba(0, 0, 0, 0.1)',
                                         border: typeFilters.work ? '2px solid #f57c00' : '1px solid #c4c4c4',
                                         '&:hover': {
                                             boxShadow: typeFilters.work 
-                                                ? '0 6px 12px rgba(255, 152, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
-                                                : '0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                                ? '0 12px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2)' 
+                                                : '0 4px 8px rgba(0, 0, 0, 0.2)',
                                             transform: 'translateY(-1px)'
                                         },
                                         '&:active': {
-                                            transform: 'translateY(0px)',
+                                            transform: 'translateY(1px)',
                                             boxShadow: typeFilters.work 
-                                                ? '0 2px 4px rgba(255, 152, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
-                                                : '0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.2)'
+                                                ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
+                                                : '0 1px 2px rgba(0, 0, 0, 0.2)'
                                         }
                                     }}
                                 >
