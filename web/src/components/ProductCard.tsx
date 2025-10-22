@@ -858,9 +858,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Название</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата создания</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата обновления</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
                                     <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
                                 </TableCell>
@@ -929,16 +929,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                 </Typography>
                                             )}
                                         </TableCell>
-                                        <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
-                                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                {specification.sum ? `${specification.sum.toLocaleString('ru-RU')} ₽` : '0,00'}
-                                            </Typography>
-                                        </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
                                             {formatDate(specification.createdAt)}
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
                                             {formatDate(specification.updatedAt)}
+                                        </TableCell>
+                                        <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                {specification.sum ? `${specification.sum.toLocaleString('ru-RU')} ₽` : '0,00'}
+                                            </Typography>
                                         </TableCell>
                                         <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
