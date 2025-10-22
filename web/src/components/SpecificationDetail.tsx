@@ -1448,16 +1448,17 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                             sx={{
                                                                 p: '4px 8px',
                                                                 cursor: 'pointer',
-                                                                backgroundColor: '#f0f0f0',
-                                                                border: '1px solid #808080',
+                                                                backgroundColor: 'transparent', // Прозрачный фон
+                                                                border: 'none', // Убираем все границы
+                                                                borderRadius: '0px', // Убираем скругления
                                                                 fontFamily: 'Arial, sans-serif',
                                                                 fontSize: '11px',
                                                                 '&:hover': {
-                                                                    backgroundColor: '#e8e8e8'
+                                                                    backgroundColor: 'transparent' // Прозрачный фон при наведении
                                                                 },
                                                                 '&:active': {
-                                                                    backgroundColor: '#d8d8d8',
-                                                                    border: '1px solid #404040'
+                                                                    backgroundColor: 'transparent', // Прозрачный фон при нажатии
+                                                                    border: 'none' // Убираем границы при нажатии
                                                                 }
                                                             }}
                                                         >
