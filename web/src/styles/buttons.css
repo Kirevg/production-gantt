@@ -637,3 +637,17 @@ input[type="number"]:focus {
 p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     font-size: 23px !important;
 }
+
+/* Стиль для элемента с классом css-27db7c - центрированный контейнер */
+.css-27db7c {
+    display: flex;
+    align-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 2px 4px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #808080;
+    font-family: Arial, sans-serif;
+    justify-content: center;
+}
