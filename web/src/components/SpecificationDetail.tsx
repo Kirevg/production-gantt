@@ -1353,10 +1353,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     p: 0.5, 
                                     position: 'relative', 
                                     wordWrap: 'break-word', 
-                                    whiteSpace: 'normal',
-                                    height: '30px !important', // Фиксированная высота ячейки
-                                    maxHeight: '30px !important', // Максимальная высота
-                                    overflow: 'hidden' // Скрываем переполнение
+                                    whiteSpace: 'normal'
                                 }}>
                                     {editingCell === specification.id ? (
                                         <Box
@@ -1375,11 +1372,13 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 placeholder="Поиск номенклатуры..."
                                                 sx={{
                                                     '& .MuiInputBase-root': {
-                                                        height: '30px !important',
-                                                        fontSize: '12px !important'
+                                                        height: '24px !important', // Уменьшаем высоту TextField
+                                                        fontSize: '12px !important',
+                                                        minHeight: '24px !important' // Минимальная высота
                                                     },
                                                     '& .MuiInputBase-input': {
-                                                        fontSize: '12px !important'
+                                                        fontSize: '12px !important',
+                                                        padding: '2px 8px !important' // Уменьшаем padding
                                                     }
                                                 }}
                                             />
