@@ -534,7 +534,7 @@
 
 /* Padding для полей ввода */
 .MuiInputBase-input.MuiOutlinedInput-input {
-    padding: 0px 4px !important;
+    padding: 0px 8px !important;
     line-height: 1.2 !important;
     height: 30px !important;
     box-sizing: border-box !important;
