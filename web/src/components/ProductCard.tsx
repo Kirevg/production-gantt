@@ -859,7 +859,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Название</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата создания</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата обновления</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
                                     <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
@@ -869,13 +868,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <TableBody>
                             {specificationsLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
                                         <LinearProgress />
                                     </TableCell>
                                 </TableRow>
                             ) : specifications.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
                                         <Typography variant="body1" color="text.secondary">
                                             Список спецификаций пуст
                                         </Typography>
@@ -931,9 +930,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
                                             {formatDate(specification.createdAt)}
-                                        </TableCell>
-                                        <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-                                            {formatDate(specification.updatedAt)}
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
                                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
