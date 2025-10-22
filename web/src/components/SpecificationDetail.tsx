@@ -1180,33 +1180,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             )}
 
 
-            <Box sx={{ position: 'relative', flex: 1 }}>
-                {/* Overlay для блокировки таблицы когда открыто окно выбора номенклатуры */}
-                {editingCell && (
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.1)', // Полупрозрачный фон
-                            zIndex: 999, // Ниже окна выбора номенклатуры (zIndex: 1000)
-                            pointerEvents: 'auto', // Блокирует клики
-                            cursor: 'not-allowed' // Курсор "запрещено"
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            // Закрываем окно выбора номенклатуры при клике на overlay
-                            setEditingCell(null);
-                            setEditingSpecification(null);
-                            setCellSearchQuery('');
-                            setCellFilteredItems([]);
-                        }}
-                    />
-                )}
-
-                <TableContainer
+            <TableContainer
                     component={Paper}
                     sx={{
                         width: '100%',
@@ -1666,7 +1640,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     </TableBody>
                 </Table>
             </TableContainer>
-            </Box>
 
             {/* Общая сумма под таблицей */}
             <Box sx={{
