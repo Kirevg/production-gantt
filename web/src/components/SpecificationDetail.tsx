@@ -1349,7 +1349,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 sx={{ height: '30px !important' }}
                             >
                                 <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                                <TableCell sx={{ p: 0.5, position: 'relative', wordWrap: 'break-word', whiteSpace: 'normal' }}>
+                                <TableCell sx={{ 
+                                    p: 0.5, 
+                                    position: 'relative', 
+                                    wordWrap: 'break-word', 
+                                    whiteSpace: 'normal',
+                                    height: '30px !important', // Фиксированная высота ячейки
+                                    maxHeight: '30px !important', // Максимальная высота
+                                    overflow: 'hidden' // Скрываем переполнение
+                                }}>
                                     {editingCell === specification.id ? (
                                         <Box
                                             className="nomenclature-selection-window"
