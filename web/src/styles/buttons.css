@@ -679,6 +679,7 @@ p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     display: flex !important;
     align-items: center !important;
     vertical-align: middle !important;
+    min-height: 40px !important;
 }
 
 .MuiOutlinedInput-input {
@@ -686,6 +687,8 @@ p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     align-items: center !important;
     vertical-align: middle !important;
     line-height: 1.2 !important;
+    height: 40px !important;
+    min-height: 40px !important;
 }
 
 /* Центровка для всех input элементов */
@@ -698,4 +701,6 @@ textarea {
     align-items: center !important;
     vertical-align: middle !important;
     line-height: 1.2 !important;
+    height: 40px !important;
+    min-height: 40px !important;
 }
