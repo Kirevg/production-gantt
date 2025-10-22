@@ -81,10 +81,10 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 }) => {
     const [specifications, setSpecifications] = useState<Specification[]>([]);
 
-    // Состояние для редактирования ячейки номенклатуры
-    const [editingCell, setEditingCell] = useState<string | null>(null);
-    const [cellSearchQuery, setCellSearchQuery] = useState('');
-    const [cellFilteredItems, setCellFilteredItems] = useState<any[]>([]);
+    // Состояние для "Окна выбора номенклатуры" - диалога замены позиций в спецификации
+    const [editingCell, setEditingCell] = useState<string | null>(null); // ID редактируемой ячейки (null = окно закрыто)
+    const [cellSearchQuery, setCellSearchQuery] = useState(''); // Текст поиска в окне выбора номенклатуры
+    const [cellFilteredItems, setCellFilteredItems] = useState<any[]>([]); // Отфильтрованные элементы номенклатуры для отображения
 
     // Состояние для inline редактирования количества
     const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
@@ -933,25 +933,31 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
         }
     };
 
-    // Функции для работы с выпадающим списком номенклатуры
+    // Функции для работы с "Окном выбора номенклатуры" - диалогом замены позиций
     const handleReplaceNomenclatureItem = async (specification: Specification) => {
-        // Сохраняем текущую позицию для замены
+        // Сохраняем текущую позицию для замены в состоянии
         setEditingSpecification(specification);
-        // Загружаем номенклатуру для автокомплита
+        // Загружаем полный список номенклатуры для поиска и фильтрации
         await fetchNomenclature();
+        // Очищаем предыдущие результаты поиска и текст
         setCellFilteredItems([]);
         setCellSearchQuery('');
+        // Активируем режим редактирования ячейки - открываем "Окно выбора номенклатуры"
         setEditingCell(specification.id);
     };
 
+    // Обработчик изменения текста поиска в "Окне выбора номенклатуры"
     const handleCellSearchChange = (query: string) => {
+        // Обновляем текст поиска в состоянии
         setCellSearchQuery(query);
 
+        // Если поисковый запрос пустой - очищаем результаты
         if (!query.trim()) {
             setCellFilteredItems([]);
             return;
         }
 
+        // Фильтруем номенклатуру по нескольким полям: название, артикул, код 1С, обозначение
         const filtered = allNomenclatureItems.filter(item => {
             const searchLower = query.toLowerCase();
             return (
@@ -962,13 +968,17 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             );
         });
 
+        // Обновляем отфильтрованные элементы для отображения в "Окне выбора номенклатуры"
         setCellFilteredItems(filtered);
     };
 
+    // Обработчик выбора номенклатуры в "Окне выбора номенклатуры" - заменяет позицию в спецификации
     const handleSelectCellNomenclatureItem = async (item: any) => {
+        // Проверяем, что есть редактируемая спецификация
         if (!editingSpecification) return;
 
         try {
+            // Отправляем PUT запрос на API для замены номенклатуры в позиции
             const response = await fetch(`http://localhost:4000/specifications/${editingSpecification.id}`, {
                 method: 'PUT',
                 headers: {
@@ -976,7 +986,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    nomenclatureItemId: item.id
+                    nomenclatureItemId: item.id // Передаем ID выбранной номенклатуры
                 })
             });
 
@@ -984,13 +994,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 throw new Error('Ошибка обновления позиции');
             }
 
+            // Получаем обновленную спецификацию с загруженными данными номенклатуры
             const updatedSpecification = await response.json();
 
-            // Обновляем локальное состояние
+            // Обновляем локальное состояние - заменяем старую позицию на новую
             setSpecifications(prev =>
                 prev.map(spec =>
                     spec.id === editingSpecification.id
-                        ? { ...spec, ...updatedSpecification }
+                        ? { ...spec, ...updatedSpecification } // Заменяем данными с сервера
                         : spec
                 )
             );
