@@ -92,6 +92,13 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
                             }
                         }
                     }
+                },
+                unit: {
+                    select: {
+                        id: true,
+                        code: true,
+                        name: true
+                    }
                 }
             },
             orderBy: { orderIndex: 'asc' }
