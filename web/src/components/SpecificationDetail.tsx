@@ -274,7 +274,11 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             if (response.ok) {
                 const updatedSpecification = await response.json();
                 setSpecifications(prev => prev.map(spec => 
-                    spec.id === specificationId ? updatedSpecification : spec
+                    spec.id === specificationId ? {
+                        ...spec,
+                        price: updatedSpecification.price,
+                        totalPrice: updatedSpecification.totalPrice
+                    } : spec
                 ));
                 console.log('Цена обновлена:', updatedSpecification);
             } else {
