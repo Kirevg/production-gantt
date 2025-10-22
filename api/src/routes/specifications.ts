@@ -104,6 +104,7 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
             orderBy: { orderIndex: 'asc' }
         });
 
+        console.log('Specifications data:', JSON.stringify(specifications, null, 2));
         res.json(specifications);
     } catch (error) {
         console.error('Ошибка получения спецификаций:', error);
