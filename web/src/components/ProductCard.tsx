@@ -931,7 +931,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
                                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                {specification.sum ? `${specification.sum.toLocaleString('ru-RU')} ₽` : '0,00 ₽'}
+                                                {specification.sum ? `${specification.sum.toLocaleString('ru-RU')} ₽` : '0,00'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
