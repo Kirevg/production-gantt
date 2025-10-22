@@ -969,7 +969,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
         if (!editingSpecification) return;
 
         try {
-            const response = await fetch(`/api/specifications/${editingSpecification.id}`, {
+            const response = await fetch(`http://localhost:4000/api/specifications/${editingSpecification.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
