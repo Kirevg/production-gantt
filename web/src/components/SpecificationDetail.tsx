@@ -1187,7 +1187,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     flex: 1,
                     height: '600px !important',
                     maxHeight: '600px !important',
-                    overflowY: 'auto', // Вертикальная прокрутка
+                    overflowY: editingCell ? 'hidden' : 'auto', // Блокируем прокрутку когда открыто окно выбора номенклатуры
                     overflowX: 'hidden', // Без горизонтальной прокрутки
                     border: '1px solid #ddd',
                     borderRadius: 1,
