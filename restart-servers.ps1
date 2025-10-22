@@ -32,4 +32,3 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "API: http://localhost:4000" -ForegroundColor White
 Write-Host "Frontend: http://localhost:5173" -ForegroundColor White
 Write-Host ""
-Pause
