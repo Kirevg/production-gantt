@@ -1172,76 +1172,100 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             </Typography>
                             
                             {/* Фильтры по типам номенклатуры */}
-                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={typeFilters.product}
-                                            onChange={() => handleTypeFilterChange('product')}
-                                            color="primary"
-                                            size="small"
-                                        />
-                                    }
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <Chip
-                                                label="Товар"
-                                                color="primary"
-                                                size="small"
-                                                sx={{ borderRadius: '6px', fontSize: '11px' }}
-                                            />
-                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '11px' }}>
-                                                ({items.filter(item => item.type === 'Product').length})
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={typeFilters.service}
-                                            onChange={() => handleTypeFilterChange('service')}
-                                            color="success"
-                                            size="small"
-                                        />
-                                    }
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <Chip
-                                                label="Услуга"
-                                                color="success"
-                                                size="small"
-                                                sx={{ borderRadius: '6px', fontSize: '11px' }}
-                                            />
-                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '11px' }}>
-                                                ({items.filter(item => item.type === 'Service').length})
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={typeFilters.work}
-                                            onChange={() => handleTypeFilterChange('work')}
-                                            color="warning"
-                                            size="small"
-                                        />
-                                    }
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <Chip
-                                                label="Работа"
-                                                color="warning"
-                                                size="small"
-                                                sx={{ borderRadius: '6px', fontSize: '11px' }}
-                                            />
-                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '11px' }}>
-                                                ({items.filter(item => item.type === 'Work').length})
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <Button
+                                    variant={typeFilters.product ? "contained" : "outlined"}
+                                    size="small"
+                                    onClick={() => handleTypeFilterChange('product')}
+                                    sx={{
+                                        minWidth: 'auto',
+                                        px: 1.5,
+                                        py: 0.5,
+                                        fontSize: '11px',
+                                        textTransform: 'none',
+                                        borderRadius: '6px',
+                                        boxShadow: typeFilters.product 
+                                            ? '0 4px 8px rgba(25, 118, 210, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
+                                            : '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                        border: typeFilters.product ? '2px solid #1565c0' : '1px solid #c4c4c4',
+                                        '&:hover': {
+                                            boxShadow: typeFilters.product 
+                                                ? '0 6px 12px rgba(25, 118, 210, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
+                                                : '0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                            transform: 'translateY(-1px)'
+                                        },
+                                        '&:active': {
+                                            transform: 'translateY(0px)',
+                                            boxShadow: typeFilters.product 
+                                                ? '0 2px 4px rgba(25, 118, 210, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
+                                                : '0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.2)'
+                                        }
+                                    }}
+                                >
+                                    Товар ({items.filter(item => item.type === 'Product').length})
+                                </Button>
+                                <Button
+                                    variant={typeFilters.service ? "contained" : "outlined"}
+                                    size="small"
+                                    onClick={() => handleTypeFilterChange('service')}
+                                    sx={{
+                                        minWidth: 'auto',
+                                        px: 1.5,
+                                        py: 0.5,
+                                        fontSize: '11px',
+                                        textTransform: 'none',
+                                        borderRadius: '6px',
+                                        boxShadow: typeFilters.service 
+                                            ? '0 4px 8px rgba(76, 175, 80, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
+                                            : '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                        border: typeFilters.service ? '2px solid #388e3c' : '1px solid #c4c4c4',
+                                        '&:hover': {
+                                            boxShadow: typeFilters.service 
+                                                ? '0 6px 12px rgba(76, 175, 80, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
+                                                : '0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                            transform: 'translateY(-1px)'
+                                        },
+                                        '&:active': {
+                                            transform: 'translateY(0px)',
+                                            boxShadow: typeFilters.service 
+                                                ? '0 2px 4px rgba(76, 175, 80, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
+                                                : '0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.2)'
+                                        }
+                                    }}
+                                >
+                                    Услуга ({items.filter(item => item.type === 'Service').length})
+                                </Button>
+                                <Button
+                                    variant={typeFilters.work ? "contained" : "outlined"}
+                                    size="small"
+                                    onClick={() => handleTypeFilterChange('work')}
+                                    sx={{
+                                        minWidth: 'auto',
+                                        px: 1.5,
+                                        py: 0.5,
+                                        fontSize: '11px',
+                                        textTransform: 'none',
+                                        borderRadius: '6px',
+                                        boxShadow: typeFilters.work 
+                                            ? '0 4px 8px rgba(255, 152, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
+                                            : '0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                        border: typeFilters.work ? '2px solid #f57c00' : '1px solid #c4c4c4',
+                                        '&:hover': {
+                                            boxShadow: typeFilters.work 
+                                                ? '0 6px 12px rgba(255, 152, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.2)' 
+                                                : '0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.1)',
+                                            transform: 'translateY(-1px)'
+                                        },
+                                        '&:active': {
+                                            transform: 'translateY(0px)',
+                                            boxShadow: typeFilters.work 
+                                                ? '0 2px 4px rgba(255, 152, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.3)' 
+                                                : '0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.2)'
+                                        }
+                                    }}
+                                >
+                                    Работа ({items.filter(item => item.type === 'Work').length})
+                                </Button>
                             </Box>
 
                             {canCreate() && (
