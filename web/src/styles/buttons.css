@@ -673,3 +673,29 @@ p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     border-width: 2px !important;
     box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1) !important;
 }
+
+/* Вертикальная центровка для Material-UI input полей */
+.MuiOutlinedInput-root {
+    display: flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+}
+
+.MuiOutlinedInput-input {
+    display: flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+    line-height: 1.2 !important;
+}
+
+/* Центровка для всех input элементов */
+input[type="text"], 
+input[type="number"], 
+input[type="email"], 
+input[type="password"],
+textarea {
+    display: flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+    line-height: 1.2 !important;
+}
