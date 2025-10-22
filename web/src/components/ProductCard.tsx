@@ -857,12 +857,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Название</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Версия</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '200px' }}>Название</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '100px' }}>Версия</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Дата создания</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '140px' }}>Дата создания</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '100px' }}>Сумма</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px' }}>
                                     <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
                                 </TableCell>
                             </TableRow>
@@ -889,12 +889,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         sx={{ height: '35px', cursor: 'pointer' }}
                                         onDoubleClick={() => onOpenSpecification(specification.id, specification.name)}
                                     >
-                                        <TableCell sx={{ py: 0.5 }}>
+                                        <TableCell sx={{ py: 0.5, width: '200px' }}>
                                             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
                                                 {specification.name}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                                        <TableCell sx={{ py: 0.5, textAlign: 'center', width: '100px' }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                                                 <Box
                                                     onClick={() => {
@@ -974,15 +974,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                 </Typography>
                                             )}
                                         </TableCell>
-                                        <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                                        <TableCell sx={{ py: 0.5, textAlign: 'center', width: '140px' }}>
                                             {formatDate(specification.createdAt)}
                                         </TableCell>
-                                        <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
+                                        <TableCell sx={{ py: 0.5, textAlign: 'right', width: '100px' }}>
                                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
                                                 {specification.sum ? `${specification.sum.toLocaleString('ru-RU')} ₽` : '0,00'}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
+                                        <TableCell sx={{ textAlign: 'center', py: 0.5, width: '40px' }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                                                 {canDelete() && (
                                                     <IconButton
