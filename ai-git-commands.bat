@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 REM Быстрые Git команды для AI-ассистента
 REM Использование: ai-git-commands.bat [команда]
 
