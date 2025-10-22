@@ -636,6 +636,8 @@ input[type="number"]:focus {
 /* Специальный стиль для увеличения размера шрифта Typography компонентов */
 p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     font-size: 23px !important;
+    color: #1976d2;
+    font-weight: bold !important;
 }
 
 /* Стиль для элемента с классом css-27db7c - центрированный контейнер */
