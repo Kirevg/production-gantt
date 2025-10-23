@@ -846,7 +846,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 skipped: 0
             });
 
-            setShowColumnMapping(false);
             setShowExcelImportDialog(true);
 
         } catch (error) {
