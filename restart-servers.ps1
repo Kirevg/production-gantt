@@ -2,14 +2,10 @@
 #   ПЕРЕЗАПУСК СЕРВЕРОВ PRODUCTION GANTT
 # ========================================
 
-Write-Host "Останавливаем старые процессы..." -ForegroundColor Yellow
-
-# Останавливаем все процессы Node.js
-Stop-Process -Name node -Force -ErrorAction SilentlyContinue
-
-# Закрываем ВСЕ CMD окна принудительно
-Write-Host "Закрываем все CMD окна..." -ForegroundColor Yellow
-taskkill /f /im cmd.exe /fi "WINDOWTITLE ne Git Auto-Commit*" 2>$null
+# Закрываем все процессы Node.js и CMD
+Write-Host "Закрываем старые процессы..." -ForegroundColor Yellow
+taskkill /f /im node.exe 2>$null
+taskkill /f /im cmd.exe 2>$null
 
 # Пауза 2 секунды
 Start-Sleep -Seconds 2
