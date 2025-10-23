@@ -2291,13 +2291,13 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             {/* Диалог загрузки данных из Excel в стиле 1С */}
             <Dialog
                 open={showExcelImportDialog}
-                maxWidth="md"
-                fullWidth
                 hideBackdrop={true}
                 disablePortal={true}
                 disableEscapeKeyDown={true}
                 sx={{
                     '& .MuiDialog-paper': {
+                        width: '700px',
+                        maxWidth: '700px',
                         borderRadius: 2,
                         boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
                     }
