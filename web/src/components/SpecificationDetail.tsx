@@ -2431,31 +2431,21 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     justifyContent: 'space-between',
                     p: 2
                 }}>
-                    <Button
+                    <VolumeButton
                         onClick={() => {
                             setShowExcelImportDialog(false);
                             setShowColumnMapping(true);
                         }}
-                        sx={{
-                            backgroundColor: '#6c757d',
-                            color: 'white',
-                            '&:hover': { backgroundColor: '#5a6268' }
-                        }}
+                        color="red"
                     >
                         ← Назад
-                    </Button>
-                    <Button
+                    </VolumeButton>
+                    <VolumeButton
                         onClick={importFromExcel}
-                        variant="contained"
-                        sx={{
-                            backgroundColor: '#ffc107',
-                            color: 'black',
-                            fontWeight: 'bold',
-                            '&:hover': { backgroundColor: '#ffb300' }
-                        }}
+                        color="orange"
                     >
                         Загрузить данные в приложение
-                    </Button>
+                    </VolumeButton>
                 </DialogActions>
             </Dialog>
         </Box>
