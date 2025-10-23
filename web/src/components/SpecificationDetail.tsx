@@ -692,8 +692,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
                 parseExcelFile(file);
-                // После парсинга открываем новый диалог
-                setShowExcelImportDialog(true);
+                // После парсинга НЕ открываем диалог - он откроется только после анализа
             }
         };
         input.click();
