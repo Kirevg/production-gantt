@@ -2291,11 +2291,11 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             {/* Диалог загрузки данных из Excel в стиле 1С */}
             <Dialog
                 open={showExcelImportDialog}
-                onClose={() => setShowExcelImportDialog(false)}
                 maxWidth="md"
                 fullWidth
                 hideBackdrop={true}
                 disablePortal={true}
+                disableEscapeKeyDown={true}
                 sx={{
                     '& .MuiDialog-paper': {
                         borderRadius: 2,
@@ -2324,7 +2324,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             </Typography>
                         </Box>
                     )}
-                    
+
                     {/* Информационный блок */}
                     <Box sx={{
                         display: 'flex',
