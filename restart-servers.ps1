@@ -7,22 +7,9 @@ Write-Host "Останавливаем старые процессы..." -ForegroundColor Yellow
 # Останавливаем все процессы Node.js
 Stop-Process -Name node -Force -ErrorAction SilentlyContinue
 
-# Закрываем все CMD окна, кроме тех, что содержат "Git Auto-Commit"
-Get-Process -Name "cmd" -ErrorAction SilentlyContinue | Where-Object {
-    $_.MainWindowTitle -notmatch "Git Auto-Commit" -and
-    $_.MainWindowTitle -notmatch "Администратор.*cmd.exe" -and
-    $_.MainWindowTitle -ne ""
-} | ForEach-Object {
-    Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
-}
-
-# Дополнительно закрываем все CMD окна с пустыми заголовками (старые серверы)
-Get-Process -Name "cmd" -ErrorAction SilentlyContinue | Where-Object {
-    $_.MainWindowTitle -eq "" -or
-    $_.MainWindowTitle -match "C:\\Projects\\production-gantt"
-} | ForEach-Object {
-    Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
-}
+# Закрываем ВСЕ CMD окна принудительно
+Write-Host "Закрываем все CMD окна..." -ForegroundColor Yellow
+taskkill /f /im cmd.exe /fi "WINDOWTITLE ne Git Auto-Commit*" 2>$null
 
 # Пауза 2 секунды
 Start-Sleep -Seconds 2
