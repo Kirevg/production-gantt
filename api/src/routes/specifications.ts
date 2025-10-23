@@ -107,7 +107,7 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
         console.log('=== SPECIFICATIONS API CALLED ===');
         console.log('Product Specification ID:', id);
         console.log('Number of specifications:', specifications.length);
-        if (specifications.length > 0) {
+        if (specifications.length > 0 && specifications[0]) {
             console.log('First specification keys:', Object.keys(specifications[0]));
             console.log('First specification totalPrice:', specifications[0].totalPrice);
         }

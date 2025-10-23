@@ -156,35 +156,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         group: ''
     });
 
-    // Функция для пересчета статистики импорта при изменении настроек
-    const recalculateImportStats = (settings: typeof importSettings) => {
-        const total = previewData.length;
-        const existing = previewData.filter(item => item.matched).length;
-        const newItems = total - existing;
-
-        let updated = 0;
-        let created = 0;
-        let skipped = 0;
-
-        if (settings.updateMatched) {
-            updated = existing;
-        } else {
-            skipped += existing;
-        }
-
-        if (settings.createNew) {
-            created = newItems;
-        } else {
-            skipped += newItems;
-        }
-
-        setImportStats({
-            existing: updated,
-            new: created,
-            total: total,
-            skipped: skipped
-        });
-    };
 
 
     // Функции для inline редактирования количества
