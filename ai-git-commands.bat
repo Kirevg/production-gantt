@@ -2,6 +2,7 @@
 chcp 65001 >nul
 REM Быстрые Git команды для AI-ассистента
 REM Использование: ai-git-commands.bat [команда]
+REM Тестовая запись
 
 if "%1"=="" goto help
 
