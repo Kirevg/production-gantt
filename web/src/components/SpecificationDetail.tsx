@@ -22,7 +22,6 @@ import {
     FormControl,
     Select,
     MenuItem,
-    Chip,
     Checkbox,
     FormControlLabel
 } from '@mui/material';
@@ -148,7 +147,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [showColumnMapping, setShowColumnMapping] = useState(false);
     const [excelData, setExcelData] = useState<any[][]>([]);
     const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
-    const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0, skipped: 0 });
     const [showExcelImportDialog, setShowExcelImportDialog] = useState(false);
@@ -157,8 +155,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         createNew: true,
         group: ''
     });
-    const [sortField, setSortField] = useState<string>('');
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
     // Функция для пересчета статистики импорта при изменении настроек
     const recalculateImportStats = (settings: typeof importSettings) => {
@@ -190,15 +186,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         });
     };
 
-    // Функция для обработки сортировки
-    const handleSort = (field: string) => {
-        if (sortField === field) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortDirection('asc');
-        }
-    };
 
     // Функции для inline редактирования количества
     const handleQuantityClick = (specificationId: string, currentQuantity: number) => {
@@ -342,47 +329,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         }
     };
 
-    // Функция для получения отсортированных данных
-    const getSortedPreviewData = () => {
-        if (!sortField) return previewData;
-
-        return [...previewData].sort((a, b) => {
-            const aValue = a[sortField];
-            const bValue = b[sortField];
-
-            // Обработка булевых значений (для статуса)
-            if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
-                if (sortField === 'isExisting') {
-                    // Для статуса: true (существующие) идут первыми при asc
-                    return sortDirection === 'asc'
-                        ? (aValue === bValue ? 0 : aValue ? -1 : 1)
-                        : (aValue === bValue ? 0 : aValue ? 1 : -1);
-                }
-                return sortDirection === 'asc'
-                    ? (aValue === bValue ? 0 : aValue ? -1 : 1)
-                    : (aValue === bValue ? 0 : aValue ? 1 : -1);
-            }
-
-            // Обработка строк
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                return sortDirection === 'asc'
-                    ? aValue.localeCompare(bValue, 'ru')
-                    : bValue.localeCompare(aValue, 'ru');
-            }
-
-            // Обработка чисел
-            if (typeof aValue === 'number' && typeof bValue === 'number') {
-                return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-            }
-
-            // Обработка null/undefined
-            if (aValue == null && bValue == null) return 0;
-            if (aValue == null) return sortDirection === 'asc' ? 1 : -1;
-            if (bValue == null) return sortDirection === 'asc' ? -1 : 1;
-
-            return 0;
-        });
-    };
     // Загружаем сохраненные ширины колонок из localStorage
     const getInitialColumnWidths = () => {
         try {
@@ -902,7 +848,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             });
 
             setShowColumnMapping(false);
-            setShowPreviewDialog(true);
+            setShowExcelImportDialog(true);
 
         } catch (error) {
             console.error('Ошибка анализа данных:', error);
@@ -988,8 +934,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             // Обновляем список спецификаций
             await fetchSpecifications();
 
-            // Закрываем диалог предварительного просмотра
-            setShowPreviewDialog(false);
+            // Закрываем диалог импорта Excel
+            setShowExcelImportDialog(false);
 
             // Показываем результат
             const message = `Импорт завершен:
@@ -2344,150 +2290,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 </DialogContent>
             </Dialog>
 
-            {/* Диалог предварительного просмотра импорта */}
-            <Dialog
-                open={showPreviewDialog}
-                maxWidth="lg"
-                fullWidth
-                hideBackdrop={true}
-                disablePortal={true}
-                sx={{
-                    '& .MuiDialog-paper': {
-                        width: '90vw',
-                        height: '80vh',
-                        maxWidth: 'none',
-                        maxHeight: 'none'
-                    }
-                }}
-            >
-                <DialogTitle>
-                    Предварительный просмотр импорта спецификации
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        Всего позиций: {importStats.total} |
-                        Найдено в номенклатуре: {importStats.existing} |
-                        Не найдено в номенклатуре: {importStats.new}
-                    </Typography>
-                    {importStats.new > 0 && (
-                        <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
-                            ⚠️ Позиции, не найденные в номенклатуре, НЕ будут добавлены в спецификацию
-                        </Typography>
-                    )}
-                </DialogTitle>
-                <DialogContent sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
-                        <TableContainer component={Paper} sx={{ maxHeight: '400px' }}>
-                            <Table size="small" sx={{
-                                '& .MuiTableCell-root': { fontSize: '12px', padding: '4px 8px' }
-                            }}>
-                                <TableHead>
-                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                        <TableCell
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                '&:hover': { backgroundColor: '#e0e0e0' }
-                                            }}
-                                            onClick={() => handleSort('isExisting')}
-                                        >
-                                            Статус {sortField === 'isExisting' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                        </TableCell>
-                                        <TableCell
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                '&:hover': { backgroundColor: '#e0e0e0' }
-                                            }}
-                                            onClick={() => handleSort('name')}
-                                        >
-                                            Наименование {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                        </TableCell>
-                                        <TableCell
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                '&:hover': { backgroundColor: '#e0e0e0' }
-                                            }}
-                                            onClick={() => handleSort('article')}
-                                        >
-                                            Артикул {sortField === 'article' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                        </TableCell>
-                                        <TableCell
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                '&:hover': { backgroundColor: '#e0e0e0' }
-                                            }}
-                                            onClick={() => handleSort('code1c')}
-                                        >
-                                            Код 1С {sortField === 'code1c' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                        </TableCell>
-                                        <TableCell
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                '&:hover': { backgroundColor: '#e0e0e0' }
-                                            }}
-                                            onClick={() => handleSort('manufacturer')}
-                                        >
-                                            Производитель {sortField === 'manufacturer' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                        </TableCell>
-                                        <TableCell
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                '&:hover': { backgroundColor: '#e0e0e0' }
-                                            }}
-                                            onClick={() => handleSort('quantity')}
-                                        >
-                                            Количество {sortField === 'quantity' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {getSortedPreviewData().map((item, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>
-                                                <Chip
-                                                    label={item.isExisting ? 'Существующая' : 'Новая'}
-                                                    color={item.isExisting ? 'success' : 'warning'}
-                                                    size="small"
-                                                    variant="outlined"
-                                                />
-                                            </TableCell>
-                                            <TableCell>{item.name}</TableCell>
-                                            <TableCell>{item.article || '-'}</TableCell>
-                                            <TableCell>{item.code1c || '-'}</TableCell>
-                                            <TableCell>{item.manufacturer || '-'}</TableCell>
-                                            <TableCell>{item.quantity}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'space-between', p: 2 }}>
-                    <Box>
-                        <Typography variant="body2" color="text.secondary">
-                            ✅ Зеленые позиции будут добавлены в спецификацию (найдены в номенклатуре)<br />
-                            ⚠️ Желтые позиции НЕ будут добавлены в спецификацию (не найдены в номенклатуре)
-                        </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button onClick={() => setShowPreviewDialog(false)}>
-                            Отмена
-                        </Button>
-                        <Button
-                            onClick={importFromExcel}
-                            variant="contained"
-                            color="primary"
-                            disabled={importStats.existing === 0}
-                        >
-                            Добавить в спецификацию ({importStats.existing})
-                        </Button>
-                    </Box>
-                </DialogActions>
-            </Dialog>
 
             {/* Диалог загрузки данных из Excel в стиле 1С */}
             <Dialog
