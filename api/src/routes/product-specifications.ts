@@ -78,6 +78,9 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
         }
 
         const validatedData = productSpecificationCreateSchema.parse(req.body);
+        console.log('=== CREATING PRODUCT SPECIFICATION ===');
+        console.log('Validated data:', validatedData);
+        console.log('Product ID:', productId);
 
         const productSpecification = await prisma.productSpecification.create({
             data: {

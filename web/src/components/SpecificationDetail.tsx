@@ -150,15 +150,45 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
     const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
-    const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0 });
+    const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0, skipped: 0 });
     const [showExcelImportDialog, setShowExcelImportDialog] = useState(false);
     const [importSettings, setImportSettings] = useState({
         updateMatched: false,
-        createNew: false,
+        createNew: true,
         group: ''
     });
     const [sortField, setSortField] = useState<string>('');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+    // Функция для пересчета статистики импорта при изменении настроек
+    const recalculateImportStats = (settings: typeof importSettings) => {
+        const total = previewData.length;
+        const existing = previewData.filter(item => item.matched).length;
+        const newItems = total - existing;
+        
+        let updated = 0;
+        let created = 0;
+        let skipped = 0;
+        
+        if (settings.updateMatched) {
+            updated = existing;
+        } else {
+            skipped += existing;
+        }
+        
+        if (settings.createNew) {
+            created = newItems;
+        } else {
+            skipped += newItems;
+        }
+        
+        setImportStats({
+            existing: updated,
+            new: created,
+            total: total,
+            skipped: skipped
+        });
+    };
 
     // Функция для обработки сортировки
     const handleSort = (field: string) => {
@@ -867,7 +897,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             setImportStats({
                 existing: existingCount,
                 new: newCount,
-                total: analyzedData.length
+                total: analyzedData.length,
+                skipped: 0
             });
 
             setShowColumnMapping(false);
@@ -2527,10 +2558,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 control={
                                     <Checkbox
                                         checked={importSettings.updateMatched}
-                                        onChange={(e) => setImportSettings({
-                                            ...importSettings,
-                                            updateMatched: e.target.checked
-                                        })}
+                                        onChange={(e) => {
+                                            const newSettings = {
+                                                ...importSettings,
+                                                updateMatched: e.target.checked
+                                            };
+                                            setImportSettings(newSettings);
+                                            // Пересчитываем статистику при изменении настроек
+                                            recalculateImportStats(newSettings);
+                                        }}
                                     />
                                 }
                                 label="Обновлять сопоставленные элементы полученными данными"
@@ -2542,10 +2578,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 control={
                                     <Checkbox
                                         checked={importSettings.createNew}
-                                        onChange={(e) => setImportSettings({
-                                            ...importSettings,
-                                            createNew: e.target.checked
-                                        })}
+                                        onChange={(e) => {
+                                            const newSettings = {
+                                                ...importSettings,
+                                                createNew: e.target.checked
+                                            };
+                                            setImportSettings(newSettings);
+                                            // Пересчитываем статистику при изменении настроек
+                                            recalculateImportStats(newSettings);
+                                        }}
                                     />
                                 }
                                 label="Создавать новые элементы, если полученные данные не сопоставлены"
