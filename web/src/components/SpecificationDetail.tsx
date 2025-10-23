@@ -2421,49 +2421,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         </Box>
                     </Box>
 
-                    {/* Настройки загрузки */}
-                    <Box sx={{ mb: 3 }}>
-                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                            Настройки загрузки
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body1" sx={{ minWidth: '80px' }}>
-                                Группа:
-                            </Typography>
-                            <TextField
-                                size="small"
-                                value={importSettings.group}
-                                onChange={(e) => setImportSettings({
-                                    ...importSettings,
-                                    group: e.target.value
-                                })}
-                                sx={{
-                                    flex: 1,
-                                    '& .MuiOutlinedInput-root': {
-                                        borderColor: '#ffc107',
-                                        '&:hover': {
-                                            borderColor: '#ffc107'
-                                        }
-                                    }
-                                }}
-                                InputProps={{
-                                    endAdornment: (
-                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                            <IconButton size="small">
-                                                <span>⋯</span>
-                                            </IconButton>
-                                            <IconButton size="small">
-                                                <span>✕</span>
-                                            </IconButton>
-                                            <IconButton size="small">
-                                                <span>?</span>
-                                            </IconButton>
-                                        </Box>
-                                    )
-                                }}
-                            />
-                        </Box>
-                    </Box>
                 </DialogContent>
 
                 <DialogActions sx={{
