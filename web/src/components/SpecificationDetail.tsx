@@ -2468,7 +2468,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     p: 2
                 }}>
                     <Button
-                        onClick={() => setShowExcelImportDialog(false)}
+                        onClick={() => {
+                            setShowExcelImportDialog(false);
+                            setShowColumnMapping(true);
+                        }}
                         sx={{
                             backgroundColor: '#6c757d',
                             color: 'white',
