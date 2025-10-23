@@ -2344,7 +2344,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
                     {/* Статистика импорта */}
                     <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.total}</span> строки получено
                             </Typography>
@@ -2413,7 +2413,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             </Button>
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>0</span> строк, которые невозможно загрузить
                             </Typography>
