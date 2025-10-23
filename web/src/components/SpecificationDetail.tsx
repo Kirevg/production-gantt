@@ -2403,8 +2403,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         </Box>
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                            <Typography variant="body1" color={importSettings.createNew ? 'success.main' : 'error.main'}>
-                                {importStats.new} {importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}
+                            <Typography variant="body1">
+                                {importStats.new} <span style={{ color: importSettings.createNew ? '#2e7d32' : '#d32f2f' }}>{importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}</span>
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 показать строки...
