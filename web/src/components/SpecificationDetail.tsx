@@ -2346,7 +2346,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     <Box sx={{ mb: 3 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                             <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold' }}>{importStats.total}</span> строки получено
+                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.total}</span> строки получено
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 показать строки...
@@ -2355,7 +2355,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                             <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold' }}>{importStats.existing}</span> из них сопоставлены{importSettings.updateMatched ? ' и будут обновлены' : ''}
+                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.existing}</span> из них сопоставлены{importSettings.updateMatched ? ' и будут обновлены' : ''}
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 показать строки...
@@ -2404,7 +2404,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                             <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold' }}>{importStats.new}</span> <span style={{ color: importSettings.createNew ? '#2e7d32' : '#d32f2f' }}>{importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}</span>
+                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.new}</span> <span style={{ color: importSettings.createNew ? '#2e7d32' : '#d32f2f' }}>{importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}</span>
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 показать строки...
@@ -2413,7 +2413,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                             <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold' }}>0</span> строк, которые невозможно загрузить
+                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>0</span> строк, которые невозможно загрузить
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 строк...
