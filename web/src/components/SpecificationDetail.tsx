@@ -2436,7 +2436,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         onClick={importFromExcel}
                         color="orange"
                     >
-                        Загрузить данные в приложение
+                        Загрузить
                     </VolumeButton>
                     <VolumeButton
                         onClick={() => {
