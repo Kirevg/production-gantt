@@ -2348,7 +2348,32 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.total}</span> строки получено
                             </Typography>
-                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                            <Button
+                                size="small"
+                                variant="text"
+                                sx={{
+                                    textTransform: 'none',
+                                    fontSize: '14px',
+                                    textDecoration: 'underline',
+                                    border: 'none',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        backgroundColor: 'transparent'
+                                    },
+                                    '&:focus': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    },
+                                    '&:active': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    }
+                                }}
+                            >
                                 показать строки...
                             </Button>
                         </Box>
@@ -2357,7 +2382,32 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.existing}</span> из них сопоставлены{importSettings.updateMatched ? ' и будут обновлены' : ''}
                             </Typography>
-                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                            <Button
+                                size="small"
+                                variant="text"
+                                sx={{
+                                    textTransform: 'none',
+                                    fontSize: '14px',
+                                    textDecoration: 'underline',
+                                    border: 'none',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        backgroundColor: 'transparent'
+                                    },
+                                    '&:focus': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    },
+                                    '&:active': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    }
+                                }}
+                            >
                                 показать строки...
                             </Button>
                         </Box>
@@ -2368,13 +2418,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     <Checkbox
                                         checked={importSettings.updateMatched}
                                         onChange={(e) => {
-                                            const newSettings = {
-                                                ...importSettings,
+                                            setImportSettings(prev => ({
+                                                ...prev,
                                                 updateMatched: e.target.checked
-                                            };
-                                            setImportSettings(newSettings);
-                                            // Пересчитываем статистику при изменении настроек
-                                            recalculateImportStats(newSettings);
+                                            }));
                                         }}
                                     />
                                 }
@@ -2389,13 +2436,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     <Checkbox
                                         checked={importSettings.createNew}
                                         onChange={(e) => {
-                                            const newSettings = {
-                                                ...importSettings,
+                                            setImportSettings(prev => ({
+                                                ...prev,
                                                 createNew: e.target.checked
-                                            };
-                                            setImportSettings(newSettings);
-                                            // Пересчитываем статистику при изменении настроек
-                                            recalculateImportStats(newSettings);
+                                            }));
                                         }}
                                     />
                                 }
@@ -2408,7 +2452,32 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.new}</span> <span style={{ color: importSettings.createNew ? '#2e7d32' : '#d32f2f' }}>{importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}</span>
                             </Typography>
-                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                            <Button
+                                size="small"
+                                variant="text"
+                                sx={{
+                                    textTransform: 'none',
+                                    fontSize: '14px',
+                                    textDecoration: 'underline',
+                                    border: 'none',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        backgroundColor: 'transparent'
+                                    },
+                                    '&:focus': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    },
+                                    '&:active': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    }
+                                }}
+                            >
                                 показать строки...
                             </Button>
                         </Box>
@@ -2417,7 +2486,32 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>0</span> строк, которые невозможно загрузить
                             </Typography>
-                            <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
+                            <Button
+                                size="small"
+                                variant="text"
+                                sx={{
+                                    textTransform: 'none',
+                                    fontSize: '14px',
+                                    textDecoration: 'underline',
+                                    border: 'none',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        backgroundColor: 'transparent'
+                                    },
+                                    '&:focus': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    },
+                                    '&:active': {
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        outline: 'none'
+                                    }
+                                }}
+                            >
                                 строк...
                             </Button>
                         </Box>
@@ -2434,7 +2528,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 }}>
                     <VolumeButton
                         onClick={importFromExcel}
-                        color="orange"
+                        color="blue"
                     >
                         Загрузить
                     </VolumeButton>
@@ -2443,7 +2537,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             setShowExcelImportDialog(false);
                             setShowColumnMapping(true);
                         }}
-                        color="red"
+                        color="orange"
                     >
                         Назад
                     </VolumeButton>
