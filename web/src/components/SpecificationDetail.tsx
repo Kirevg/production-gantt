@@ -2344,7 +2344,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
                     {/* Статистика импорта */}
                     <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.total}</span> строки получено
                             </Typography>
@@ -2353,7 +2353,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             </Button>
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.existing}</span> из них сопоставлены{importSettings.updateMatched ? ' и будут обновлены' : ''}
                             </Typography>
@@ -2404,7 +2404,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             />
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.new}</span> <span style={{ color: importSettings.createNew ? '#2e7d32' : '#d32f2f' }}>{importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}</span>
                             </Typography>
@@ -2413,7 +2413,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             </Button>
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             <Typography variant="body2">
                                 <span style={{ fontWeight: 'bold', fontSize: '16px' }}>0</span> строк, которые невозможно загрузить
                             </Typography>
