@@ -2345,8 +2345,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                     {/* Статистика импорта */}
                     <Box sx={{ mb: 3 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                {importStats.total} строки получено
+                            <Typography variant="body1">
+                                <span style={{ fontWeight: 'bold' }}>{importStats.total}</span> строки получено
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 показать строки...
