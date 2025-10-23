@@ -673,12 +673,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
-            // Создаем копию спецификации с увеличенной версией
-            const newVersion = (originalSpecification.version || 1) + 1;
+            // Создаем копию спецификации (временно без версии)
             const copyData = {
                 name: originalSpecification.name, // Копируем исходное название
-                description: '', // Описание не копируется
-                version: newVersion
+                description: '' // Описание не копируется
             };
 
             const response = await fetch(`http://localhost:4000/product-specifications/products/${currentProductId}/specifications`, {
