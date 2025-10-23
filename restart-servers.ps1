@@ -7,11 +7,19 @@ Write-Host "Останавливаем старые процессы..." -ForegroundColor Yellow
 # Останавливаем все процессы Node.js
 Stop-Process -Name node -Force -ErrorAction SilentlyContinue
 
-# Находим и закрываем окна с заголовками "Backend Server" и "Frontend Server"
-# НЕ ТРОГАЕМ окна с "Git Auto-Commit"
-Get-Process | Where-Object {
-    $_.MainWindowTitle -match "Backend Server|Frontend Server" -and 
-    $_.MainWindowTitle -notmatch "Git Auto-Commit"
+# Закрываем все CMD окна, кроме тех, что содержат "Git Auto-Commit"
+Get-Process -Name "cmd" -ErrorAction SilentlyContinue | Where-Object {
+    $_.MainWindowTitle -notmatch "Git Auto-Commit" -and
+    $_.MainWindowTitle -notmatch "Администратор.*cmd.exe" -and
+    $_.MainWindowTitle -ne ""
+} | ForEach-Object {
+    Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+}
+
+# Дополнительно закрываем все CMD окна с пустыми заголовками (старые серверы)
+Get-Process -Name "cmd" -ErrorAction SilentlyContinue | Where-Object {
+    $_.MainWindowTitle -eq "" -or
+    $_.MainWindowTitle -match "C:\\Projects\\production-gantt"
 } | ForEach-Object {
     Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
 }
