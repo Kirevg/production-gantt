@@ -2428,9 +2428,16 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 <DialogActions sx={{
                     backgroundColor: '#f5f5f5',
                     borderTop: '1px solid #ddd',
-                    justifyContent: 'space-between',
-                    p: 2
+                    justifyContent: 'flex-end',
+                    p: 2,
+                    gap: 2
                 }}>
+                    <VolumeButton
+                        onClick={importFromExcel}
+                        color="orange"
+                    >
+                        Загрузить данные в приложение
+                    </VolumeButton>
                     <VolumeButton
                         onClick={() => {
                             setShowExcelImportDialog(false);
@@ -2439,12 +2446,6 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         color="red"
                     >
                         Назад
-                    </VolumeButton>
-                    <VolumeButton
-                        onClick={importFromExcel}
-                        color="orange"
-                    >
-                        Загрузить данные в приложение
                     </VolumeButton>
                 </DialogActions>
             </Dialog>
