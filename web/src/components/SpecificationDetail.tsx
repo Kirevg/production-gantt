@@ -2127,7 +2127,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 }}
             >
                 <DialogTitle>Сопоставление колонок Excel</DialogTitle>
-                <DialogContent sx={{ overflow: 'hidden' }}>
+                <DialogContent sx={{ overflow: 'hidden', paddingBottom: '20px' }}>
                     {excelData.length > 0 && (
                         <Box sx={{
                             display: 'flex',
@@ -2159,13 +2159,13 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     </Button>
                                 </Box>
                             </Box>
-                            <Box sx={{ width: 'auto' }}>
+                            <Box sx={{ width: 'auto', maxHeight: '600px', overflow: 'auto', borderBottom: '2px solid #333' }}>
                                 <Table size="small" sx={{
-                                    tableLayout: 'fixed',
+                                    tableLayout: 'auto',
                                     width: 'auto',
                                     '& .MuiTableCell-root': {
-                                        width: '150px',
-                                        maxWidth: '150px',
+                                        width: 'auto',
+                                        maxWidth: 'none',
                                         fontSize: '12px !important'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
@@ -2175,7 +2175,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 }}>
                                     <TableBody>
                                         {/* Строка сопоставления колонок */}
-                                        <TableRow>
+                                        <TableRow sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
                                             {excelData[0].map((_: any, index: number) => (
                                                 <TableCell key={index} sx={{ textAlign: 'center', padding: '4px !important' }}>
                                                     <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
@@ -2232,7 +2232,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                             ))}
                                         </TableRow>
                                         {/* Превью данных */}
-                                        {excelData.length > 1 && excelData.slice(1, 4).map((row: any[], rowIndex: number) => (
+                                        {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
                                             <TableRow key={rowIndex}>
                                                 {row.map((cell: any, cellIndex: number) => (
                                                     <TableCell key={cellIndex} sx={{
@@ -2243,7 +2243,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         borderTop: '1px solid #e0e0e0',
                                                         borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
                                                         borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                        borderBottom: rowIndex === 2 ? '2px solid #333' : '1px solid #e0e0e0'
+                                                        borderBottom: '1px solid #e0e0e0'
                                                     }}>
                                                         {cell || ''}
                                                     </TableCell>
