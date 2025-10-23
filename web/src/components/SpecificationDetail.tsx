@@ -165,23 +165,23 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         const total = previewData.length;
         const existing = previewData.filter(item => item.matched).length;
         const newItems = total - existing;
-        
+
         let updated = 0;
         let created = 0;
         let skipped = 0;
-        
+
         if (settings.updateMatched) {
             updated = existing;
         } else {
             skipped += existing;
         }
-        
+
         if (settings.createNew) {
             created = newItems;
         } else {
             skipped += newItems;
         }
-        
+
         setImportStats({
             existing: updated,
             new: created,
@@ -2361,7 +2361,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 }}
             >
                 <DialogTitle>
-                    Предварительный просмотр импорта спецификации
+                    Загрузка данных из Excel
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         Всего позиций: {importStats.total} |
                         Найдено в номенклатуре: {importStats.existing} |
