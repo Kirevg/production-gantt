@@ -2361,7 +2361,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 }}
             >
                 <DialogTitle>
-                    Загрузка данных из Excel
+                    Предварительный просмотр импорта спецификации
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         Всего позиций: {importStats.total} |
                         Найдено в номенклатуре: {importStats.existing} |
