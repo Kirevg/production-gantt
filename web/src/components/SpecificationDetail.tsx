@@ -2355,7 +2355,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                {importStats.existing} из них сопоставлены
+                                {importStats.existing} из них сопоставлены{importSettings.updateMatched ? ' и будут обновлены' : ''}
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 показать строки...
