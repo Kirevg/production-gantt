@@ -2438,7 +2438,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         }}
                         color="red"
                     >
-                        ← Назад
+                        Назад
                     </VolumeButton>
                     <VolumeButton
                         onClick={importFromExcel}
