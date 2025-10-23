@@ -761,6 +761,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         try {
             setLoading(true);
             setError('');
+            setShowExcelImportDialog(true); // Открываем окно сразу при начале анализа
 
             // Пропускаем заголовок (первую строку)
             const rows = excelData.slice(1);
@@ -845,8 +846,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 total: analyzedData.length,
                 skipped: 0
             });
-
-            setShowExcelImportDialog(true);
 
         } catch (error) {
             console.error('Ошибка анализа данных:', error);
@@ -2316,6 +2315,16 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 </DialogTitle>
 
                 <DialogContent sx={{ p: 3 }}>
+                    {/* Индикатор загрузки */}
+                    {loading && (
+                        <Box sx={{ mb: 2 }}>
+                            <LinearProgress />
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                                Анализ данных...
+                            </Typography>
+                        </Box>
+                    )}
+                    
                     {/* Информационный блок */}
                     <Box sx={{
                         display: 'flex',
