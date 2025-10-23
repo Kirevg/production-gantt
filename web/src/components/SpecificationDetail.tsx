@@ -2383,7 +2383,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             />
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
                             <FormControlLabel
                                 control={
                                     <Checkbox
