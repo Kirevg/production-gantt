@@ -2403,8 +2403,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         </Box>
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                {importStats.new} строк будет пропущено
+                            <Typography variant="body1">
+                                <span style={{ fontWeight: 'bold' }}>{importStats.new}</span> строк будет пропущено
                             </Typography>
                             <Typography variant="body2" color="error">
                                 строк будет пропущено
@@ -2415,8 +2415,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                         </Box>
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                0 строк, которые невозможно загрузить
+                            <Typography variant="body1">
+                                <span style={{ fontWeight: 'bold' }}>0</span> строк, которые невозможно загрузить
                             </Typography>
                             <Button size="small" variant="text" sx={{ textTransform: 'none' }}>
                                 строк...
