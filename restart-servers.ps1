@@ -35,6 +35,7 @@ function Test-Port {
         return $true
     }
     catch {
+        # Тестовое изменение для снапшота
         return $false
     }
 }
