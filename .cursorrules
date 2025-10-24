@@ -197,8 +197,6 @@ C:\Projects\production-gantt\restart-servers.ps1
 C:\Projects\production-gantt\ai-git-commands.bat save
 ```
 
-
-
 ### 🔄 **ОТКАТ И ИСТОРИЯ:**
 ```powershell
 git log --oneline -5          # показать последние 5 коммитов
