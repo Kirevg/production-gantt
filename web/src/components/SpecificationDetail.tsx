@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/buttons.css';
+
+// Глобальный CSS для минимальной ширины ячеек
+const globalStyles = `
+  .excel-table-cell {
+    min-width: 80px !important;
+  }
+  .MuiTableCell-root {
+    min-width: 80px !important;
+  }
+  [data-table="second"] .MuiTableCell-root {
+    min-width: 80px !important;
+  }
+`;
 import {
     Box,
     Typography,
@@ -155,6 +168,38 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         createNew: true,
         group: ''
     });
+
+    // Состояние для синхронизации ширины колонок
+    const [columnWidths, setColumnWidths] = useState<number[]>([]);
+
+    // Инжекция глобальных стилей
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = globalStyles;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
+    // Синхронизация ширины колонок между таблицами
+    useEffect(() => {
+        if (excelData.length > 0) {
+            // Получаем ширину колонок из второй таблицы
+            const secondTable = document.querySelector('[data-table="second"]');
+            if (secondTable) {
+                const cells = secondTable.querySelectorAll('td');
+                const widths: number[] = [];
+                cells.forEach((cell, index) => {
+                    if (index < excelData[0].length) {
+                        widths.push(cell.getBoundingClientRect().width);
+                    }
+                });
+                setColumnWidths(widths);
+            }
+        }
+    }, [excelData]);
 
 
 
@@ -2159,14 +2204,122 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     </Button>
                                 </Box>
                             </Box>
-                            <Box sx={{ width: 'auto', maxHeight: '600px', overflow: 'auto', borderBottom: '2px solid #333' }}>
-                                <Table size="small" sx={{
-                                    tableLayout: 'auto',
+                            {/* Закрепленные первые две строки */}
+                            <Table size="small" sx={{
+                                tableLayout: 'fixed',
+                                width: '100%',
+                                '& .MuiTableCell-root': {
+                                    width: columnWidths.length > 0 ? `${columnWidths[0]}px` : 'auto',
+                                    maxWidth: 'none',
+                                    fontSize: '12px !important'
+                                }
+                            }}>
+                                <TableBody>
+                                    {/* Строка сопоставления колонок */}
+                                    <TableRow sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
+                                        {excelData[0].map((_: any, index: number) => (
+                                            <TableCell key={index} sx={{
+                                                textAlign: 'center',
+                                                padding: '4px !important',
+                                                width: columnWidths.length > index ? `${columnWidths[index]}px` : 'auto'
+                                            }}>
+                                                <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
+                                                    <Select
+                                                        value={columnMapping[index.toString()] || ''}
+                                                        onChange={(e) => {
+                                                            const newMapping = { ...columnMapping };
+                                                            Object.keys(newMapping).forEach(key => {
+                                                                if (key === index.toString()) delete newMapping[key];
+                                                            });
+                                                            if (e.target.value) {
+                                                                Object.keys(newMapping).forEach(key => {
+                                                                    if (newMapping[key] === e.target.value) delete newMapping[key];
+                                                                });
+                                                                newMapping[index.toString()] = e.target.value;
+                                                            }
+                                                            setColumnMapping(newMapping);
+                                                        }}
+                                                        displayEmpty
+                                                        sx={{ '& .MuiSelect-select': { fontSize: '12px' } }}
+                                                    >
+                                                        <MenuItem value="" sx={{ fontSize: '12px' }}>Не выбрано</MenuItem>
+                                                        <MenuItem value="designation" sx={{ fontSize: '12px' }}>Обозначение</MenuItem>
+                                                        <MenuItem value="name" sx={{ fontSize: '12px' }}>Наименование</MenuItem>
+                                                        <MenuItem value="article" sx={{ fontSize: '12px' }}>Артикул</MenuItem>
+                                                        <MenuItem value="code1c" sx={{ fontSize: '12px' }}>Код 1С</MenuItem>
+                                                        <MenuItem value="group" sx={{ fontSize: '12px' }}>Группа</MenuItem>
+                                                        <MenuItem value="manufacturer" sx={{ fontSize: '12px' }}>Производитель</MenuItem>
+                                                        <MenuItem value="description" sx={{ fontSize: '12px' }}>Описание</MenuItem>
+                                                        <MenuItem value="quantity" sx={{ fontSize: '12px' }}>Кол-во</MenuItem>
+                                                        <MenuItem value="unit" sx={{ fontSize: '12px' }}>Ед.</MenuItem>
+                                                        <MenuItem value="price" sx={{ fontSize: '12px' }}>Цена за ед. (руб)</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                    {/* Заголовки Excel */}
+                                    <TableRow>
+                                        {excelData[0].map((_: any, index: number) => (
+                                            <TableCell key={index} sx={{
+                                                fontWeight: 'bold',
+                                                fontSize: '12px !important',
+                                                textAlign: 'center',
+                                                padding: '4px !important',
+                                                width: columnWidths.length > index ? `${columnWidths[index]}px` : 'auto',
+                                                border: '2px solid #333',
+                                                borderTop: '2px solid #333',
+                                                borderLeft: '2px solid #333',
+                                                borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                borderBottom: '2px solid #333'
+                                            }}>
+                                                {excelData[0][index] || `Колонка ${index + 1}`}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+
+                            {/* Прокручиваемые данные (с третьей строки) */}
+                            <Box sx={{
+                                width: 'auto',
+                                maxHeight: '600px',
+                                overflow: 'auto',
+                                borderBottom: '2px solid #333',
+                                // Стили ползунка как у основной таблицы
+                                '&::-webkit-scrollbar': {
+                                    width: '8px',
+                                    height: '0px' // Убираем горизонтальную прокрутку
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    backgroundColor: '#f1f1f1',
+                                    borderRadius: '4px'
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: '#c1c1c1',
+                                    borderRadius: '4px',
+                                    '&:hover': {
+                                        backgroundColor: '#a8a8a8'
+                                    }
+                                }
+                            }}>
+                                <Table size="small" data-table="second" sx={{
+                                    tableLayout: 'fixed',
                                     width: 'auto',
                                     '& .MuiTableCell-root': {
                                         width: 'auto',
+                                        minWidth: '80px !important',
                                         maxWidth: 'none',
                                         fontSize: '12px !important'
+                                    },
+                                    '& .css-1aomwwg-MuiTableCell-root': {
+                                        minWidth: '80px !important'
+                                    },
+                                    '& .MuiTableCell-body': {
+                                        minWidth: '80px !important'
+                                    },
+                                    '& .MuiTableCell-sizeSmall': {
+                                        minWidth: '80px !important'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
                                         paddingLeft: '4px !important',
@@ -2174,71 +2327,15 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     }
                                 }}>
                                     <TableBody>
-                                        {/* Строка сопоставления колонок */}
-                                        <TableRow sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
-                                            {excelData[0].map((_: any, index: number) => (
-                                                <TableCell key={index} sx={{ textAlign: 'center', padding: '4px !important' }}>
-                                                    <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
-                                                        <Select
-                                                            value={columnMapping[index.toString()] || ''}
-                                                            onChange={(e) => {
-                                                                const newMapping = { ...columnMapping };
-                                                                Object.keys(newMapping).forEach(key => {
-                                                                    if (key === index.toString()) delete newMapping[key];
-                                                                });
-                                                                if (e.target.value) {
-                                                                    Object.keys(newMapping).forEach(key => {
-                                                                        if (newMapping[key] === e.target.value) delete newMapping[key];
-                                                                    });
-                                                                    newMapping[index.toString()] = e.target.value;
-                                                                }
-                                                                setColumnMapping(newMapping);
-                                                            }}
-                                                            displayEmpty
-                                                            sx={{ '& .MuiSelect-select': { fontSize: '12px' } }}
-                                                        >
-                                                            <MenuItem value="" sx={{ fontSize: '12px' }}>Не выбрано</MenuItem>
-                                                            <MenuItem value="designation" sx={{ fontSize: '12px' }}>Обозначение</MenuItem>
-                                                            <MenuItem value="name" sx={{ fontSize: '12px' }}>Наименование</MenuItem>
-                                                            <MenuItem value="article" sx={{ fontSize: '12px' }}>Артикул</MenuItem>
-                                                            <MenuItem value="code1c" sx={{ fontSize: '12px' }}>Код 1С</MenuItem>
-                                                            <MenuItem value="group" sx={{ fontSize: '12px' }}>Группа</MenuItem>
-                                                            <MenuItem value="manufacturer" sx={{ fontSize: '12px' }}>Производитель</MenuItem>
-                                                            <MenuItem value="description" sx={{ fontSize: '12px' }}>Описание</MenuItem>
-                                                            <MenuItem value="quantity" sx={{ fontSize: '12px' }}>Кол-во</MenuItem>
-                                                            <MenuItem value="unit" sx={{ fontSize: '12px' }}>Ед.</MenuItem>
-                                                            <MenuItem value="price" sx={{ fontSize: '12px' }}>Цена за ед. (руб)</MenuItem>
-                                                        </Select>
-                                                    </FormControl>
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                        {/* Заголовки Excel */}
-                                        <TableRow>
-                                            {excelData[0].map((_: any, index: number) => (
-                                                <TableCell key={index} sx={{
-                                                    fontWeight: 'bold',
-                                                    fontSize: '12px !important',
-                                                    textAlign: 'center',
-                                                    padding: '4px !important',
-                                                    border: '2px solid #333',
-                                                    borderTop: '2px solid #333',
-                                                    borderLeft: '2px solid #333',
-                                                    borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                    borderBottom: '2px solid #333'
-                                                }}>
-                                                    {excelData[0][index] || `Колонка ${index + 1}`}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
                                         {/* Превью данных */}
                                         {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
                                             <TableRow key={rowIndex}>
                                                 {row.map((cell: any, cellIndex: number) => (
-                                                    <TableCell key={cellIndex} sx={{
+                                                    <TableCell key={cellIndex} className="excel-table-cell" sx={{
                                                         fontSize: '12px !important',
                                                         padding: '2px 4px !important',
                                                         whiteSpace: 'normal',
+                                                        minWidth: '80px !important',
                                                         border: '2px solid #333',
                                                         borderTop: '1px solid #e0e0e0',
                                                         borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
