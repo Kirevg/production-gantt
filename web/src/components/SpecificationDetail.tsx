@@ -169,9 +169,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         group: ''
     });
 
-    // Состояние для синхронизации ширины колонок
-    const [columnWidths, setColumnWidths] = useState<number[]>([]);
-
     // Инжекция глобальных стилей
     useEffect(() => {
         const style = document.createElement('style');
