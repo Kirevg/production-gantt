@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 chcp 65001 >nul
 REM Быстрые Git команды для AI-ассистента
 REM Использование: ai-git-commands.bat [команда]
@@ -20,10 +21,11 @@ git add .
 for /f "tokens=1-3 delims=/" %%a in ('date /t') do (set mydate=%%c-%%b-%%a)
 for /f "tokens=1-3 delims=:" %%a in ('time /t') do (set mytime=%%a:%%b:%%c)
 set mytime=%mytime: =%
-if "%~2"=="" (
+shift
+if "%1"=="" (
     set desc=AI checkpoint
 ) else (
-    set desc=%~2
+    set desc=%*
 )
 git commit -m "[AI-SNAPSHOT] %mydate% %mytime% - %desc%"
 echo [AI] Снапшот сохранен
