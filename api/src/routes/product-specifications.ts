@@ -47,6 +47,13 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
             orderBy: { createdAt: 'desc' },
         });
 
+        console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
+        console.log('Product ID:', productId);
+        console.log('Found specifications:', productSpecifications.length);
+        productSpecifications.forEach(spec => {
+            console.log(`Spec: ${spec.name}, isLocked: ${spec.isLocked}, ID: ${spec.id}`);
+        });
+
         // Проверяем права доступа
         const userSpecifications = productSpecifications.filter(ps =>
             ps.productId === productId
@@ -122,6 +129,13 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
             return res.status(404).json({ error: 'Спецификация не найдена' });
         }
 
+        // Проверяем, не заблокирована ли спецификация
+        if (existingSpec.isLocked) {
+            return res.status(403).json({ 
+                error: 'Спецификация заблокирована для редактирования. Сначала удалите все дочерние спецификации.' 
+            });
+        }
+
         const validatedData = productSpecificationUpdateSchema.parse(req.body);
         const productSpecification = await prisma.productSpecification.update({
             where: { id },
@@ -155,6 +169,13 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         if (!existingSpec) {
             return res.status(404).json({ error: 'Спецификация не найдена' });
+        }
+
+        // Проверяем, не заблокирована ли спецификация
+        if (existingSpec.isLocked) {
+            return res.status(403).json({ 
+                error: 'Спецификация заблокирована для удаления. Сначала удалите все дочерние спецификации.' 
+            });
         }
 
         await prisma.productSpecification.delete({
@@ -208,6 +229,81 @@ router.get('/:id/specifications', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Ошибка при получении позиций спецификации:', error);
         res.status(500).json({ error: 'Ошибка при получении позиций спецификации' });
+    }
+});
+
+// POST /product-specifications/:id/copy - Копировать спецификацию изделия
+router.post('/product-specifications/:id/copy', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Проверяем права доступа к оригинальной спецификации
+        const originalSpec = await prisma.productSpecification.findFirst({
+            where: {
+                id,
+                product: {
+                    project: {
+                        ownerId: (req as AuthenticatedRequest).user.id
+                    }
+                }
+            },
+            include: {
+                specifications: {
+                    include: {
+                        nomenclatureItem: true,
+                        unit: true
+                    }
+                }
+            }
+        });
+
+        if (!originalSpec) {
+            return res.status(404).json({ error: 'Спецификация не найдена' });
+        }
+
+        // Создаем копию спецификации
+        const copiedSpec = await prisma.productSpecification.create({
+            data: {
+                name: `${originalSpec.name} (копия)`,
+                description: originalSpec.description,
+                version: originalSpec.version,
+                productId: originalSpec.productId,
+                isLocked: false, // Новая спецификация не заблокирована
+                totalSum: originalSpec.totalSum
+            }
+        });
+
+        // Копируем все позиции спецификации
+        for (const spec of originalSpec.specifications) {
+            await prisma.specification.create({
+                data: {
+                    productSpecificationId: copiedSpec.id,
+                    nomenclatureItemId: spec.nomenclatureItemId,
+                    quantity: spec.quantity,
+                    price: spec.price,
+                    totalPrice: spec.totalPrice,
+                    unitId: spec.unitId,
+                    orderIndex: spec.orderIndex
+                }
+            });
+        }
+
+        // Блокируем оригинальную спецификацию
+        console.log('=== BLOCKING ORIGINAL SPECIFICATION ===');
+        console.log('Original spec ID:', id);
+        console.log('Setting isLocked to true');
+        
+        const updatedSpec = await prisma.productSpecification.update({
+            where: { id },
+            data: { isLocked: true }
+        });
+        
+        console.log('Updated specification:', updatedSpec);
+        console.log('isLocked value:', updatedSpec.isLocked);
+
+        res.status(201).json(copiedSpec);
+    } catch (error) {
+        console.error('Ошибка при копировании спецификации:', error);
+        res.status(500).json({ error: 'Ошибка при копировании спецификации' });
     }
 });
 

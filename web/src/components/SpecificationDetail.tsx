@@ -56,6 +56,7 @@ interface Specification {
     price?: number;
     totalPrice?: number;
     orderIndex: number;
+    isLocked?: boolean; // Поле для блокировки родительской спецификации
     createdAt: string;
     updatedAt: string;
     nomenclatureItem?: {
@@ -1130,6 +1131,32 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
         }]);
     };
 
+    // Функция копирования спецификации
+    const handleCopySpecification = async (specification: any) => {
+        try {
+            const response = await fetch(`/api/product-specifications/${productSpecificationId}/copy`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                // Обновляем список спецификаций
+                await fetchSpecifications();
+                console.log('Спецификация успешно скопирована');
+            } else {
+                const errorData = await response.json();
+                console.error('Ошибка копирования спецификации:', errorData.error);
+                alert(`Ошибка копирования: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Ошибка копирования спецификации:', error);
+            alert('Ошибка копирования спецификации');
+        }
+    };
+
     const handleClearAll = async () => {
         if (!canDelete() || specifications.length === 0) return;
 
@@ -1587,29 +1614,27 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         </Box>
 
                                                         {/* Кнопка с плюсом в стиле 1С - небольшая прямоугольная */}
-                                                        <Box
-                                                            onClick={() => {
-                                                                // TODO: Добавить функционал для новой кнопки
-                                                                console.log('Кнопка с плюсом нажата');
-                                                            }}
-                                                            sx={{
-                                                                width: '30px',
-                                                                height: '20px',
-                                                                p: '2px 4px',
-                                                                cursor: 'pointer',
-                                                                backgroundColor: '#f0f0f0',
-                                                                border: '1px solid #808080',
-                                                                fontFamily: 'Arial, sans-serif',
-                                                                fontSize: '11px',
-                                                                '&:hover': {
-                                                                    backgroundColor: '#e8e8e8'
-                                                                },
-                                                                '&:active': {
-                                                                    backgroundColor: '#d8d8d8',
-                                                                    border: '1px solid #404040'
-                                                                }
-                                                            }}
-                                                        >
+                                                        {!specification.isLocked && (
+                                                            <Box
+                                                                onClick={() => handleCopySpecification(specification)}
+                                                                sx={{
+                                                                    width: '30px',
+                                                                    height: '20px',
+                                                                    p: '2px 4px',
+                                                                    cursor: 'pointer',
+                                                                    backgroundColor: '#f0f0f0',
+                                                                    border: '1px solid #808080',
+                                                                    fontFamily: 'Arial, sans-serif',
+                                                                    fontSize: '11px',
+                                                                    '&:hover': {
+                                                                        backgroundColor: '#e8e8e8'
+                                                                    },
+                                                                    '&:active': {
+                                                                        backgroundColor: '#d8d8d8',
+                                                                        border: '1px solid #404040'
+                                                                    }
+                                                                }}
+                                                            >
                                                             <Typography variant="body2" sx={{
                                                                 fontWeight: 'bold',
                                                                 color: '#000',
@@ -1621,6 +1646,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                                 +
                                                             </Typography>
                                                         </Box>
+                                                        )}
                                                     </Box>
                                                 </Box>
                                             )}
@@ -1719,7 +1745,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     width: '40px',
                                     cursor: 'default' // Заблокированное изменение размера
                                 }}>
-                                    {canDelete() && (
+                                    {canDelete() && !specification.isLocked && (
                                         <IconButton
                                             size="small"
                                             onClick={() => handleDeleteSpecification(specification)}
@@ -1728,6 +1754,22 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         >
                                             <Delete fontSize="small" />
                                         </IconButton>
+                                    )}
+                                    {specification.isLocked && (
+                                        <Box
+                                            sx={{
+                                                width: '24px',
+                                                height: '24px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: '#666',
+                                                fontSize: '12px'
+                                            }}
+                                            title="Спецификация заблокирована (есть дочерние копии)"
+                                        >
+                                            🔒
+                                        </Box>
                                     )}
                                 </TableCell>
                             </TableRow>
