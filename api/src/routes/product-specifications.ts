@@ -309,7 +309,8 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
                     price: spec.price,
                     totalPrice: spec.totalPrice,
                     unitId: spec.unitId,
-                    orderIndex: spec.orderIndex
+                    orderIndex: spec.orderIndex,
+                    version: copiedSpec.version // Синхронизируем версию с ProductSpecification
                 }
             });
         }
@@ -426,7 +427,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             prisma.specification.findMany({
                 where: {
                     productSpecificationId: id,
-                    // Здесь нужно добавить фильтр по версии, когда будет поле version в таблице specifications
+                    version: parseInt(version1) // Фильтр по версии 1
                 },
                 include: {
                     nomenclatureItem: {
@@ -446,7 +447,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             prisma.specification.findMany({
                 where: {
                     productSpecificationId: id,
-                    // Здесь нужно добавить фильтр по версии, когда будет поле version в таблице specifications
+                    version: parseInt(version2) // Фильтр по версии 2
                 },
                 include: {
                     nomenclatureItem: {
@@ -465,12 +466,73 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             })
         ]);
 
-        // Пока что возвращаем заглушку, так как нет поля version в таблице specifications
+        // Сравниваем данные версий
+        const changes = [];
+
+        // Создаем карты для быстрого поиска по nomenclatureItemId
+        const version1Map = new Map(version1Data.map(item => [item.nomenclatureItemId, item]));
+        const version2Map = new Map(version2Data.map(item => [item.nomenclatureItemId, item]));
+
+        // Находим изменения
+        const allItemIds = new Set([...version1Map.keys(), ...version2Map.keys()]);
+
+        for (const itemId of allItemIds) {
+            const v1Item = version1Map.get(itemId);
+            const v2Item = version2Map.get(itemId);
+
+            if (!v1Item && v2Item) {
+                // Новый элемент в версии 2
+                changes.push({
+                    type: 'added',
+                    item: v2Item.nomenclatureItem,
+                    version2: {
+                        quantity: v2Item.quantity,
+                        price: v2Item.price,
+                        totalPrice: v2Item.totalPrice
+                    }
+                });
+            } else if (v1Item && !v2Item) {
+                // Удаленный элемент в версии 2
+                changes.push({
+                    type: 'removed',
+                    item: v1Item.nomenclatureItem,
+                    version1: {
+                        quantity: v1Item.quantity,
+                        price: v1Item.price,
+                        totalPrice: v1Item.totalPrice
+                    }
+                });
+            } else if (v1Item && v2Item) {
+                // Проверяем изменения в существующем элементе
+                const hasChanges =
+                    v1Item.quantity !== v2Item.quantity ||
+                    v1Item.price !== v2Item.price ||
+                    v1Item.totalPrice !== v2Item.totalPrice;
+
+                if (hasChanges) {
+                    changes.push({
+                        type: 'modified',
+                        item: v1Item.nomenclatureItem,
+                        version1: {
+                            quantity: v1Item.quantity,
+                            price: v1Item.price,
+                            totalPrice: v1Item.totalPrice
+                        },
+                        version2: {
+                            quantity: v2Item.quantity,
+                            price: v2Item.price,
+                            totalPrice: v2Item.totalPrice
+                        }
+                    });
+                }
+            }
+        }
+
         res.json({
             version1: parseInt(version1),
             version2: parseInt(version2),
-            changes: [],
-            message: 'Сравнение версий будет реализовано после добавления поля version в таблицу specifications'
+            changes: changes,
+            message: `Найдено ${changes.length} изменений между версиями ${version1} и ${version2}`
         });
 
     } catch (error) {

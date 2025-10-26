@@ -199,6 +199,7 @@ model Specification {
   @@index([nomenclatureItemId])
   @@index([orderIndex])
   @@index([version])
+  @@index([productSpecificationId, version])
 }
 
 model AuditLog {
