@@ -2,8 +2,7 @@
 setlocal enabledelayedexpansion
 chcp 65001 >nul
 REM Быстрые Git команды для AI-ассистента
-REM Использование: ai-git-commands.bat [команда]
-REM Тестовая запись
+REM Использование: ai-git-commands-new.bat [команда]
 
 if "%1"=="" goto help
 
@@ -21,16 +20,22 @@ git add .
 for /f "tokens=1-3 delims=/" %%a in ('date /t') do (set mydate=%%c-%%b-%%a)
 for /f "tokens=1-3 delims=:" %%a in ('time /t') do (set mytime=%%a:%%b:%%c)
 set mytime=%mytime: =%
-if "%1"=="save" (
-    shift
-    if "%1"=="" (
-        set desc=Проверка ИИ
-    ) else (
-        set desc=%*
-    )
+
+REM Обработка аргументов после save
+set desc=
+shift
+:parse_args
+if "%1"=="" goto commit
+if "%desc%"=="" (
+    set desc=%1
 ) else (
-    set desc=Проверка ИИ
+    set desc=%desc% %1
 )
+shift
+goto parse_args
+
+:commit
+if "%desc%"=="" set desc=Проверка ИИ
 git commit -m "[AI-SNAPSHOT] %mydate% %mytime% - %desc%"
 echo [AI] Снапшот сохранен
 goto end
@@ -67,7 +72,7 @@ echo =====================================
 echo AI Git Commands - Быстрые команды
 echo =====================================
 echo.
-echo Использование: ai-git-commands.bat [команда]
+echo Использование: ai-git-commands-new.bat [команда]
 echo.
 echo Команды:
 echo   save [описание]  - Сохранить текущее состояние
@@ -77,9 +82,9 @@ echo   status           - Показать статус изменений
 echo   diff             - Показать изменения
 echo.
 echo Примеры:
-echo   ai-git-commands.bat save "Fixed drag and drop"
-echo   ai-git-commands.bat back
-echo   ai-git-commands.bat history
+echo   ai-git-commands-new.bat save "Fixed drag and drop"
+echo   ai-git-commands-new.bat back
+echo   ai-git-commands-new.bat history
 goto end
 
 :end
