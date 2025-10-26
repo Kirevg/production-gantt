@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, IconButton, Tooltip } from '@mui/material';
 import { ZoomIn, ZoomOut, Refresh } from '@mui/icons-material';
-import Gantt from 'react-gantt';
 
 // Интерфейс для задач Gantt-диаграммы
 interface GanttTask {
@@ -15,137 +14,142 @@ interface GanttTask {
     workType?: string;
     sum?: string;
     hours?: string;
+    projectId?: string;
+    projectName?: string;
+    productId?: string;
+    productName?: string;
+    projectStatus?: string;
 }
 
-// Интерфейс для этапов работ (из существующего кода)
-interface Stage {
-    id: string;
-    sum: string;
-    hours?: string;
-    startDate: string;
-    duration: number;
-    endDate: string;
-    workTypeId?: string;
-    nomenclatureItem?: {
-        id: string;
-        name: string;
-    };
-    assigneeId?: string;
-    assignee?: {
-        id: string;
-        name: string;
-    };
-    createdAt: string;
-    updatedAt: string;
-}
 
 interface GanttChartProps {
-    projectId: string;
-    productId?: string;
-    stages: Stage[];
-    onStageUpdate?: (stageId: string, updates: Partial<Stage>) => void;
-    onStageCreate?: (stage: Omit<Stage, 'id' | 'createdAt' | 'updatedAt'>) => void;
-    onStageDelete?: (stageId: string) => void;
-    canEdit: () => boolean;
-    canCreate: () => boolean;
-    canDelete: () => boolean;
+    // Пока без параметров
 }
 
-const GanttChart: React.FC<GanttChartProps> = ({
-    projectId,
-    productId,
-    stages,
-    onStageUpdate,
-    onStageCreate,
-    onStageDelete,
-    canEdit,
-    canCreate,
-    canDelete
-}) => {
+const GanttChart: React.FC<GanttChartProps> = () => {
     const [ganttTasks, setGanttTasks] = useState<GanttTask[]>([]);
-    const [zoom, setZoom] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string>('');
 
-    // Преобразование этапов работ в задачи для Gantt
-    const convertStagesToGanttTasks = (stages: Stage[]): GanttTask[] => {
-        return stages.map((stage) => {
-            const startDate = new Date(stage.startDate);
-            const endDate = new Date(stage.endDate);
-            
-            return {
-                id: stage.id,
-                name: stage.nomenclatureItem?.name || 'Не указан',
-                start: startDate,
-                end: endDate,
-                progress: 0, // Пока без прогресса
-                assignee: stage.assignee?.name || 'Не назначен',
-                workType: stage.nomenclatureItem?.name || 'Не указан',
-                sum: stage.sum,
-                hours: stage.hours || '0'
-            };
-        });
+    // Загрузка данных для Gantt-диаграммы
+    const fetchGanttData = async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const token = localStorage.getItem('token');
+            console.log('🔑 Токен из localStorage:', token ? 'найден' : 'не найден');
+            console.log('🌐 API URL:', `${import.meta.env.VITE_API_BASE_URL}/projects/gantt`);
+
+            if (!token) {
+                setError('Токен авторизации не найден. Войдите в систему.');
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/gantt`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('📡 Ответ сервера:', response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Ошибка ответа:', errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log('📊 Получены данные Gantt:', data);
+
+            // Преобразуем данные в формат для React Gantt Chart
+            const tasks: GanttTask[] = data.map((stage: any) => {
+                const startDate = new Date(stage.start);
+                const endDate = new Date(stage.end);
+
+                // Проверяем валидность дат
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    console.warn('⚠️ Невалидная дата для этапа:', stage);
+                    return null;
+                }
+
+                return {
+                    id: stage.id,
+                    name: `${stage.projectName || 'Проект'} - ${stage.productName || 'Изделие'} - ${stage.name || 'Этап'}`,
+                    start: startDate,
+                    end: endDate,
+                    progress: Math.min(Math.max(stage.progress || 0, 0), 100), // Ограничиваем прогресс 0-100
+                    assignee: stage.assignee || 'Не назначен',
+                    workType: stage.workType || 'Не указан',
+                    sum: stage.sum || '0',
+                    hours: stage.hours || '0',
+                    projectId: stage.projectId,
+                    projectName: stage.projectName || 'Проект',
+                    productId: stage.productId,
+                    productName: stage.productName || 'Изделие',
+                    projectStatus: stage.projectStatus
+                };
+            }).filter(Boolean); // Убираем null значения
+
+            console.log('🎯 Преобразованные задачи:', tasks);
+            console.log('🔍 Количество задач:', tasks.length);
+
+            if (tasks.length > 0) {
+                console.log('🔍 Первая задача:', tasks[0]);
+                console.log('🔍 Типы данных:', tasks.map(t => ({
+                    id: typeof t.id,
+                    name: typeof t.name,
+                    start: typeof t.start,
+                    end: typeof t.end,
+                    progress: typeof t.progress
+                })));
+            }
+
+            setGanttTasks(tasks);
+        } catch (err) {
+            console.error('Ошибка загрузки данных Gantt:', err);
+            setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // Обновление задач при изменении этапов
+    // Данные для React Gantt Chart уже готовы в ganttTasks
+
+    // Загружаем данные при монтировании компонента
     useEffect(() => {
-        const tasks = convertStagesToGanttTasks(stages);
-        setGanttTasks(tasks);
-    }, [stages]);
+        fetchGanttData();
+    }, []);
 
-    // Обработчики для Gantt-диаграммы
-    const handleTaskUpdate = (task: GanttTask) => {
-        if (!canEdit() || !onStageUpdate) return;
 
-        const stageUpdates: Partial<Stage> = {
-            startDate: task.start.toISOString(),
-            endDate: task.end.toISOString(),
-            duration: Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24))
-        };
-
-        onStageUpdate(task.id, stageUpdates);
+    // Обработчики для карточек (пока заглушки)
+    const handleCardClick = (task: GanttTask) => {
+        console.log('Клик по карточке:', task);
+        // Здесь можно добавить логику редактирования
     };
 
-    const handleTaskCreate = (task: GanttTask) => {
-        if (!canCreate() || !onStageCreate) return;
-
-        const newStage: Omit<Stage, 'id' | 'createdAt' | 'updatedAt'> = {
-            sum: '',
-            hours: '0',
-            startDate: task.start.toISOString(),
-            endDate: task.end.toISOString(),
-            duration: Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)),
-            workTypeId: '',
-            assigneeId: ''
-        };
-
-        onStageCreate(newStage);
-    };
-
-    const handleTaskDelete = (taskId: string) => {
-        if (!canDelete() || !onStageDelete) return;
-        onStageDelete(taskId);
-    };
-
-    // Обработчики масштабирования
+    // Обработчики масштабирования (пока заглушки)
     const handleZoomIn = () => {
-        setZoom(prev => Math.min(prev + 0.2, 3));
+        console.log('Увеличить масштаб');
     };
 
     const handleZoomOut = () => {
-        setZoom(prev => Math.max(prev - 0.2, 0.5));
+        console.log('Уменьшить масштаб');
     };
 
     const handleRefresh = () => {
-        // Обновляем данные
-        const tasks = convertStagesToGanttTasks(stages);
-        setGanttTasks(tasks);
+        // Перезагружаем данные с сервера
+        fetchGanttData();
     };
 
     return (
         <Box sx={{ width: '100%', height: '600px' }}>
             {/* Заголовок с кнопками управления */}
-            <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 mb: 2,
                 p: 2,
@@ -155,20 +159,20 @@ const GanttChart: React.FC<GanttChartProps> = ({
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                     Gantt-диаграмма проекта
                 </Typography>
-                
+
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title="Увеличить масштаб">
                         <IconButton onClick={handleZoomIn} size="small">
                             <ZoomIn />
                         </IconButton>
                     </Tooltip>
-                    
+
                     <Tooltip title="Уменьшить масштаб">
                         <IconButton onClick={handleZoomOut} size="small">
                             <ZoomOut />
                         </IconButton>
                     </Tooltip>
-                    
+
                     <Tooltip title="Обновить">
                         <IconButton onClick={handleRefresh} size="small">
                             <Refresh />
@@ -179,33 +183,87 @@ const GanttChart: React.FC<GanttChartProps> = ({
 
             {/* Gantt-диаграмма */}
             <Paper sx={{ height: 'calc(100% - 80px)', overflow: 'auto' }}>
-                {ganttTasks.length > 0 ? (
-                    <Gantt
-                        tasks={ganttTasks}
-                        onTaskUpdate={handleTaskUpdate}
-                        onTaskCreate={handleTaskCreate}
-                        onTaskDelete={handleTaskDelete}
-                        zoom={zoom}
-                        viewMode="day"
-                        locale="ru"
-                        dateFormat="DD.MM.YYYY"
-                        showTooltip={true}
-                        showCriticalPath={true}
-                        showDependencies={true}
-                        allowTaskDrag={canEdit()}
-                        allowTaskResize={canEdit()}
-                        allowTaskCreate={canCreate()}
-                        allowTaskDelete={canDelete()}
-                        style={{
-                            height: '100%',
-                            width: '100%'
-                        }}
-                    />
+                {loading ? (
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                        flexDirection: 'column',
+                        gap: 2
+                    }}>
+                        <Typography variant="h6" color="text.secondary">
+                            Загрузка данных...
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Получаем этапы работ всех проектов
+                        </Typography>
+                    </Box>
+                ) : error ? (
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                        flexDirection: 'column',
+                        gap: 2
+                    }}>
+                        <Typography variant="h6" color="error">
+                            Ошибка загрузки данных
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {error}
+                        </Typography>
+                    </Box>
+                ) : ganttTasks.length > 0 ? (
+                    <Box sx={{ p: 2 }}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Этапы работ ({ganttTasks.length})
+                        </Typography>
+                        <Box sx={{
+                            display: 'grid',
+                            gap: 1,
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
+                        }}>
+                            {ganttTasks.map((task) => (
+                                <Paper
+                                    key={task.id}
+                                    sx={{
+                                        p: 2,
+                                        border: '1px solid #e0e0e0',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                            transform: 'translateY(-2px)'
+                                        }
+                                    }}
+                                    onClick={() => handleCardClick(task)}
+                                >
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                        {task.name}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        🏗️ <strong>Изделие:</strong> {task.productName}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        📅 <strong>Сроки:</strong> {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
+                                    </Typography>
+                                </Paper>
+                            ))}
+                        </Box>
+                    </Box>
                 ) : (
-                    <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center', 
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
                         height: '100%',
                         flexDirection: 'column',
                         gap: 2

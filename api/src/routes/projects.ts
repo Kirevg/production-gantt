@@ -89,6 +89,63 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /projects/gantt - получить все этапы работ для Gantt-диаграммы
+router.get('/gantt', authenticateToken, async (req, res) => {
+  try {
+    console.log('🔍 Запрос данных для Gantt-диаграммы');
+
+    // Получаем все этапы работ со связанными данными
+    const workStages = await prisma.workStage.findMany({
+      include: {
+        product: {
+          include: {
+            project: true
+          }
+        },
+        nomenclatureItem: true,
+        assignee: true
+      },
+      orderBy: [
+        { product: { project: { orderIndex: 'asc' } } },
+        { orderIndex: 'asc' }
+      ]
+    } as any);
+
+    console.log('📊 Найдено этапов работ:', workStages.length);
+    console.log('📋 Первый этап:', workStages[0]);
+
+    // Преобразуем в формат для Gantt-диаграммы
+    const ganttData = workStages.map((stage: any) => ({
+      id: stage.id,
+      name: stage.nomenclatureItem?.name || 'Не указан',
+      start: stage.startDate,
+      end: stage.endDate,
+      progress: stage.progress || 0,
+      assignee: stage.assignee?.name || 'Не назначен',
+      workType: stage.nomenclatureItem?.name || 'Не указан',
+      sum: stage.sum,
+      hours: stage.hours || '0',
+      projectId: stage.product.project.id,
+      projectName: stage.product.project.name,
+      productId: stage.product.id,
+      productName: stage.product.name,
+      projectStatus: stage.product.project.status,
+      duration: stage.duration
+    }));
+
+    console.log('🎯 Отправляем данные Gantt:', ganttData.length, 'задач');
+    res.json(ganttData);
+  } catch (error) {
+    console.error('❌ Ошибка получения данных для Gantt-диаграммы:', error);
+    console.error('❌ Детали ошибки:', error instanceof Error ? error.message : 'Неизвестная ошибка');
+    console.error('❌ Стек ошибки:', error instanceof Error ? error.stack : 'Нет стека');
+    res.status(500).json({
+      error: 'Failed to fetch gantt data',
+      details: error instanceof Error ? error.message : 'Неизвестная ошибка'
+    });
+  }
+});
+
 // GET /projects/:id - получить проект по ID
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
