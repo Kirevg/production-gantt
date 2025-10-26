@@ -141,6 +141,13 @@ import {
   Update as UpdateIcon,
   Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
+  Home as HomeIcon,
+  Assignment as ProjectIcon,
+  Folder as FolderIcon,
+  Person as PersonIcon,
+  Group as GroupIcon,
+  AdminPanelSettings as AdminIcon,
+  Timeline as GanttIcon,
   Clear as ClearIcon
 } from '@mui/icons-material';
 
@@ -168,6 +175,7 @@ import StagesPage from './components/StagesPage';
 import SpecificationDetail from './components/SpecificationDetail';
 import ProductCard from './components/ProductCard';
 import SpecificationsList from './components/SpecificationsList';
+import GanttChart from './components/GanttChart';
 import ReferencesPage from './components/ReferencesPage';
 import VolumeButton from './components/VolumeButton';
 
@@ -2767,12 +2775,48 @@ export default function App() {
   // Функция для получения доступных вкладок
   const getAvailableTabs = () => {
     const tabs = [
-      { index: 0, label: 'Главная' },
-      { index: 1, label: 'Проекты' },
-      { index: 2, label: 'Справочники' },
-      { index: 3, label: 'Руководители' },
-      { index: 4, label: 'Исполнители' },
-      { index: 5, label: 'Админ панель' }
+      {
+        index: 0,
+        label: 'Главная',
+        icon: <HomeIcon />,
+        description: 'Gantt-диаграмма всех проектов',
+        color: '#1976d2'
+      },
+      {
+        index: 1,
+        label: 'Проекты',
+        icon: <ProjectIcon />,
+        description: 'Управление проектами',
+        color: '#2e7d32'
+      },
+      {
+        index: 2,
+        label: 'Справочники',
+        icon: <FolderIcon />,
+        description: 'Номенклатура и единицы измерения',
+        color: '#ed6c02'
+      },
+      {
+        index: 3,
+        label: 'Руководители',
+        icon: <PersonIcon />,
+        description: 'Руководители проектов',
+        color: '#9c27b0'
+      },
+      {
+        index: 4,
+        label: 'Исполнители',
+        icon: <GroupIcon />,
+        description: 'Исполнители работ',
+        color: '#d32f2f'
+      },
+      {
+        index: 5,
+        label: 'Админ панель',
+        icon: <AdminIcon />,
+        description: 'Управление системой',
+        color: '#424242'
+      }
     ];
 
     return tabs.filter(tab => canAccessTab(tab.index));
@@ -3021,13 +3065,39 @@ export default function App() {
     }
 
     switch (currentTab) {
-      case 0: // Главная страница
+      case 0: // Главная страница - Gantt-диаграмма
         return (
           <Box className="page-content-container">
             <Box sx={{ mt: 2, mb: 1, width: '100%' }}>
-              <Typography variant="body1" sx={{ fontSize: '1.1rem', lineHeight: 1.6 }}>
-                Здесь будет график Ганта со всеми проектами.
+              <Typography variant="h4" sx={{
+                fontWeight: 'bold',
+                mb: 3,
+                color: '#1976d2',
+                textAlign: 'center'
+              }}>
+                Gantt-диаграмма проектов
               </Typography>
+              <Typography variant="body1" sx={{
+                fontSize: '1.1rem',
+                lineHeight: 1.6,
+                mb: 3,
+                textAlign: 'center',
+                color: 'text.secondary'
+              }}>
+                Визуализация всех проектов и их этапов работ
+              </Typography>
+
+              {/* Gantt-диаграмма */}
+              <GanttChart
+                projectId="all"
+                stages={[]} // Пока пустой массив, позже добавим загрузку данных
+                onStageUpdate={() => { }} // Пока заглушки
+                onStageCreate={() => { }}
+                onStageDelete={() => { }}
+                canEdit={canEdit}
+                canCreate={canCreate}
+                canDelete={canDelete}
+              />
             </Box>
           </Box>
         );
@@ -3194,22 +3264,60 @@ export default function App() {
           className="tabs"
           value={currentTab}
           onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             '& .MuiTab-root': {
               color: 'white', // Белый цвет для неактивных вкладок
               fontWeight: 500,
+              minHeight: '48px',
+              padding: '8px 16px',
               '&.Mui-selected': {
                 color: '#1976d2', // Синий цвет для активной вкладки
                 fontWeight: 600,
+                backgroundColor: 'rgba(25, 118, 210, 0.1)',
               },
               '&:hover': {
                 color: '#1976d2', // Синий цвет при наведении
+                backgroundColor: 'rgba(25, 118, 210, 0.05)',
               }
             }
           }}
         >
           {getAvailableTabs().map((tab) => (
-            <Tab key={tab.index} label={tab.label} />
+            <Tab
+              key={tab.index}
+              label={
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  flexDirection: 'column',
+                  minWidth: '80px'
+                }}>
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    fontSize: '0.875rem'
+                  }}>
+                    {tab.icon}
+                    <span>{tab.label}</span>
+                  </Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: '0.7rem',
+                      opacity: 0.8,
+                      textAlign: 'center',
+                      lineHeight: 1
+                    }}
+                  >
+                    {tab.description}
+                  </Typography>
+                </Box>
+              }
+            />
           ))}
         </Tabs>
 
