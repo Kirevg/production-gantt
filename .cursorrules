@@ -191,10 +191,8 @@ C:\Projects\production-gantt\restart-servers.ps1
 ## Git и контроль версий (для AI-ассистента)
 
 ### 🚨 **ПРАВИЛЬНЫЕ КОМАНДЫ ДЛЯ СОЗДАНИЯ СНАПШОТОВ:**
-
-**✅ РАБОТАЮЩИЙ СПОСОБ:**
-```CMD
-C:\Projects\production-gantt\ai-git-commands.bat save
+**✅Комметарии только на русском!**
+**✅ РАБОТАЮЩИЙ СПОСОБ (PowerShell):**
+```powershell
+cmd /c "C:\Projects\production-gantt\ai-git-commands.bat save"
 ```
-
-
