@@ -400,4 +400,83 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// GET /:id/compare/:version1/:version2 - Сравнить две версии спецификации
+router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, res) => {
+    const { id, version1, version2 } = req.params;
+
+    try {
+        // Проверяем права доступа
+        const productSpec = await prisma.productSpecification.findFirst({
+            where: {
+                id,
+                product: {
+                    project: {
+                        ownerId: (req as AuthenticatedRequest).user.id
+                    }
+                }
+            }
+        });
+
+        if (!productSpec) {
+            return res.status(404).json({ error: 'Спецификация изделия не найдена' });
+        }
+
+        // Получаем данные для обеих версий
+        const [version1Data, version2Data] = await Promise.all([
+            prisma.specification.findMany({
+                where: {
+                    productSpecificationId: id,
+                    // Здесь нужно добавить фильтр по версии, когда будет поле version в таблице specifications
+                },
+                include: {
+                    nomenclatureItem: {
+                        select: {
+                            id: true,
+                            name: true,
+                            designation: true,
+                            article: true,
+                            code1c: true,
+                            manufacturer: true,
+                            price: true
+                        }
+                    }
+                },
+                orderBy: { orderIndex: 'asc' }
+            }),
+            prisma.specification.findMany({
+                where: {
+                    productSpecificationId: id,
+                    // Здесь нужно добавить фильтр по версии, когда будет поле version в таблице specifications
+                },
+                include: {
+                    nomenclatureItem: {
+                        select: {
+                            id: true,
+                            name: true,
+                            designation: true,
+                            article: true,
+                            code1c: true,
+                            manufacturer: true,
+                            price: true
+                        }
+                    }
+                },
+                orderBy: { orderIndex: 'asc' }
+            })
+        ]);
+
+        // Пока что возвращаем заглушку, так как нет поля version в таблице specifications
+        res.json({
+            version1: parseInt(version1),
+            version2: parseInt(version2),
+            changes: [],
+            message: 'Сравнение версий будет реализовано после добавления поля version в таблицу specifications'
+        });
+
+    } catch (error) {
+        console.error('Ошибка при сравнении версий:', error);
+        res.status(500).json({ error: 'Ошибка при сравнении версий' });
+    }
+});
+
 export default router;

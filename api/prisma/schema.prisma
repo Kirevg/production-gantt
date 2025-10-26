@@ -140,18 +140,18 @@ model ProjectProduct {
 
 model WorkStage {
   id                 String            @id @default(uuid())
-  productId          String
-  sum                String
-  hours              String?
-  nomenclatureItemId String?
   assigneeId         String?
   startDate          DateTime?
   endDate            DateTime?
   duration           Int               @default(1)
   progress           Int               @default(0)
+  sum                String
   orderIndex         Int               @default(0)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+  hours              String?
+  nomenclatureItemId String?
+  productId          String
   assignee           Counterparty?     @relation(fields: [assigneeId], references: [id])
   nomenclatureItem   NomenclatureItem? @relation("WorkStageNomenclature", fields: [nomenclatureItemId], references: [id])
   product            ProjectProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -168,7 +168,7 @@ model ProductSpecification {
   name           String
   description    String?
   version        Int             @default(1)
-  isLocked       Boolean         @default(false) // Блокировка родительской спецификации при наличии дочерних
+  isLocked       Boolean         @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   totalSum       Float?
@@ -186,17 +186,19 @@ model Specification {
   price                  Float?
   totalPrice             Float?
   orderIndex             Int                  @default(0)
+  version                Int                  @default(1)
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
   nomenclatureItemId     String
   unitId                 String?
   nomenclatureItem       NomenclatureItem     @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
-  unit                   Unit?                @relation(fields: [unitId], references: [id])
   productSpecification   ProductSpecification @relation(fields: [productSpecificationId], references: [id], onDelete: Cascade)
+  unit                   Unit?                @relation(fields: [unitId], references: [id])
 
   @@index([productSpecificationId])
   @@index([nomenclatureItemId])
   @@index([orderIndex])
+  @@index([version])
 }
 
 model AuditLog {
@@ -276,6 +278,14 @@ model NomenclatureItem {
   @@index([code1c])
   @@index([article])
   @@index([type])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup {
+
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  // { String? @map("{") @db.VarChar(64)
+  @@ignore
 }
 
 enum Role {
