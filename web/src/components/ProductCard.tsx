@@ -27,7 +27,8 @@ import {
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
-    CalendarToday as CalendarIcon
+    CalendarToday as CalendarIcon,
+    Balance as BalanceIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 
@@ -172,6 +173,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         workTypeId: '',
         assigneeId: ''
     });
+
+    // Состояние для сравнения версий
+    const [showVersionCompareDialog, setShowVersionCompareDialog] = useState(false);
+    const [comparingSpecification, setComparingSpecification] = useState<ProjectSpecification | null>(null);
+    const [versionCompareData, setVersionCompareData] = useState<any>(null);
+    const [versionCompareLoading, setVersionCompareLoading] = useState(false);
 
     // Функция форматирования даты
     const formatDate = (dateString: string) => {
@@ -608,6 +615,46 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
+    // Функция для загрузки данных сравнения версий
+    const fetchVersionCompare = async (specification: ProjectSpecification) => {
+        try {
+            setVersionCompareLoading(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const currentVersion = specification.version || 1;
+            const previousVersion = currentVersion - 1;
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${specification.id}/compare/${previousVersion}/${currentVersion}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setVersionCompareData(data);
+        } catch (error) {
+            console.error('Ошибка загрузки сравнения версий:', error);
+            alert('Ошибка при загрузке данных сравнения');
+        } finally {
+            setVersionCompareLoading(false);
+        }
+    };
+
+    // Функция для открытия диалога сравнения версий
+    const handleOpenVersionCompare = (specification: ProjectSpecification) => {
+        setComparingSpecification(specification);
+        setShowVersionCompareDialog(true);
+        fetchVersionCompare(specification);
+    };
+
     // Функции для inline редактирования описания спецификации
     const handleDescriptionClick = (specificationId: string, currentDescription: string) => {
         if (canEdit()) {
@@ -1025,6 +1072,37 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                         +
                                                     </Typography>
                                                 </Box>
+
+                                                {/* Кнопка сравнения версий */}
+                                                {specification.version && specification.version > 1 && (
+                                                    <Box
+                                                        onClick={() => handleOpenVersionCompare(specification)}
+                                                        sx={{
+                                                            width: '20px',
+                                                            height: '20px',
+                                                            p: '2px 4px',
+                                                            cursor: 'pointer',
+                                                            backgroundColor: '#e3f2fd',
+                                                            border: '1px solid #2196f3',
+                                                            fontFamily: 'Arial, sans-serif',
+                                                            fontSize: '11px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            '&:hover': {
+                                                                backgroundColor: '#bbdefb'
+                                                            },
+                                                            '&:active': {
+                                                                backgroundColor: '#90caf9',
+                                                                border: '1px solid #1976d2'
+                                                            }
+                                                        }}
+                                                        title="Сравнить с предыдущей версией"
+                                                    >
+                                                        <BalanceIcon sx={{ fontSize: '18px', color: '#1976d2' }} />
+                                                    </Box>
+                                                )}
+
                                                 <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
                                                     {specification.version || '1'}
                                                 </Typography>
@@ -1460,6 +1538,70 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     </VolumeButton>
                     <VolumeButton onClick={() => setOpenProductEditDialog(false)} color="orange">
                         Отмена
+                    </VolumeButton>
+                </DialogActions>
+            </Dialog>
+
+            {/* Диалог сравнения версий */}
+            <Dialog
+                open={showVersionCompareDialog}
+                onClose={() => setShowVersionCompareDialog(false)}
+                maxWidth="lg"
+                fullWidth
+            >
+                <DialogTitle>
+                    Сравнение версий: {comparingSpecification?.name}
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 2, color: '#666' }}>
+                        Версия {comparingSpecification?.version} vs Версия {(comparingSpecification?.version || 1) - 1}
+                    </Typography>
+
+                    {versionCompareLoading ? (
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                            <Typography>Загрузка данных сравнения...</Typography>
+                        </Box>
+                    ) : versionCompareData ? (
+                        <Box>
+                            <Typography variant="h6" sx={{ mb: 2 }}>
+                                Результаты сравнения
+                            </Typography>
+                            <Typography variant="body2" sx={{ mb: 2, color: '#666' }}>
+                                {versionCompareData.message}
+                            </Typography>
+
+                            {/* Временная заглушка - пока API не готов */}
+                            <Box sx={{
+                                p: 2,
+                                border: '1px dashed #ccc',
+                                borderRadius: 1,
+                                textAlign: 'center',
+                                color: '#666',
+                                backgroundColor: '#f5f5f5'
+                            }}>
+                                <Typography variant="body2">
+                                    🔧 API для сравнения версий в разработке
+                                </Typography>
+                                <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
+                                    Пока что отображается заглушка. Полная реализация будет добавлена после настройки базы данных.
+                                </Typography>
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Box sx={{
+                            p: 2,
+                            border: '1px dashed #ccc',
+                            borderRadius: 1,
+                            textAlign: 'center',
+                            color: '#666'
+                        }}>
+                            Ошибка загрузки данных сравнения
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <VolumeButton onClick={() => setShowVersionCompareDialog(false)} color="orange">
+                        Закрыть
                     </VolumeButton>
                 </DialogActions>
             </Dialog>

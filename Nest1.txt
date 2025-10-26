@@ -4,3 +4,4 @@ Nestle
 еще одна
 добавил C:\Projects\production-gantt
 cmd /c .ai-git-commands.bat save "Правила хороши!"
+снап
