@@ -26,6 +26,7 @@ if "%1"=="" (
     set desc=Проверка ИИ
 ) else (
     set desc=%*
+    set desc=%desc:save =%
 )
 git commit -m "[AI-SNAPSHOT] %mydate% %mytime% - %desc%"
 echo [AI] Снапшот сохранен
