@@ -21,11 +21,15 @@ git add .
 for /f "tokens=1-3 delims=/" %%a in ('date /t') do (set mydate=%%c-%%b-%%a)
 for /f "tokens=1-3 delims=:" %%a in ('time /t') do (set mytime=%%a:%%b:%%c)
 set mytime=%mytime: =%
-shift
-if "%1"=="" (
-    set desc=Проверка ИИ
+if "%1"=="save" (
+    shift
+    if "%1"=="" (
+        set desc=Проверка ИИ
+    ) else (
+        set desc=%*
+    )
 ) else (
-    set desc=%*
+    set desc=Проверка ИИ
 )
 git commit -m "[AI-SNAPSHOT] %mydate% %mytime% - %desc%"
 echo [AI] Снапшот сохранен
