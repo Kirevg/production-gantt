@@ -32,8 +32,8 @@ async function recalculateProductSpecificationTotal(productSpecificationId: stri
 const specificationCreateSchema = z.object({
     nomenclatureItemId: z.string().uuid(),
     quantity: z.number().int().min(1).default(1),
-    price: z.number().positive().optional().or(z.null()),
-    totalPrice: z.number().positive().optional().or(z.null()),
+    price: z.number().min(0).optional().or(z.null()), // Разрешаем price >= 0
+    totalPrice: z.number().min(0).optional().or(z.null()), // Разрешаем totalPrice >= 0
     unitId: z.string().uuid().optional(),
 });
 

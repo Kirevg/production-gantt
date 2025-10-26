@@ -194,5 +194,5 @@ C:\Projects\production-gantt\restart-servers.ps1
 **✅Комметарии только на русском!**
 **✅ РАБОТАЮЩИЙ СПОСОБ (PowerShell):**
 ```powershell
-cmd /c "C:\Projects\production-gantt\ai-git-commands.bat save"
+cmd /c "C:\Projects\production-gantt\ai-git-commands.bat save Мой комментарий"
 ```

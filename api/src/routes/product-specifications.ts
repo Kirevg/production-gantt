@@ -178,6 +178,24 @@ router.delete('/:id', authenticateToken, async (req, res) => {
             });
         }
 
+        // Разблокируем предыдущую версию (если есть)
+        const previousSpec = await prisma.productSpecification.findFirst({
+            where: {
+                productId: existingSpec.productId,
+                name: existingSpec.name,
+                version: existingSpec.version - 1,
+                isLocked: true
+            }
+        });
+
+        if (previousSpec) {
+            console.log(`Разблокируем предыдущую версию ${previousSpec.id} (v${previousSpec.version})`);
+            await prisma.productSpecification.update({
+                where: { id: previousSpec.id },
+                data: { isLocked: false }
+            });
+        }
+
         await prisma.productSpecification.delete({
             where: { id },
         });
@@ -422,12 +440,55 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             return res.status(404).json({ error: 'Спецификация изделия не найдена' });
         }
 
-        // Получаем данные для обеих версий
+        // Получаем текущую спецификацию для определения productId и name
+        const currentSpec = await prisma.productSpecification.findFirst({
+            where: {
+                id,
+                product: {
+                    project: {
+                        ownerId: (req as AuthenticatedRequest).user.id
+                    }
+                }
+            }
+        });
+
+        if (!currentSpec) {
+            return res.status(404).json({ error: 'Спецификация не найдена' });
+        }
+
+        // Определяем версии: дочерняя = текущая, родительская = текущая - 1
+        const childVersion = currentSpec.version;
+        const parentVersion = childVersion - 1;
+
+        // Находим родительскую и дочернюю спецификации
+        const [parentSpec, childSpec] = await Promise.all([
+            // Родительская спецификация (версия = текущая - 1)
+            prisma.productSpecification.findFirst({
+                where: {
+                    productId: currentSpec.productId,
+                    name: currentSpec.name,
+                    version: parentVersion
+                }
+            }),
+            // Дочерняя спецификация (версия = текущая)
+            prisma.productSpecification.findFirst({
+                where: {
+                    productId: currentSpec.productId,
+                    name: currentSpec.name,
+                    version: childVersion
+                }
+            })
+        ]);
+
+        if (!parentSpec || !childSpec) {
+            return res.status(404).json({ error: 'Не найдены родительская или дочерняя спецификации для сравнения' });
+        }
+
+        // Получаем строки родительской и дочерней спецификаций
         const [version1Data, version2Data] = await Promise.all([
             prisma.specification.findMany({
                 where: {
-                    productSpecificationId: id,
-                    version: parseInt(version1) // Фильтр по версии 1
+                    productSpecificationId: parentSpec.id // Строки родительской спецификации
                 },
                 include: {
                     nomenclatureItem: {
@@ -446,8 +507,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             }),
             prisma.specification.findMany({
                 where: {
-                    productSpecificationId: id,
-                    version: parseInt(version2) // Фильтр по версии 2
+                    productSpecificationId: childSpec.id // Строки дочерней спецификации
                 },
                 include: {
                     nomenclatureItem: {
@@ -529,10 +589,10 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
         }
 
         res.json({
-            version1: parseInt(version1),
-            version2: parseInt(version2),
+            version1: parentSpec.version,
+            version2: childSpec.version,
             changes: changes,
-            message: `Найдено ${changes.length} изменений между версиями ${version1} и ${version2}`
+            message: `Найдено ${changes.length} изменений между родительской (v${parentSpec.version}) и дочерней (v${childSpec.version}) спецификациями`
         });
 
     } catch (error) {

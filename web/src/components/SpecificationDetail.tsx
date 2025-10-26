@@ -231,6 +231,20 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         console.log('Сохранение количества:', newQuantity, 'для спецификации:', specificationId);
 
         try {
+            // Проверяем, является ли ID временным (начинается с 'temp-')
+            if (specificationId.startsWith('temp-')) {
+                // Для временных спецификаций просто обновляем локальное состояние
+                setSpecifications(prev =>
+                    prev.map(spec =>
+                        spec.id === specificationId
+                            ? { ...spec, quantity: newQuantity, totalPrice: spec.price ? spec.price * newQuantity : null }
+                            : spec
+                    )
+                );
+                setEditingQuantity(null);
+                return;
+            }
+
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/specifications/${specificationId}`, {
                 method: 'PUT',
                 headers: {
@@ -292,7 +306,21 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         }
 
         try {
-            const response = await fetch(`http://localhost:4000/specifications/${specificationId}`, {
+            // Проверяем, является ли ID временным (начинается с 'temp-')
+            if (specificationId.startsWith('temp-')) {
+                // Для временных спецификаций просто обновляем локальное состояние
+                setSpecifications(prev =>
+                    prev.map(spec =>
+                        spec.id === specificationId
+                            ? { ...spec, price: newPrice, totalPrice: spec.quantity ? spec.quantity * newPrice : null }
+                            : spec
+                    )
+                );
+                setEditingPrice(null);
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/specifications/${specificationId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -346,17 +374,9 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     // Загружаем сохраненные ширины колонок из localStorage
     const getInitialColumnWidths = () => {
-        try {
-            const saved = localStorage.getItem('specification-column-widths');
-            if (saved) {
-                return JSON.parse(saved);
-            }
-        } catch (error) {
-            console.warn('Ошибка загрузки сохраненных ширин колонок:', error);
-        }
         return {
             number: 40,
-            name: 200,
+            name: 'auto', // Автоматическая ширина
             article: 100,
             quantity: 80,
             unit: 80,
@@ -367,74 +387,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     const [columnWidths, setColumnWidths] = useState(getInitialColumnWidths);
 
-    // Маппинг колонок для правильного изменения размера
-    const columnOrder = ['number', 'name', 'article', 'quantity', 'unit', 'price', 'total'];
+    // Фиксированные ширины колонок (без возможности изменения)
 
-    // Функция для изменения ширины колонки
-    const handleColumnResize = (columnKey: string, newWidth: number) => {
-        // При захвате правой границы ячейки изменяем размер колонки слева
-        const currentIndex = columnOrder.indexOf(columnKey);
-        const targetColumn = currentIndex > 0 ? columnOrder[currentIndex - 1] : columnKey;
-
-        const newWidths = {
-            ...columnWidths,
-            [targetColumn]: Math.max(50, newWidth) // Минимальная ширина 50px
-        };
-
-        // Проверяем, что суммарная ширина не превышает контейнер
-        const totalWidth = Object.values(newWidths).reduce((sum: number, width: unknown) => sum + (width as number), 0);
-        const containerWidth = 1200; // Примерная ширина контейнера
-
-        if (totalWidth <= containerWidth) {
-            setColumnWidths(newWidths);
-
-            // Сохраняем в localStorage
-            try {
-                localStorage.setItem('specification-column-widths', JSON.stringify(newWidths));
-            } catch (error) {
-                console.warn('Ошибка сохранения ширин колонок:', error);
-            }
-        }
-    };
-
-    // Обработчики для изменения размера колонок
-    const [isResizing, setIsResizing] = useState<string | null>(null);
-    const [startX, setStartX] = useState(0);
-    const [startWidth, setStartWidth] = useState(0);
-
-    const handleMouseDown = (e: React.MouseEvent, columnKey: string) => {
-        e.preventDefault();
-        setIsResizing(columnKey);
-        setStartX(e.clientX);
-
-        // При захвате правой границы ячейки используем ширину колонки слева
-        const currentIndex = columnOrder.indexOf(columnKey);
-        const targetColumn = currentIndex > 0 ? columnOrder[currentIndex - 1] : columnKey;
-        setStartWidth(columnWidths[targetColumn as keyof typeof columnWidths]);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-        if (isResizing) {
-            const newWidth = startWidth + (e.clientX - startX);
-            handleColumnResize(isResizing, newWidth);
-        }
-    };
-
-    const handleMouseUp = () => {
-        setIsResizing(null);
-    };
-
-    // Добавляем обработчики событий мыши
-    React.useEffect(() => {
-        if (isResizing) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            return () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            };
-        }
-    }, [isResizing, startX, startWidth]);
     const [specificationForm, setSpecificationForm] = useState({
         nomenclatureItemId: '',
         designation: '',
@@ -1030,6 +984,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
     // Функции для работы с "Окном выбора номенклатуры" - диалогом замены позиций
     const handleReplaceNomenclatureItem = async (specification: Specification, event: React.MouseEvent) => {
         try {
+            // Проверяем, не заблокирована ли спецификация
+            if (isSpecificationLocked) {
+                alert('Спецификация заблокирована и не может быть изменена');
+                return;
+            }
+
             // Сохраняем текущую позицию для замены в состоянии
             setEditingSpecification(specification);
 
@@ -1092,8 +1052,35 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
         if (!editingSpecification) return;
 
         try {
+            // Проверяем, является ли ID временным (начинается с 'temp-')
+            if (editingSpecification.id.startsWith('temp-')) {
+                // Для временных спецификаций обновляем локальное состояние
+                const updatedSpec = {
+                    ...editingSpecification,
+                    nomenclatureItemId: item.id,
+                    nomenclatureItem: item,
+                    name: item.name,
+                    article: item.article,
+                    designation: item.designation
+                };
+
+                setSpecifications(prev =>
+                    prev.map(spec =>
+                        spec.id === editingSpecification.id ? updatedSpec : spec
+                    )
+                );
+
+                // Сохраняем временную спецификацию в базу данных
+                await saveTemporarySpecification(updatedSpec);
+
+                // Закрываем окно выбора
+                setEditingCell(null);
+                setEditingSpecification(null);
+                return;
+            }
+
             // Отправляем PUT запрос на API для замены номенклатуры в позиции
-            const response = await fetch(`http://localhost:4000/specifications/${editingSpecification.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/specifications/${editingSpecification.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1159,6 +1146,59 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             updatedAt: new Date().toISOString(),
             nomenclatureItem: undefined
         }]);
+    };
+
+
+    // Функция для сохранения временной спецификации в базу данных
+    const saveTemporarySpecification = async (tempSpec: any) => {
+        try {
+            console.log('Сохранение временной спецификации в базу:', tempSpec);
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productSpecificationId}/specifications`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    designation: tempSpec.designation || '',
+                    name: tempSpec.name || '',
+                    article: tempSpec.article || '',
+                    code1c: tempSpec.code1c || '',
+                    group: tempSpec.group || '',
+                    manufacturer: tempSpec.manufacturer || '',
+                    description: tempSpec.description || '',
+                    quantity: tempSpec.quantity || 1,
+                    unit: tempSpec.unit || '',
+                    price: tempSpec.price || 0,
+                    nomenclatureItemId: tempSpec.nomenclatureItemId || null
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Ошибка сервера:', response.status, errorText);
+                throw new Error(`Ошибка сервера: ${response.status}`);
+            }
+
+            const newSpecification = await response.json();
+            console.log('Спецификация успешно сохранена:', newSpecification);
+
+            // Заменяем временную спецификацию на реальную
+            setSpecifications(prev =>
+                prev.map(spec =>
+                    spec.id === tempSpec.id
+                        ? { ...newSpecification, nomenclatureItem: tempSpec.nomenclatureItem }
+                        : spec
+                )
+            );
+
+            return newSpecification;
+        } catch (error) {
+            console.error('Ошибка при сохранении спецификации:', error);
+            alert('Ошибка при сохранении спецификации: ' + (error as Error).message);
+            return null;
+        }
     };
 
     // Функция копирования спецификации
@@ -1380,23 +1420,17 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     textAlign: 'center',
                                     fontSize: '12px',
                                     width: `${columnWidths.number}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                    position: 'relative'
                                 }}
-                                onMouseDown={(e) => handleMouseDown(e, 'number')}
                             >№</TableCell>
                             <TableCell
                                 sx={{
                                     fontWeight: 'bold',
                                     textAlign: 'center',
                                     fontSize: '12px',
-                                    width: `${columnWidths.name}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                    width: columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`,
+                                    position: 'relative'
                                 }}
-                                onMouseDown={(e) => handleMouseDown(e, 'name')}
                             >Наименование</TableCell>
                             <TableCell
                                 sx={{
@@ -1404,11 +1438,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     textAlign: 'center',
                                     fontSize: '12px',
                                     width: `${columnWidths.article}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                    position: 'relative'
                                 }}
-                                onMouseDown={(e) => handleMouseDown(e, 'article')}
                             >Артикул</TableCell>
                             <TableCell
                                 sx={{
@@ -1416,11 +1447,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     textAlign: 'center',
                                     fontSize: '12px',
                                     width: `${columnWidths.quantity}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                    position: 'relative'
                                 }}
-                                onMouseDown={(e) => handleMouseDown(e, 'quantity')}
                             >Кол-во</TableCell>
                             <TableCell
                                 sx={{
@@ -1428,11 +1456,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     textAlign: 'center',
                                     fontSize: '12px',
                                     width: `${columnWidths.unit}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                    position: 'relative'
                                 }}
-                                onMouseDown={(e) => handleMouseDown(e, 'unit')}
                             >Ед. изм.</TableCell>
                             <TableCell
                                 sx={{
@@ -1440,11 +1465,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     textAlign: 'center',
                                     fontSize: '12px',
                                     width: `${columnWidths.price}px`,
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                    position: 'relative'
                                 }}
-                                onMouseDown={(e) => handleMouseDown(e, 'price')}
                             >Цена за ед.</TableCell>
                             <TableCell
                                 sx={{
@@ -1453,11 +1475,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     fontSize: '12px',
                                     width: `${columnWidths.total}px`,
                                     minWidth: '80px',
-                                    position: 'relative',
-                                    cursor: 'col-resize',
-                                    '&:hover': { backgroundColor: '#e0e0e0' }
+                                    position: 'relative'
                                 }}
-                                onMouseDown={(e) => handleMouseDown(e, 'total')}
                             >Сумма</TableCell>
                             <TableCell sx={{
                                 fontWeight: 'bold',
@@ -1702,8 +1721,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         <Box
                                             onDoubleClick={(e) => handleReplaceNomenclatureItem(specification, e)}
                                             sx={{
-                                                cursor: canEdit() ? 'pointer' : 'default',
-                                                '&:hover': canEdit() ? { backgroundColor: '#f5f5f5' } : {}
+                                                cursor: canEdit() && !isSpecificationLocked ? 'pointer' : 'default',
+                                                '&:hover': canEdit() && !isSpecificationLocked ? { backgroundColor: '#f5f5f5' } : {}
                                             }}
                                         >
                                             {specification.nomenclatureItem?.name || specification.name || '-'}

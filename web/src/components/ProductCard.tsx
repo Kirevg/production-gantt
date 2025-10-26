@@ -188,6 +188,55 @@ const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     // Загрузка спецификаций
+    // Функция для форматирования чисел с пробелами и запятой
+    const formatNumber = (value: number | null | undefined): string => {
+        if (value === null || value === undefined) return '-';
+        return value.toLocaleString('ru-RU', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    };
+
+    // Функция для определения статуса спецификаций (дочерняя/родительская)
+    const determineSpecificationStatus = (specifications: any[]) => {
+        // Группируем спецификации по названию
+        const groupedByNames = specifications.reduce((acc, spec) => {
+            const name = spec.name || 'Без названия';
+            if (!acc[name]) {
+                acc[name] = [];
+            }
+            acc[name].push(spec);
+            return acc;
+        }, {});
+
+        // Для каждой группы определяем статус
+        const result = [];
+        for (const [name, specs] of Object.entries(groupedByNames)) {
+            const specsArray = specs as any[];
+
+            if (specsArray.length === 1) {
+                // Если версия одна - она дочерняя (активная)
+                const processedSpecs = specsArray.map((spec) => ({
+                    ...spec,
+                    isChild: true,   // Единственная версия = дочерняя (активная)
+                    isParent: false // Единственная версия = не родительская
+                }));
+                result.push(...processedSpecs);
+            } else {
+                // Если версий несколько - самая большая дочерняя, остальные родительские
+                const sortedSpecs = specsArray.sort((a, b) => (b.version || 1) - (a.version || 1));
+                const processedSpecs = sortedSpecs.map((spec, index) => ({
+                    ...spec,
+                    isChild: index === 0, // Первая (самая большая) = дочерняя (активная)
+                    isParent: index > 0   // Остальные = родительские
+                }));
+                result.push(...processedSpecs);
+            }
+        }
+
+        return result;
+    };
+
     const fetchSpecifications = async () => {
         try {
             setSpecificationsLoading(true);
@@ -220,7 +269,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
 
             const data = await response.json();
-            setSpecifications(data);
+
+            // Определяем дочерние и родительские спецификации
+            const specificationsWithStatus = determineSpecificationStatus(data);
+            setSpecifications(specificationsWithStatus);
         } catch (error) {
             console.error('Ошибка загрузки спецификаций:', error);
         } finally {
@@ -585,10 +637,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     const handleDeleteSpecification = async (specificationId: string) => {
-        // Находим спецификацию для проверки блокировки
+        // Находим спецификацию для проверки статуса
         const specification = specifications.find(spec => spec.id === specificationId);
-        if (specification?.isLocked) {
-            alert('Эта спецификация заблокирована и не может быть удалена');
+        if (specification?.isParent) {
+            alert('Эта спецификация является родительской и не может быть удалена. Удалите дочернюю версию.');
             return;
         }
 
@@ -625,10 +677,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
-            const currentVersion = specification.version || 1;
-            const previousVersion = currentVersion - 1;
-
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${specification.id}/compare/${previousVersion}/${currentVersion}`, {
+            // API найдет родительскую (версия - 1) и дочернюю (текущая версия) спецификации
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${specification.id}/compare/${specification.version - 1}/${specification.version}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -789,7 +839,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 hours: stage.hours || '',
                 startDate: formattedDate,
                 duration: stage.duration || 1,
-                workTypeId: stage.workTypeId || '',
+                workTypeId: stage.nomenclatureItem?.id || stage.workTypeId || '',
                 assigneeId: stage.assignee?.id || stage.assigneeId || ''
             });
         } else {
@@ -951,7 +1001,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', mb: 0 }}>
                         Список спецификаций
                     </Typography>
-                    {canCreate() && (
+                    {canCreate() && specifications.some(spec => !spec.isLocked) && (
                         <VolumeButton
                             variant="contained"
                             onClick={() => handleOpenSpecificationDialog()}
@@ -996,12 +1046,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 specifications.map((specification) => (
                                     <TableRow
                                         key={specification.id}
-                                        sx={{ height: '35px', cursor: specification.isLocked ? 'not-allowed' : 'pointer' }}
+                                        sx={{ height: '35px', cursor: 'pointer' }}
                                         onDoubleClick={() => {
-                                            if (specification.isLocked) {
-                                                alert('Эта спецификация заблокирована и не может быть открыта для редактирования');
-                                                return;
-                                            }
+                                            // Разрешаем открытие заблокированных спецификаций для просмотра
                                             onOpenSpecification(specification.id, specification.name);
                                         }}
                                     >
@@ -1099,7 +1146,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                         }}
                                                         title="Сравнить с предыдущей версией"
                                                     >
-                                                        <BalanceIcon sx={{ fontSize: '18px', color: '#1976d2' }} />
+                                                        <BalanceIcon sx={{ fontSize: '12px', color: '#1976d2' }} />
                                                     </Box>
                                                 )}
 
@@ -1545,47 +1592,213 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {/* Диалог сравнения версий */}
             <Dialog
                 open={showVersionCompareDialog}
-                onClose={() => setShowVersionCompareDialog(false)}
+                onClose={() => { }} // Отключаем закрытие при клике вне окна
                 maxWidth="lg"
                 fullWidth
+                disableEscapeKeyDown // Отключаем закрытие по Escape
             >
-                <DialogTitle>
-                    Сравнение версий: {comparingSpecification?.name}
+                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6">
+                        Сравнение версий: {comparingSpecification?.name} (v{(comparingSpecification?.version || 1) - 1} vs v{comparingSpecification?.version})
+                    </Typography>
+                    <IconButton
+                        onClick={() => setShowVersionCompareDialog(false)}
+                        sx={{ ml: 2 }}
+                        size="small"
+                    >
+                        ✕
+                    </IconButton>
                 </DialogTitle>
                 <DialogContent>
-                    <Typography variant="body2" sx={{ mb: 2, color: '#666' }}>
-                        Версия {comparingSpecification?.version} vs Версия {(comparingSpecification?.version || 1) - 1}
-                    </Typography>
 
                     {versionCompareLoading ? (
                         <Box sx={{ textAlign: 'center', py: 4 }}>
-                            <Typography>Загрузка данных сравнения...</Typography>
+                            <Typography sx={{ fontSize: '12px' }}>Загрузка данных сравнения...</Typography>
                         </Box>
                     ) : versionCompareData ? (
                         <Box>
-                            <Typography variant="h6" sx={{ mb: 2 }}>
-                                Результаты сравнения
-                            </Typography>
-                            <Typography variant="body2" sx={{ mb: 2, color: '#666' }}>
+                            <Typography variant="body2" sx={{ mb: 2, color: '#666', fontSize: '12px' }}>
                                 {versionCompareData.message}
                             </Typography>
 
-                            {/* Временная заглушка - пока API не готов */}
-                            <Box sx={{
-                                p: 2,
-                                border: '1px dashed #ccc',
-                                borderRadius: 1,
-                                textAlign: 'center',
-                                color: '#666',
-                                backgroundColor: '#f5f5f5'
-                            }}>
-                                <Typography variant="body2">
-                                    🔧 API для сравнения версий в разработке
-                                </Typography>
-                                <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
-                                    Пока что отображается заглушка. Полная реализация будет добавлена после настройки базы данных.
-                                </Typography>
-                            </Box>
+                            {/* Таблица сравнения версий */}
+                            {versionCompareData.changes && versionCompareData.changes.length > 0 ? (
+                                <TableContainer component={Paper} sx={{ mt: 2 }}>
+                                    <Table size="small" sx={{
+                                        borderLeft: '2px solid #999',
+                                        borderRight: '2px solid #999',
+                                        '& .MuiTableCell-root': {
+                                            borderRight: '1px solid #e0e0e0',
+                                            fontSize: '12px !important',
+                                            '& *': {
+                                                fontSize: '12px !important'
+                                            },
+                                            '&:last-child': {
+                                                borderRight: 'none'
+                                            }
+                                        },
+                                        '& .MuiTableHead-root .MuiTableCell-root': {
+                                            borderTop: '2px solid #999 !important',
+                                            borderRight: '2px solid #999 !important',
+                                            borderBottom: '2px solid #999 !important',
+                                            fontWeight: 'bold !important',
+                                            fontSize: '14px !important',
+                                            '&:first-child': {
+                                                borderLeft: '2px solid #999 !important'
+                                            },
+                                            '&:last-child': {
+                                                borderRight: '2px solid #999 !important'
+                                            }
+                                        },
+                                        '& .MuiTableBody-root .MuiTableRow:last-child .MuiTableCell-root': {
+                                            borderBottom: '2px solid #999 !important'
+                                        },
+                                        '& .MuiTableBody-root .MuiTableCell-root *': {
+                                            fontSize: '12px !important'
+                                        }
+                                    }}>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell sx={{ textAlign: 'center', width: '120px' }}>Тип изменения</TableCell>
+                                                <TableCell sx={{ textAlign: 'center', width: 'auto' }}>Номенклатура</TableCell>
+                                                <TableCell sx={{ textAlign: 'center', width: '100px' }}>Артикул</TableCell>
+                                                <TableCell sx={{ textAlign: 'center', width: '100px' }}>Кол-во</TableCell>
+                                                <TableCell sx={{ textAlign: 'center', width: '120px' }}>Цена</TableCell>
+                                                <TableCell sx={{ textAlign: 'center', width: '120px' }}>Сумма</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {versionCompareData.changes.map((change: any, index: number) => (
+                                                <TableRow key={index}>
+                                                    <TableCell sx={{ textAlign: 'center', width: '120px' }}>
+                                                        {change.type === 'modified' ? (
+                                                            <Box sx={{
+                                                                px: 1,
+                                                                py: 0.5,
+                                                                borderRadius: 1,
+                                                                fontSize: '12px',
+                                                                fontWeight: 'bold',
+                                                                color: 'white',
+                                                                backgroundColor: '#ff9800',
+                                                                display: 'inline-block',
+                                                                minWidth: '80px',
+                                                                textAlign: 'center'
+                                                            }}>
+                                                                Изменено
+                                                            </Box>
+                                                        ) : (
+                                                            <Box sx={{
+                                                                px: 1,
+                                                                py: 0.5,
+                                                                borderRadius: 1,
+                                                                fontSize: '12px',
+                                                                fontWeight: 'bold',
+                                                                color: 'white',
+                                                                backgroundColor:
+                                                                    change.type === 'added' ? '#4caf50' : '#f44336',
+                                                                display: 'inline-block',
+                                                                minWidth: '80px',
+                                                                textAlign: 'center'
+                                                            }}>
+                                                                {change.type === 'added' ? 'Добавлено' : 'Удалено'}
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell sx={{ width: 'auto' }}>{change.item.name}</TableCell>
+                                                    <TableCell sx={{ width: '100px' }}>{change.item.article || '-'}</TableCell>
+                                                    <TableCell sx={{ textAlign: 'right', width: '100px' }}>
+                                                        {change.type === 'removed' ? (
+                                                            <span style={{ color: '#f44336' }}>
+                                                                {change.version1.quantity}
+                                                            </span>
+                                                        ) : change.type === 'added' ? (
+                                                            <span style={{ color: '#4caf50' }}>
+                                                                {change.version2.quantity}
+                                                            </span>
+                                                        ) : (
+                                                            <Box>
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                                                    <Box sx={{
+                                                                        fontSize: '12px',
+                                                                        color: '#ff9800',
+                                                                        fontWeight: 'bold'
+                                                                    }}>Старое:</Box>
+                                                                    <Box style={{ color: '#ff9800' }}>
+                                                                        {change.version1.quantity}
+                                                                    </Box>
+                                                                </Box>
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                    <Box sx={{
+                                                                        fontSize: '12px',
+                                                                        color: '#2196f3',
+                                                                        fontWeight: 'bold'
+                                                                    }}>Новое:</Box>
+                                                                    <Box style={{ color: '#2196f3' }}>
+                                                                        {change.version2.quantity}
+                                                                    </Box>
+                                                                </Box>
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell sx={{ textAlign: 'right', width: '120px' }}>
+                                                        {change.type === 'removed' ? (
+                                                            <span style={{ color: '#f44336' }}>
+                                                                {formatNumber(change.version1.price)}
+                                                            </span>
+                                                        ) : change.type === 'added' ? (
+                                                            <span style={{ color: '#4caf50' }}>
+                                                                {formatNumber(change.version2.price)}
+                                                            </span>
+                                                        ) : (
+                                                            <Box>
+                                                                <Box style={{ color: '#ff9800' }}>
+                                                                    {formatNumber(change.version1.price)}
+                                                                </Box>
+                                                                <Box style={{ color: '#2196f3' }}>
+                                                                    {formatNumber(change.version2.price)}
+                                                                </Box>
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell sx={{ textAlign: 'right', width: '120px' }}>
+                                                        {change.type === 'removed' ? (
+                                                            <span style={{ color: '#f44336' }}>
+                                                                {formatNumber(change.version1.totalPrice)}
+                                                            </span>
+                                                        ) : change.type === 'added' ? (
+                                                            <span style={{ color: '#4caf50' }}>
+                                                                {formatNumber(change.version2.totalPrice)}
+                                                            </span>
+                                                        ) : (
+                                                            <Box>
+                                                                <Box style={{ color: '#ff9800' }}>
+                                                                    {formatNumber(change.version1.totalPrice)}
+                                                                </Box>
+                                                                <Box style={{ color: '#2196f3' }}>
+                                                                    {formatNumber(change.version2.totalPrice)}
+                                                                </Box>
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            ) : (
+                                <Box sx={{
+                                    p: 2,
+                                    border: '1px dashed #ccc',
+                                    borderRadius: 1,
+                                    textAlign: 'center',
+                                    color: '#666',
+                                    backgroundColor: '#f5f5f5'
+                                }}>
+                                    <Typography variant="body2" sx={{ fontSize: '12px' }}>
+                                        ✅ Изменений между версиями не найдено
+                                    </Typography>
+                                </Box>
+                            )}
                         </Box>
                     ) : (
                         <Box sx={{
@@ -1595,7 +1808,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             textAlign: 'center',
                             color: '#666'
                         }}>
-                            Ошибка загрузки данных сравнения
+                            <Typography variant="body2" sx={{ fontSize: '12px' }}>
+                                Ошибка загрузки данных сравнения
+                            </Typography>
                         </Box>
                     )}
                 </DialogContent>
