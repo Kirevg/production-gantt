@@ -197,10 +197,4 @@ C:\Projects\production-gantt\restart-servers.ps1
 C:\Projects\production-gantt\ai-git-commands.bat save
 ```
 
-### 🔄 **ОТКАТ И ИСТОРИЯ:**
-```powershell
-git log --oneline -5          # показать последние 5 коммитов
-git reset --hard HEAD~1       # откатиться на 1 коммит назад
-git reset --hard <commit-hash> # откатиться к конкретному коммиту
-```
 
