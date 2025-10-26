@@ -93,6 +93,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     canDelete = () => true
 }) => {
     const [specifications, setSpecifications] = useState<Specification[]>([]);
+    const [isSpecificationLocked, setIsSpecificationLocked] = useState(false); // Состояние блокировки спецификации
 
     // Состояние для "Окна выбора номенклатуры" - диалога замены позиций в спецификации
     const [editingCell, setEditingCell] = useState<string | null>(null); // ID редактируемой ячейки (null = окно закрыто)
@@ -203,7 +204,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     // Функции для inline редактирования количества
     const handleQuantityClick = (specificationId: string, currentQuantity: number) => {
-        if (canEdit()) {
+        if (canEdit() && !isSpecificationLocked) {
             setEditingQuantity(specificationId);
             setQuantityValue(currentQuantity.toString());
         }
@@ -214,8 +215,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     };
 
     const handleQuantitySave = async (specificationId: string) => {
-        if (!canEdit()) {
-            console.log('Нет прав на редактирование');
+        if (!canEdit() || isSpecificationLocked) {
+            console.log('Нет прав на редактирование или спецификация заблокирована');
             setEditingQuantity(null);
             return;
         }
@@ -266,7 +267,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     // Функции для inline редактирования цены за единицу
     const handlePriceClick = (specificationId: string, currentPrice: number) => {
-        if (canEdit()) {
+        if (canEdit() && !isSpecificationLocked) {
             setEditingPrice(specificationId);
             setPriceValue(currentPrice.toString());
         }
@@ -277,8 +278,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     };
 
     const handlePriceSave = async (specificationId: string) => {
-        if (!canEdit()) {
-            console.log('Нет прав на редактирование');
+        if (!canEdit() || isSpecificationLocked) {
+            console.log('Нет прав на редактирование или спецификация заблокирована');
             setEditingPrice(null);
             return;
         }
@@ -479,6 +480,30 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         }
     };
 
+    // Загрузка информации о блокировке спецификации
+    const fetchSpecificationInfo = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен авторизации не найден');
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productSpecificationId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setIsSpecificationLocked(data.isLocked || false);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки информации о спецификации:', error);
+        }
+    };
+
     const fetchNomenclature = async () => {
         try {
             setNomenclatureLoading(true);
@@ -517,6 +542,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     useEffect(() => {
         fetchSpecifications();
+        fetchSpecificationInfo();
     }, [productSpecificationId]);
 
     const handleOpenCreateForm = async () => {
@@ -693,6 +719,10 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     };
 
     const handleDeleteSpecification = (specification: Specification) => {
+        if (isSpecificationLocked) {
+            alert('Спецификация заблокирована и не может быть изменена');
+            return;
+        }
         setDeletingSpecification(specification);
         setShowDeleteDialog(true);
     };
@@ -1132,7 +1162,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
     };
 
     // Функция копирования спецификации
-    const handleCopySpecification = async (specification: any) => {
+    const handleCopySpecification = async () => {
         try {
             const response = await fetch(`/api/product-specifications/${productSpecificationId}/copy`, {
                 method: 'POST',
@@ -1214,9 +1244,26 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             <Box className="page-header" sx={{ flexShrink: 0 }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                     Спецификация: {productName}
+                    {isSpecificationLocked && (
+                        <Box
+                            component="span"
+                            sx={{
+                                ml: 2,
+                                px: 1,
+                                py: 0.5,
+                                backgroundColor: '#ffebee',
+                                color: '#d32f2f',
+                                borderRadius: 1,
+                                fontSize: '12px',
+                                fontWeight: 'normal'
+                            }}
+                        >
+                            🔒 Заблокирована
+                        </Box>
+                    )}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                    {canCreate() && (
+                    {canCreate() && !isSpecificationLocked && (
                         <VolumeButton
                             variant="contained"
                             onClick={handleAddEmptyRow}
@@ -1225,7 +1272,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             Добавить
                         </VolumeButton>
                     )}
-                    {canCreate() && (
+                    {canCreate() && !isSpecificationLocked && (
                         <VolumeButton
                             variant="contained"
                             onClick={handleImport}
@@ -1234,7 +1281,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             Импорт
                         </VolumeButton>
                     )}
-                    {canDelete() && specifications.length > 0 && (
+                    {canDelete() && specifications.length > 0 && !isSpecificationLocked && (
                         <VolumeButton
                             variant="contained"
                             onClick={handleClearAll}
@@ -1243,7 +1290,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             Очистить
                         </VolumeButton>
                     )}
-                    {canCreate() && (
+                    {canCreate() && !isSpecificationLocked && (
                         <VolumeButton
                             variant="contained"
                             onClick={handleOpenCreateForm}
@@ -1616,7 +1663,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         {/* Кнопка с плюсом в стиле 1С - небольшая прямоугольная */}
                                                         {!specification.isLocked && (
                                                             <Box
-                                                                onClick={() => handleCopySpecification(specification)}
+                                                                onClick={() => handleCopySpecification()}
                                                                 sx={{
                                                                     width: '30px',
                                                                     height: '20px',
@@ -1635,17 +1682,17 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                                     }
                                                                 }}
                                                             >
-                                                            <Typography variant="body2" sx={{
-                                                                fontWeight: 'bold',
-                                                                color: '#000',
-                                                                fontFamily: 'Arial, sans-serif',
-                                                                fontSize: '12px',
-                                                                textAlign: 'center',
-                                                                lineHeight: 1
-                                                            }}>
-                                                                +
-                                                            </Typography>
-                                                        </Box>
+                                                                <Typography variant="body2" sx={{
+                                                                    fontWeight: 'bold',
+                                                                    color: '#000',
+                                                                    fontFamily: 'Arial, sans-serif',
+                                                                    fontSize: '12px',
+                                                                    textAlign: 'center',
+                                                                    lineHeight: 1
+                                                                }}>
+                                                                    +
+                                                                </Typography>
+                                                            </Box>
                                                         )}
                                                     </Box>
                                                 </Box>
@@ -1745,7 +1792,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     width: '40px',
                                     cursor: 'default' // Заблокированное изменение размера
                                 }}>
-                                    {canDelete() && !specification.isLocked && (
+                                    {canDelete() && !specification.isLocked && !isSpecificationLocked && (
                                         <IconButton
                                             size="small"
                                             onClick={() => handleDeleteSpecification(specification)}

@@ -131,8 +131,8 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
 
         // Проверяем, не заблокирована ли спецификация
         if (existingSpec.isLocked) {
-            return res.status(403).json({ 
-                error: 'Спецификация заблокирована для редактирования. Сначала удалите все дочерние спецификации.' 
+            return res.status(403).json({
+                error: 'Спецификация заблокирована для редактирования. Сначала удалите все дочерние спецификации.'
             });
         }
 
@@ -173,8 +173,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         // Проверяем, не заблокирована ли спецификация
         if (existingSpec.isLocked) {
-            return res.status(403).json({ 
-                error: 'Спецификация заблокирована для удаления. Сначала удалите все дочерние спецификации.' 
+            return res.status(403).json({
+                error: 'Спецификация заблокирована для удаления. Сначала удалите все дочерние спецификации.'
             });
         }
 
@@ -185,6 +185,33 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Ошибка при удалении спецификации изделия:', error);
         res.status(500).json({ error: 'Ошибка при удалении спецификации изделия' });
+    }
+});
+
+// GET /:id - Получить информацию о спецификации
+router.get('/:id', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Проверяем права доступа
+        const productSpec = await prisma.productSpecification.findFirst({
+            where: {
+                id,
+                product: {
+                    project: {
+                        ownerId: (req as AuthenticatedRequest).user.id
+                    }
+                }
+            }
+        });
+
+        if (!productSpec) {
+            return res.status(404).json({ error: 'Спецификация изделия не найдена' });
+        }
+
+        res.json(productSpec);
+    } catch (error) {
+        console.error('Ошибка при получении спецификации:', error);
+        res.status(500).json({ error: 'Ошибка при получении спецификации' });
     }
 });
 
@@ -232,8 +259,8 @@ router.get('/:id/specifications', authenticateToken, async (req, res) => {
     }
 });
 
-// POST /product-specifications/:id/copy - Копировать спецификацию изделия
-router.post('/product-specifications/:id/copy', authenticateToken, async (req, res) => {
+// POST /:id/copy - Копировать спецификацию изделия
+router.post('/:id/copy', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа к оригинальной спецификации
@@ -263,9 +290,9 @@ router.post('/product-specifications/:id/copy', authenticateToken, async (req, r
         // Создаем копию спецификации
         const copiedSpec = await prisma.productSpecification.create({
             data: {
-                name: `${originalSpec.name} (копия)`,
-                description: originalSpec.description,
-                version: originalSpec.version,
+                name: originalSpec.name, // Название копируется БЕЗ добавления "(копия)"
+                description: '', // Описание НЕ копируется - остается пустым
+                version: (originalSpec.version || 1) + 1, // Увеличиваем версию на 1
                 productId: originalSpec.productId,
                 isLocked: false, // Новая спецификация не заблокирована
                 totalSum: originalSpec.totalSum
@@ -291,12 +318,12 @@ router.post('/product-specifications/:id/copy', authenticateToken, async (req, r
         console.log('=== BLOCKING ORIGINAL SPECIFICATION ===');
         console.log('Original spec ID:', id);
         console.log('Setting isLocked to true');
-        
+
         const updatedSpec = await prisma.productSpecification.update({
             where: { id },
             data: { isLocked: true }
         });
-        
+
         console.log('Updated specification:', updatedSpec);
         console.log('isLocked value:', updatedSpec.isLocked);
 

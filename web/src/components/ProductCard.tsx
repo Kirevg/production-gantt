@@ -38,6 +38,7 @@ interface ProjectSpecification {
     description?: string;
     totalSum?: number; // Общая сумма спецификации
     version?: number; // Версия спецификации
+    isLocked?: boolean; // Заблокирована ли спецификация
     createdAt: string;
     updatedAt: string;
 }
@@ -577,6 +578,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     const handleDeleteSpecification = async (specificationId: string) => {
+        // Находим спецификацию для проверки блокировки
+        const specification = specifications.find(spec => spec.id === specificationId);
+        if (specification?.isLocked) {
+            alert('Эта спецификация заблокирована и не может быть удалена');
+            return;
+        }
+
         if (!window.confirm('Вы уверены, что хотите удалить эту спецификацию?')) {
             return;
         }
@@ -603,6 +611,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
     // Функции для inline редактирования описания спецификации
     const handleDescriptionClick = (specificationId: string, currentDescription: string) => {
         if (canEdit()) {
+            // Проверяем, не заблокирована ли спецификация
+            const specification = specifications.find(spec => spec.id === specificationId);
+            if (specification?.isLocked) {
+                alert('Эта спецификация заблокирована и не может быть изменена');
+                return;
+            }
             setEditingDescription(specificationId);
             setDescriptionValue(currentDescription || '');
         }
@@ -615,6 +629,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const handleDescriptionSave = async (specificationId: string) => {
         if (!canEdit()) {
             console.log('Нет прав на редактирование');
+            setEditingDescription(null);
+            return;
+        }
+
+        // Проверяем, не заблокирована ли спецификация
+        const specification = specifications.find(spec => spec.id === specificationId);
+        if (specification?.isLocked) {
+            console.log('Спецификация заблокирована');
             setEditingDescription(null);
             return;
         }
@@ -673,29 +695,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
-            // Создаем копию спецификации с увеличенной версией
-            const newVersion = (originalSpecification.version || 1) + 1;
-            const copyData = {
-                name: originalSpecification.name, // Копируем исходное название
-                description: '', // Описание не копируется
-                version: newVersion
-            };
-
-            const response = await fetch(`http://localhost:4000/product-specifications/products/${currentProductId}/specifications`, {
+            // Используем специальный эндпоинт для полного копирования спецификации
+            // Этот эндпоинт копирует ВСЕ строки спецификации, а не только базовую информацию
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${originalSpecification.id}/copy`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(copyData)
+                }
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Ошибка копирования спецификации:', errorData);
+                alert(`Ошибка при копировании спецификации: ${errorData.error || 'Неизвестная ошибка'}`);
+                return;
             }
 
             const newSpecification = await response.json();
-            console.log('Копия спецификации создана:', newSpecification);
+            console.log('Копия спецификации создана с содержимым:', newSpecification);
 
             // Обновляем список спецификаций
             await fetchSpecifications();
@@ -705,6 +723,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         } catch (error) {
             console.error('Ошибка создания копии спецификации:', error);
+            alert('Произошла ошибка при копировании спецификации');
         }
     };
 
@@ -930,38 +949,68 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 specifications.map((specification) => (
                                     <TableRow
                                         key={specification.id}
-                                        sx={{ height: '35px', cursor: 'pointer' }}
-                                        onDoubleClick={() => onOpenSpecification(specification.id, specification.name)}
+                                        sx={{ height: '35px', cursor: specification.isLocked ? 'not-allowed' : 'pointer' }}
+                                        onDoubleClick={() => {
+                                            if (specification.isLocked) {
+                                                alert('Эта спецификация заблокирована и не может быть открыта для редактирования');
+                                                return;
+                                            }
+                                            onOpenSpecification(specification.id, specification.name);
+                                        }}
                                     >
                                         <TableCell sx={{ py: 0.5, width: '300px' }}>
-                                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                                {specification.name}
-                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                                    {specification.name}
+                                                </Typography>
+                                                {specification.isLocked && (
+                                                    <Box
+                                                        sx={{
+                                                            width: '16px',
+                                                            height: '16px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            color: '#d32f2f',
+                                                            fontSize: '12px'
+                                                        }}
+                                                        title="Спецификация заблокирована (есть дочерние копии)"
+                                                    >
+                                                        🔒
+                                                    </Box>
+                                                )}
+                                            </Box>
                                         </TableCell>
                                         <TableCell sx={{ py: 0.5, textAlign: 'center', width: '100px' }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                                                 <Box
                                                     onClick={() => {
+                                                        // Проверяем, не заблокирована ли спецификация
+                                                        if (specification.isLocked) {
+                                                            alert('Эта спецификация заблокирована и не может быть скопирована');
+                                                            return;
+                                                        }
                                                         handleCreateSpecificationCopy(specification);
                                                     }}
                                                     sx={{
                                                         width: '20px',
                                                         height: '20px',
                                                         p: '2px 4px',
-                                                        cursor: 'pointer',
-                                                        backgroundColor: '#f0f0f0',
-                                                        border: '1px solid #808080',
+                                                        cursor: specification.isLocked ? 'not-allowed' : 'pointer',
+                                                        backgroundColor: specification.isLocked ? '#ffebee' : '#f0f0f0',
+                                                        border: specification.isLocked ? '1px solid #f44336' : '1px solid #808080',
                                                         fontFamily: 'Arial, sans-serif',
                                                         fontSize: '11px',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
+                                                        opacity: specification.isLocked ? 0.6 : 1,
                                                         '&:hover': {
-                                                            backgroundColor: '#e8e8e8'
+                                                            backgroundColor: specification.isLocked ? '#ffebee' : '#e8e8e8'
                                                         },
                                                         '&:active': {
-                                                            backgroundColor: '#d8d8d8',
-                                                            border: '1px solid #404040'
+                                                            backgroundColor: specification.isLocked ? '#ffebee' : '#d8d8d8',
+                                                            border: specification.isLocked ? '1px solid #f44336' : '1px solid #404040'
                                                         }
                                                     }}
                                                 >
@@ -1027,7 +1076,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                         </TableCell>
                                         <TableCell sx={{ textAlign: 'center', py: 0.5, width: '40px' }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                {canDelete() && (
+                                                {canDelete() && !specification.isLocked && (
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => handleDeleteSpecification(specification.id)}
