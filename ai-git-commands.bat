@@ -23,7 +23,7 @@ for /f "tokens=1-3 delims=:" %%a in ('time /t') do (set mytime=%%a:%%b:%%c)
 set mytime=%mytime: =%
 shift
 if "%1"=="" (
-    set desc=AI checkpoint
+    set desc=Проверка ИИ
 ) else (
     set desc=%*
 )
