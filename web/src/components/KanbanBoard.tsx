@@ -263,7 +263,7 @@ const KanbanBoard: React.FC = () => {
                                                                 </Box>
                                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                                                                     <Typography variant="body2" color="text.secondary">
-                                                                        👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
+                                                                        👤 {task.assignee || 'Не назначен'}
                                                                     </Typography>
                                                                     <Typography variant="body2" color="text.secondary">
                                                                         💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
