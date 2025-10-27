@@ -434,9 +434,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                                                         {task.name}
                                                                     </Typography>
-                                                                    <Typography variant="caption" sx={{ color: '#666', fontSize: '0.85em' }}>
-                                                                        📅 {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
-                                                                    </Typography>
+                                                                                                                                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.85em' }}>
+                                                                         📅 {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.start)} - {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.end)}
+                                                                     </Typography>
                                                                 </Box>
                                                                                                                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                                                                      <Typography variant="body2" color="text.secondary">
