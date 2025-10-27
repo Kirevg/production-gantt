@@ -122,6 +122,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                     return null;
                 }
 
+                console.log('📊 Данные этапа из API:', {
+                    id: stage.id,
+                    name: stage.name,
+                    workTypeId: stage.workTypeId,
+                    _debug: stage._debug
+                });
+
                 return {
                     id: stage.id,
                     name: stage.name || 'Этап', // Только название этапа, изделие показывается ниже
@@ -196,6 +203,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
     // Обработчик клика по карточке этапа работ
     const handleCardClick = (task: KanbanTask) => {
         console.log('Клик по карточке:', task);
+        console.log('workTypeId из задачи:', task.workTypeId);
         setEditingTask(task);
         // Форматируем дату для input
         const startDate = task.start.toISOString().split('T')[0];
@@ -209,6 +217,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
             workTypeId: task.workTypeId || '',
             assigneeId: task.assigneeId || ''
         });
+        console.log('stageForm после установки:', { workTypeId: task.workTypeId || '' });
         setOpenEditDialog(true);
     };
 

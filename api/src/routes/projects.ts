@@ -128,6 +128,11 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       hours: stage.hours || '0',
       assigneeId: stage.assigneeId || null, // ID исполнителя
       workTypeId: stage.nomenclatureItemId || null, // ID вида работ
+      // Логируем для отладки
+      _debug: {
+        nomenclatureItemId: stage.nomenclatureItemId,
+        nomenclatureItemName: stage.nomenclatureItem?.name
+      },
       projectId: stage.product.project.id,
       projectName: stage.product.project.name,
       productId: stage.product.id,
