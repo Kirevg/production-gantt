@@ -242,7 +242,7 @@ const KanbanBoard: React.FC = () => {
                                                         }}
                                                     >
                                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                            🏗️ {productDisplayName} - Этапов: {productTasks.length}
+                                                            🏗️ Изделие: {productDisplayName} - Этапов: {productTasks.length}
                                                         </Typography>
                                                     </Paper>
                                                     
