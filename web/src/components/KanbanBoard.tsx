@@ -118,25 +118,6 @@ const KanbanBoard: React.FC = () => {
 
     return (
         <Box sx={{ width: '100%', minHeight: '600px' }}>
-            {/* Заголовок с кнопкой обновления */}
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                mb: 2,
-                p: 2,
-                backgroundColor: '#f5f5f5',
-                borderRadius: 1
-            }}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Tooltip title="Обновить">
-                        <IconButton onClick={handleRefresh} size="small">
-                            <Refresh />
-                        </IconButton>
-                    </Tooltip>
-                </Box>
-            </Box>
-
             {/* Канбан-доска */}
             <Paper sx={{ minHeight: 'calc(100% - 80px)', overflow: 'auto' }}>
                 {loading ? (
@@ -175,9 +156,16 @@ const KanbanBoard: React.FC = () => {
                     </Box>
                 ) : kanbanTasks.length > 0 ? (
                     <Box sx={{ p: 2 }}>
-                        <Typography variant="h6" sx={{ mb: 2 }}>
-                            Этапы работ ({kanbanTasks.length})
-                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h6">
+                                Этапы работ ({kanbanTasks.length})
+                            </Typography>
+                            <Tooltip title="Обновить">
+                                <IconButton onClick={handleRefresh} size="small">
+                                    <Refresh />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
                         {/* Группируем задачи по проектам и изделиям */}
                         {(() => {
                             // Сначала группируем задачи по projectId
