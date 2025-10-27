@@ -261,12 +261,14 @@ const KanbanBoard: React.FC = () => {
                                                                         📅 {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
                                                                     </Typography>
                                                                 </Box>
-                                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                                    👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
-                                                                </Typography>
-                                                                <Typography variant="body2" color="text.secondary">
-                                                                    💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
-                                                                </Typography>
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
+                                                                    </Typography>
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
+                                                                    </Typography>
+                                                                </Box>
                                                             </Paper>
                                                         ))}
                                                     </Box>
