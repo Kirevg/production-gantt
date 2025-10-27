@@ -191,9 +191,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     );
 
     // Состояние для отслеживания активного перетаскивания
-    const [activeId, setActiveId] = useState<string | null>(null);
-    const [overId, setOverId] = useState<string | null>(null);
-    const [shouldMove, setShouldMove] = useState<boolean>(false);
+    // const [activeId, setActiveId] = useState<string | null>(null);
+    // const [overId, setOverId] = useState<string | null>(null);
+    // const [shouldMove, setShouldMove] = useState<boolean>(false);
 
     // Функция загрузки сохраненного порядка из localStorage
     const loadSavedOrder = (tasks: KanbanTask[]): KanbanTask[] => {
@@ -467,39 +467,39 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     };
 
     // Обработчики drag-and-drop
-    const handleDragStart = (event: any) => {
-        setActiveId(event.active.id);
-        setOverId(null);
-        setShouldMove(false);
+    const handleDragStart = (_event: any) => {
+        // setActiveId(event.active.id);
+        // setOverId(null);
+        // setShouldMove(false);
     };
 
-    const handleDragOver = (event: any) => {
-        try {
-            const { active, over } = event;
+    const handleDragOver = (_event: any) => {
+        // try {
+        //     const { active, over } = event;
 
-            if (over?.id && active?.id && active.id !== over.id) {
-                setOverId(over.id);
+        //     if (over?.id && active?.id && active.id !== over.id) {
+        //         setOverId(over.id);
 
-                // 🎬 ТОЛЬКО АНИМАЦИЯ - проверяем пересечение на 50%
-                // Сохранение происходит только в handleDragEnd при отпускании кнопки мыши
-                const activeRect = active.rect?.current?.translated;
-                const overRect = over.rect?.current?.translated;
+        //         // 🎬 ТОЛЬКО АНИМАЦИЯ - проверяем пересечение на 50%
+        //         // Сохранение происходит только в handleDragEnd при отпускании кнопки мыши
+        //         const activeRect = active.rect?.current?.translated;
+        //         const overRect = over.rect?.current?.translated;
 
-                if (activeRect && overRect) {
-                    const intersection = getIntersectionRatio(activeRect, overRect);
-                    setShouldMove(intersection > 0.5);
-                } else {
-                    setShouldMove(false);
-                }
-            } else {
-                setOverId(null);
-                setShouldMove(false);
-            }
-        } catch (error) {
-            console.warn('Ошибка в handleDragOver:', error);
-            setOverId(null);
-            setShouldMove(false);
-        }
+        //         if (activeRect && overRect) {
+        //             const intersection = getIntersectionRatio(activeRect, overRect);
+        //             setShouldMove(intersection > 0.5);
+        //         } else {
+        //             setShouldMove(false);
+        //         }
+        //     } else {
+        //         setOverId(null);
+        //         setShouldMove(false);
+        //     }
+        // } catch (error) {
+        //     console.warn('Ошибка в handleDragOver:', error);
+        //     setOverId(null);
+        //     setShouldMove(false);
+        // }
     };
 
     const handleDragEnd = async (event: any) => {
@@ -536,9 +536,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         }
 
         // Сбрасываем состояние перетаскивания в конце
-        setActiveId(null);
-        setOverId(null);
-        setShouldMove(false);
+        // setActiveId(null);
+        // setOverId(null);
+        // setShouldMove(false);
     };
 
     // Функция для вычисления процента пересечения
