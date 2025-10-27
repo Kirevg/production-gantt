@@ -2938,10 +2938,9 @@ export default function App() {
   };
 
   // Функция для открытия страницы этапов из канбана
-  const handleOpenStageFromKanban = (productId: string, stageId?: string) => {
+  const handleOpenStageFromKanban = (productId: string) => {
     setSelectedProductId(productId);
     setShowStagesPage(true);
-    // TODO: Можно добавить автоматическое открытие конкретного этапа по stageId
   };
 
   // Функция для открытия списка спецификаций проекта
@@ -3096,16 +3095,7 @@ export default function App() {
               </Typography>
 
               {/* Gantt-диаграмма */}
-              <GanttChart
-                projectId="all"
-                stages={[]} // Пока пустой массив, позже добавим загрузку данных
-                onStageUpdate={() => { }} // Пока заглушки
-                onStageCreate={() => { }}
-                onStageDelete={() => { }}
-                canEdit={canEdit}
-                canCreate={canCreate}
-                canDelete={canDelete}
-              />
+              <GanttChart />
             </Box>
           </Box>
         );

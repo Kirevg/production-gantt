@@ -383,7 +383,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                     p: '8px',
                                                     mb: 1,
                                                     backgroundColor: '#f5f5f5',
-                                                    borderLeft: '4px solid #1976d2',
                                                     borderRadius: '2px'
                                                 }}
                                             >
@@ -410,18 +409,17 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                              p: 1
                                                          }}
                                                      >
-                                                         {/* Заголовок изделия */}
+                                                                                                                  {/* Заголовок изделия */}
                                                          <Box
                                                              sx={{
                                                                  p: 1,
                                                                  mb: 1,
                                                                  backgroundColor: '#fafafa',
-                                                                 borderLeft: '3px solid #4caf50',
                                                                  borderRadius: '2px'
                                                              }}
                                                          >
                                                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                                 🏗️ Изделие: {productDisplayName} - Этапов: {productTasks.length}
+                                                                  🏗️ Изделие: {productDisplayName} - Этапов: {productTasks.length}
                                                              </Typography>
                                                          </Box>
                                                          
