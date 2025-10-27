@@ -213,8 +213,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
         setEditingTask(task);
         // Форматируем дату для input
         const startDate = task.start.toISOString().split('T')[0];
-        // Вычисляем длительность: endDate - startDate в днях
-        const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24));
+        // Вычисляем длительность: endDate - startDate + 1 день (включаем обе даты)
+        const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         console.log('Вычисленная длительность:', duration, 'дней');
         console.log('Даты:', { start: task.start, end: task.end });
         
@@ -258,9 +258,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
             }
 
             // Вычисляем дату окончания
+            // duration уже включает даты начала и окончания, поэтому вычитаем 1 день
             const startDate = new Date(stageForm.startDate);
             const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + stageForm.duration);
+            endDate.setDate(startDate.getDate() + stageForm.duration - 1);
 
             const requestData = {
                 sum: stageForm.sum,
