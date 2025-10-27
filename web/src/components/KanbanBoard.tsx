@@ -3,6 +3,28 @@ import { Box, Typography, Paper, IconButton, Tooltip, Dialog, DialogTitle, Dialo
 import { Refresh } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 
+// Функция для форматирования суммы в формате "0 000,00"
+const formatSum = (value: string | undefined | null): string => {
+    if (!value || value === '') return '';
+
+    // Убираем все символы кроме цифр и точки/запятой
+    const cleaned = String(value).replace(/[^\d.,]/g, '');
+
+    // Заменяем запятую на точку для корректного парсинга
+    const normalized = cleaned.replace(',', '.');
+
+    // Парсим число
+    const number = parseFloat(normalized);
+
+    if (isNaN(number)) return value;
+
+    // Форматируем число с разделителями тысяч и двумя знаками после запятой
+    return number.toLocaleString('ru-RU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+};
+
 // Интерфейс для задач канбан-доски
 interface KanbanTask {
     id: string;
@@ -492,8 +514,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                         <Box sx={{ display: 'flex', gap: 2 }}>
                             <TextField
                                 label="Сумма"
-                                value={stageForm.sum}
+                                value={formatSum(stageForm.sum)}
                                 onChange={(e) => setStageForm({ ...stageForm, sum: e.target.value })}
+                                inputProps={{ style: { textAlign: 'right' } }}
                                 sx={{ flex: 1 }}
                             />
                             <TextField
