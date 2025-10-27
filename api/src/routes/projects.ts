@@ -99,7 +99,8 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       include: {
         product: {
           include: {
-            project: true
+            project: true,
+            product: true // Добавляем справочник изделий
           }
         },
         nomenclatureItem: true,
@@ -128,7 +129,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       projectId: stage.product.project.id,
       projectName: stage.product.project.name,
       productId: stage.product.id,
-      productName: stage.product.name,
+      productName: stage.product.product?.name || 'Изделие', // Теперь правильно получаем название из справочника
       projectStatus: stage.product.project.status,
       duration: stage.duration
     }));
