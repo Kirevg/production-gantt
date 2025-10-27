@@ -542,7 +542,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                 />
                             </Box>
                             <TextField
-                                label="Срок"
+                                label="Срок (дни)"
                                 type="number"
                                 value={stageForm.duration}
                                 onChange={(e) => setStageForm({ ...stageForm, duration: parseInt(e.target.value) || 1 })}
