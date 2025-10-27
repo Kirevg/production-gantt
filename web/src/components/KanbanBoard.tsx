@@ -71,7 +71,7 @@ const KanbanBoard: React.FC = () => {
 
                 return {
                     id: stage.id,
-                    name: `${stage.projectName || 'Проект'} - ${stage.productName || 'Изделие'} - ${stage.name || 'Этап'}`,
+                    name: `${stage.productName || 'Изделие'} - ${stage.name || 'Этап'}`, // Убрали название проекта, так как оно в заголовке группы
                     start: startDate,
                     end: endDate,
                     progress: Math.min(Math.max(stage.progress || 0, 0), 100),
