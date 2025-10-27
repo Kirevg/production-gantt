@@ -499,14 +499,40 @@ const KanbanBoard: React.FC = () => {
                             />
                         </Box>
                         <Box sx={{ display: 'flex', gap: 2 }}>
-                            <TextField
-                                label="Дата начала"
-                                type="date"
-                                value={stageForm.startDate}
-                                onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ flex: 1 }}
-                            />
+                            <Box sx={{ flex: 1, position: 'relative' }}>
+                                <TextField
+                                    label="Дата начала"
+                                    type="date"
+                                    value={stageForm.startDate}
+                                    onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{ width: '100%' }}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    const input = e.currentTarget.parentElement?.querySelector('input[type="date"]') as HTMLInputElement;
+                                                    if (input) {
+                                                        input.focus();
+                                                        setTimeout(() => {
+                                                            try {
+                                                                input.showPicker?.();
+                                                            } catch (error) {
+                                                                input.click();
+                                                            }
+                                                        }, 0);
+                                                    }
+                                                }}
+                                                sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}
+                                            >
+                                                📅
+                                            </IconButton>
+                                        )
+                                    }}
+                                />
+                            </Box>
                             <TextField
                                 label="Срок"
                                 type="number"
