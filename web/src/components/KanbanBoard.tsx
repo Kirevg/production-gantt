@@ -507,8 +507,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                 <TextField
                                     label="Дата начала"
                                     type="date"
-                                    value={stageForm.startDate}
-                                    onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
+                                    value={stageForm.startDate ? (typeof stageForm.startDate === 'string' ? stageForm.startDate.split('T')[0] : new Date(stageForm.startDate).toISOString().split('T')[0]) : ''}
+                                    onChange={(e) => {
+                                        setStageForm({ ...stageForm, startDate: e.target.value });
+                                    }}
                                     InputLabelProps={{ shrink: true }}
                                     sx={{ width: '100%' }}
                                     InputProps={{
@@ -520,10 +522,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                     const input = e.currentTarget.parentElement?.querySelector('input[type="date"]') as HTMLInputElement;
                                                     if (input) {
                                                         input.focus();
+                                                        // Используем setTimeout для корректного вызова showPicker
                                                         setTimeout(() => {
                                                             try {
                                                                 input.showPicker?.();
                                                             } catch (error) {
+                                                                // Если showPicker не работает, просто фокусируемся
                                                                 input.click();
                                                             }
                                                         }, 0);
