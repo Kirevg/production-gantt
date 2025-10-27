@@ -438,14 +438,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                                         📅 {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
                                                                     </Typography>
                                                                 </Box>
-                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                                                                    <Typography variant="body2" color="text.secondary">
-                                                                        👤 {task.assignee || 'Не назначен'}
-                                                                    </Typography>
-                                                                    <Typography variant="body2" color="text.secondary">
-                                                                        💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
-                                                                    </Typography>
-                                                                </Box>
+                                                                                                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                                                     <Typography variant="body2" color="text.secondary">
+                                                                         👤 {task.assignee || 'Не назначен'}
+                                                                     </Typography>
+                                                                     <Typography variant="body2" color="text.secondary">
+                                                                         💰 <strong>Сумма:</strong> {formatSum(task.sum)} ₽
+                                                                     </Typography>
+                                                                 </Box>
                                                             </Paper>
                                                         ))}
                                                     </Box>
