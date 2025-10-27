@@ -414,22 +414,22 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                         gap: 1,
                                                         ml: 2
                                                     }}>
-                                                        {productTasks.map((task) => (
-                                                            <Paper
-                                                                key={task.id}
-                                                                sx={{
-                                                                    p: '4px',
-                                                                    minWidth: '150px',
-                                                                    border: '1px solid #e0e0e0',
-                                                                    cursor: 'pointer',
-                                                                    transition: 'all 0.2s ease',
-                                                                    '&:hover': {
-                                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                                                                        transform: 'translateY(-2px)'
-                                                                    }
-                                                                }}
-                                                                onClick={() => handleCardClick(task)}
-                                                            >
+                                                                                                                 {productTasks.map((task) => (
+                                                             <Paper
+                                                                 key={task.id}
+                                                                 sx={{
+                                                                     p: '4px',
+                                                                     minWidth: '150px',
+                                                                     border: '1px solid #e0e0e0',
+                                                                     cursor: 'pointer',
+                                                                     transition: 'all 0.2s ease',
+                                                                     '&:hover': {
+                                                                         boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                                                         transform: 'translateY(-2px)'
+                                                                     }
+                                                                 }}
+                                                                 onDoubleClick={() => handleCardClick(task)}
+                                                             >
                                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: '30px' }}>
                                                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                                                         {task.name}
