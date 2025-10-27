@@ -418,9 +418,19 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                                  borderRadius: '2px'
                                                              }}
                                                          >
-                                                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                                  🏗️ Изделие: {productDisplayName} - Этапов: {productTasks.length}
-                                                             </Typography>
+                                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+                                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                                                                     🏗️ Изделие: {productName}
+                                                                 </Typography>
+                                                                 {serialNumber && (
+                                                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                                                                         (SN: {serialNumber})
+                                                                     </Typography>
+                                                                 )}
+                                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                                                                     - Этапов: {productTasks.length}
+                                                                 </Typography>
+                                                             </Box>
                                                          </Box>
                                                          
                                                          {/* Карточки этапов работ этого изделия */}
