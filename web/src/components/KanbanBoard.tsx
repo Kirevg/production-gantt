@@ -232,9 +232,9 @@ const KanbanBoard: React.FC = () => {
                                                     
                                                     {/* Карточки этапов работ этого изделия */}
                                                     <Box sx={{
-                                                        display: 'grid',
+                                                        display: 'flex',
+                                                        flexWrap: 'wrap',
                                                         gap: 1,
-                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
                                                         ml: 2
                                                     }}>
                                                         {productTasks.map((task) => (
@@ -242,6 +242,7 @@ const KanbanBoard: React.FC = () => {
                                                                 key={task.id}
                                                                 sx={{
                                                                     p: 2,
+                                                                    minWidth: '150px',
                                                                     border: '1px solid #e0e0e0',
                                                                     cursor: 'pointer',
                                                                     transition: 'all 0.2s ease',
