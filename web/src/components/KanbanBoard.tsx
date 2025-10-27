@@ -217,8 +217,8 @@ const KanbanBoard: React.FC = () => {
                                                 borderLeft: '4px solid #1976d2'
                                             }}
                                         >
-                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                                                📋 {projectName} - Изделий: {productsMap.size}
+                                                                                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                                📋 Проект: {projectName} - Изделий: {productsMap.size}
                                             </Typography>
                                         </Paper>
                                         
