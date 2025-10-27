@@ -44,6 +44,11 @@ interface KanbanTask {
     projectStatus?: string;
     assigneeId?: string | null;
     workTypeId?: string | null;
+    projectManager?: {
+        name: string;
+        phone: string | null;
+        email: string | null;
+    } | null;
 }
 
 interface KanbanBoardProps {
@@ -146,7 +151,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                     productId: stage.productId,
                     productName: stage.productName || 'Изделие',
                     serialNumber: stage.serialNumber || null,
-                    projectStatus: stage.projectStatus
+                    projectStatus: stage.projectStatus,
+                    projectManager: stage.projectManager || null
                 };
             }).filter(Boolean);
 
@@ -389,6 +395,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
                                                     📋 Проект: {projectName} - Изделий: {productsMap.size}
                                                 </Typography>
+                                                {tasks[0]?.projectManager && (
+                                                    <Typography variant="body2" sx={{ mt: 0.5, color: '#424242' }}>
+                                                        РП: {tasks[0].projectManager.name}
+                                                        {tasks[0].projectManager.phone && ` 📞 ${tasks[0].projectManager.phone}`}
+                                                        {tasks[0].projectManager.email && ` 📧 ${tasks[0].projectManager.email}`}
+                                                    </Typography>
+                                                )}
                                             </Box>
                                             
                                             {/* Группировка по изделиям */}

@@ -99,7 +99,19 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       include: {
         product: {
           include: {
-            project: true,
+            project: {
+              include: {
+                projectManager: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    middleName: true,
+                    phone: true,
+                    email: true
+                  }
+                }
+              }
+            },
             product: true // Добавляем справочник изделий
           }
         },
@@ -139,7 +151,12 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       productName: stage.product.product?.name || 'Изделие', // Теперь правильно получаем название из справочника
       serialNumber: stage.product.serialNumber || null, // Серийный номер изделия
       projectStatus: stage.product.project.status,
-      duration: stage.duration
+      duration: stage.duration,
+      projectManager: stage.product.project.projectManager ? {
+        name: `${stage.product.project.projectManager.lastName || ''} ${stage.product.project.projectManager.firstName || ''} ${stage.product.project.projectManager.middleName || ''}`.trim() || 'Не указан',
+        phone: stage.product.project.projectManager.phone || null,
+        email: stage.product.project.projectManager.email || null
+      } : null
     }));
 
     console.log('🎯 Отправляем данные Gantt:', ganttData.length, 'задач');
