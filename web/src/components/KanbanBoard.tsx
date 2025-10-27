@@ -422,11 +422,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
                                                                      🏗️ Изделие: {productName}
                                                                  </Typography>
-                                                                 {serialNumber && (
-                                                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                                         (SN: {serialNumber})
-                                                                     </Typography>
-                                                                 )}
+                                                                                                                                   {serialNumber && (
+                                                                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                                                                          (Сер №: {serialNumber})
+                                                                      </Typography>
+                                                                  )}
                                                                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
                                                                      - Этапов: {productTasks.length}
                                                                  </Typography>
