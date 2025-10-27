@@ -407,48 +407,56 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                         </Typography>
                                                     </Paper>
                                                     
-                                                    {/* Карточки этапов работ этого изделия */}
-                                                    <Box sx={{
-                                                        display: 'flex',
-                                                        flexWrap: 'wrap',
-                                                        gap: 1,
-                                                        ml: 2
-                                                    }}>
-                                                                                                                 {productTasks.map((task) => (
-                                                             <Paper
-                                                                 key={task.id}
-                                                                 sx={{
-                                                                     p: '4px',
-                                                                     minWidth: '150px',
-                                                                     border: '1px solid #e0e0e0',
-                                                                     cursor: 'pointer',
-                                                                     transition: 'all 0.2s ease',
-                                                                     '&:hover': {
-                                                                         boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                                                                         transform: 'translateY(-2px)'
-                                                                     }
-                                                                 }}
-                                                                 onDoubleClick={() => handleCardClick(task)}
-                                                             >
-                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: '30px' }}>
-                                                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                                                        {task.name}
-                                                                    </Typography>
-                                                                                                                                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.85em' }}>
-                                                                         📅 {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.start)} - {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.end)}
-                                                                     </Typography>
-                                                                </Box>
-                                                                                                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                                                                     <Typography variant="body2" color="text.secondary">
-                                                                         👤 {task.assignee || 'Не назначен'}
-                                                                     </Typography>
-                                                                     <Typography variant="body2" color="text.secondary">
-                                                                         💰 <strong>Сумма:</strong> {formatSum(task.sum)} ₽
-                                                                     </Typography>
-                                                                 </Box>
-                                                            </Paper>
-                                                        ))}
-                                                    </Box>
+                                                                                                         {/* Карточки этапов работ этого изделия */}
+                                                     <Paper
+                                                         sx={{
+                                                             border: '2px solid #4caf50',
+                                                             borderRadius: '4px',
+                                                             p: 1,
+                                                             ml: 2
+                                                         }}
+                                                     >
+                                                         <Box sx={{
+                                                             display: 'flex',
+                                                             flexWrap: 'wrap',
+                                                             gap: 1
+                                                         }}>
+                                                                                                                      {productTasks.map((task) => (
+                                                                  <Paper
+                                                                      key={task.id}
+                                                                      sx={{
+                                                                          p: '4px',
+                                                                          minWidth: '150px',
+                                                                          border: '1px solid #e0e0e0',
+                                                                          cursor: 'pointer',
+                                                                          transition: 'all 0.2s ease',
+                                                                          '&:hover': {
+                                                                              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                                                              transform: 'translateY(-2px)'
+                                                                          }
+                                                                      }}
+                                                                      onDoubleClick={() => handleCardClick(task)}
+                                                                  >
+                                                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: '30px' }}>
+                                                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                                                             {task.name}
+                                                                         </Typography>
+                                                                                                                                              <Typography variant="caption" sx={{ color: '#666', fontSize: '0.85em' }}>
+                                                                              📅 {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.start)} - {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.end)}
+                                                                          </Typography>
+                                                                     </Box>
+                                                                                                                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                                                          <Typography variant="body2" color="text.secondary">
+                                                                              👤 {task.assignee || 'Не назначен'}
+                                                                          </Typography>
+                                                                          <Typography variant="body2" color="text.secondary">
+                                                                              💰 <strong>Сумма:</strong> {formatSum(task.sum)} ₽
+                                                                          </Typography>
+                                                                      </Box>
+                                                                 </Paper>
+                                                             ))}
+                                                         </Box>
+                                                     </Paper>
                                                 </Box>
                                             );
                                         })}
