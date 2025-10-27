@@ -173,7 +173,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
     const fetchWorkTypes = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature-kinds`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature?type=Work`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
