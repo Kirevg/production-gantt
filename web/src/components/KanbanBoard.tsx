@@ -121,17 +121,13 @@ const KanbanBoard: React.FC = () => {
             {/* Заголовок с кнопкой обновления */}
             <Box sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
+                justifyContent: 'flex-end',
                 alignItems: 'center',
                 mb: 2,
                 p: 2,
                 backgroundColor: '#f5f5f5',
                 borderRadius: 1
             }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                    Канбан-доска этапов работ
-                </Typography>
-
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title="Обновить">
                         <IconButton onClick={handleRefresh} size="small">
