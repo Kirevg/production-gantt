@@ -17,6 +17,7 @@ interface KanbanTask {
     projectName?: string;
     productId?: string;
     productName?: string;
+    serialNumber?: string | null;
     projectStatus?: string;
 }
 
@@ -83,6 +84,7 @@ const KanbanBoard: React.FC = () => {
                     projectName: stage.projectName || 'Проект',
                     productId: stage.productId,
                     productName: stage.productName || 'Изделие',
+                    serialNumber: stage.serialNumber || null,
                     projectStatus: stage.projectStatus
                 };
             }).filter(Boolean);
@@ -223,6 +225,11 @@ const KanbanBoard: React.FC = () => {
                                         {/* Группировка по изделиям */}
                                         {Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
                                             const productName = productTasks[0]?.productName || 'Без изделия';
+                                            const serialNumber = productTasks[0]?.serialNumber;
+                                            // Формируем полное название с серийным номером
+                                            const productDisplayName = serialNumber 
+                                                ? `${productName} (SN: ${serialNumber})` 
+                                                : productName;
                                             return (
                                                 <Box key={productKey} sx={{ mb: 2, ml: 2 }}>
                                                     {/* Заголовок изделия */}
@@ -235,7 +242,7 @@ const KanbanBoard: React.FC = () => {
                                                         }}
                                                     >
                                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                            🏗️ {productName} ({productTasks.length})
+                                                            🏗️ {productDisplayName} ({productTasks.length})
                                                         </Typography>
                                                     </Paper>
                                                     
