@@ -234,7 +234,7 @@ const KanbanBoard: React.FC = () => {
                                                     <Box sx={{
                                                         display: 'grid',
                                                         gap: 1,
-                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(auto, 1fr))',
+                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
                                                         ml: 2
                                                     }}>
                                                         {productTasks.map((task) => (
