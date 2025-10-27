@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, IconButton, Tooltip } from '@mui/material';
-import { ZoomIn, ZoomOut, Refresh } from '@mui/icons-material';
+import { Refresh } from '@mui/icons-material';
 
-// Интерфейс для задач Gantt-диаграммы
-interface GanttTask {
+// Интерфейс для задач канбан-доски
+interface KanbanTask {
     id: string;
     name: string;
     start: Date;
     end: Date;
     progress: number;
-    dependencies?: string[];
     assignee?: string;
     workType?: string;
     sum?: string;
@@ -21,18 +20,13 @@ interface GanttTask {
     projectStatus?: string;
 }
 
-
-interface GanttChartProps {
-    // Пока без параметров
-}
-
-const GanttChart: React.FC<GanttChartProps> = () => {
-    const [ganttTasks, setGanttTasks] = useState<GanttTask[]>([]);
+const KanbanBoard: React.FC = () => {
+    const [kanbanTasks, setKanbanTasks] = useState<KanbanTask[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
 
-    // Загрузка данных для Gantt-диаграммы
-    const fetchGanttData = async () => {
+    // Загрузка данных для канбан-доски
+    const fetchKanbanData = async () => {
         try {
             setLoading(true);
             setError('');
@@ -62,10 +56,10 @@ const GanttChart: React.FC<GanttChartProps> = () => {
             }
 
             const data = await response.json();
-            console.log('📊 Получены данные Gantt:', data);
+            console.log('📊 Получены данные для канбан-доски:', data);
 
-            // Преобразуем данные в формат для React Gantt Chart
-            const tasks: GanttTask[] = data.map((stage: any) => {
+            // Преобразуем данные в формат для канбан-доски
+            const tasks: KanbanTask[] = data.map((stage: any) => {
                 const startDate = new Date(stage.start);
                 const endDate = new Date(stage.end);
 
@@ -80,7 +74,7 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                     name: `${stage.projectName || 'Проект'} - ${stage.productName || 'Изделие'} - ${stage.name || 'Этап'}`,
                     start: startDate,
                     end: endDate,
-                    progress: Math.min(Math.max(stage.progress || 0, 0), 100), // Ограничиваем прогресс 0-100
+                    progress: Math.min(Math.max(stage.progress || 0, 0), 100),
                     assignee: stage.assignee || 'Не назначен',
                     workType: stage.workType || 'Не указан',
                     sum: stage.sum || '0',
@@ -91,62 +85,38 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                     productName: stage.productName || 'Изделие',
                     projectStatus: stage.projectStatus
                 };
-            }).filter(Boolean); // Убираем null значения
+            }).filter(Boolean);
 
             console.log('🎯 Преобразованные задачи:', tasks);
             console.log('🔍 Количество задач:', tasks.length);
 
-            if (tasks.length > 0) {
-                console.log('🔍 Первая задача:', tasks[0]);
-                console.log('🔍 Типы данных:', tasks.map(t => ({
-                    id: typeof t.id,
-                    name: typeof t.name,
-                    start: typeof t.start,
-                    end: typeof t.end,
-                    progress: typeof t.progress
-                })));
-            }
-
-            setGanttTasks(tasks);
+            setKanbanTasks(tasks);
         } catch (err) {
-            console.error('Ошибка загрузки данных Gantt:', err);
+            console.error('Ошибка загрузки данных канбан-доски:', err);
             setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
         } finally {
             setLoading(false);
         }
     };
 
-    // Данные для React Gantt Chart уже готовы в ganttTasks
-
     // Загружаем данные при монтировании компонента
     useEffect(() => {
-        fetchGanttData();
+        fetchKanbanData();
     }, []);
 
-
-    // Обработчики для карточек (пока заглушки)
-    const handleCardClick = (task: GanttTask) => {
+    // Обработчики
+    const handleCardClick = (task: KanbanTask) => {
         console.log('Клик по карточке:', task);
         // Здесь можно добавить логику редактирования
     };
 
-    // Обработчики масштабирования (пока заглушки)
-    const handleZoomIn = () => {
-        console.log('Увеличить масштаб');
-    };
-
-    const handleZoomOut = () => {
-        console.log('Уменьшить масштаб');
-    };
-
     const handleRefresh = () => {
-        // Перезагружаем данные с сервера
-        fetchGanttData();
+        fetchKanbanData();
     };
 
     return (
-        <Box sx={{ width: '100%', height: '600px' }}>
-            {/* Заголовок с кнопками управления */}
+        <Box sx={{ width: '100%', minHeight: '600px' }}>
+            {/* Заголовок с кнопкой обновления */}
             <Box sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -156,23 +126,11 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                 backgroundColor: '#f5f5f5',
                 borderRadius: 1
             }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#424242' }}>
-                    Gantt-диаграмма проекта
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                    Канбан-доска этапов работ
                 </Typography>
 
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Tooltip title="Увеличить масштаб">
-                        <IconButton onClick={handleZoomIn} size="small">
-                            <ZoomIn />
-                        </IconButton>
-                    </Tooltip>
-
-                    <Tooltip title="Уменьшить масштаб">
-                        <IconButton onClick={handleZoomOut} size="small">
-                            <ZoomOut />
-                        </IconButton>
-                    </Tooltip>
-
                     <Tooltip title="Обновить">
                         <IconButton onClick={handleRefresh} size="small">
                             <Refresh />
@@ -181,14 +139,15 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                 </Box>
             </Box>
 
-            {/* Gantt-диаграмма */}
-            <Paper sx={{ height: 'calc(100% - 80px)', overflow: 'auto' }}>
+            {/* Канбан-доска */}
+            <Paper sx={{ minHeight: 'calc(100% - 80px)', overflow: 'auto' }}>
                 {loading ? (
                     <Box sx={{
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
                         height: '100%',
+                        minHeight: '400px',
                         flexDirection: 'column',
                         gap: 2
                     }}>
@@ -205,6 +164,7 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                         justifyContent: 'center',
                         alignItems: 'center',
                         height: '100%',
+                        minHeight: '400px',
                         flexDirection: 'column',
                         gap: 2
                     }}>
@@ -215,26 +175,49 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                             {error}
                         </Typography>
                     </Box>
-                ) : ganttTasks.length > 0 ? (
-                    <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: '100%',
-                        flexDirection: 'column',
-                        gap: 2,
-                        p: 4
-                    }}>
-                        <Typography variant="h5" color="text.primary">
-                            📊 Gantt-диаграмма в разработке
+                ) : kanbanTasks.length > 0 ? (
+                    <Box sx={{ p: 2 }}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Этапы работ ({kanbanTasks.length})
                         </Typography>
-                        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                            Найдено этапов работ: <strong>{ganttTasks.length}</strong>
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" align="center" sx={{ maxWidth: '600px' }}>
-                            В данный момент Gantt-диаграмма находится в стадии разработки.
-                            Для просмотра этапов работ используйте вкладку <strong>Канбан</strong>.
-                        </Typography>
+                        <Box sx={{
+                            display: 'grid',
+                            gap: 1,
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
+                        }}>
+                            {kanbanTasks.map((task) => (
+                                <Paper
+                                    key={task.id}
+                                    sx={{
+                                        p: 2,
+                                        border: '1px solid #e0e0e0',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                            transform: 'translateY(-2px)'
+                                        }
+                                    }}
+                                    onClick={() => handleCardClick(task)}
+                                >
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                        {task.name}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        🏗️ <strong>Изделие:</strong> {task.productName}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        📅 <strong>Сроки:</strong> {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
+                                    </Typography>
+                                </Paper>
+                            ))}
+                        </Box>
                     </Box>
                 ) : (
                     <Box sx={{
@@ -242,6 +225,7 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                         justifyContent: 'center',
                         alignItems: 'center',
                         height: '100%',
+                        minHeight: '400px',
                         flexDirection: 'column',
                         gap: 2
                     }}>
@@ -249,7 +233,7 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                             Нет этапов для отображения
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Добавьте этапы работ, чтобы увидеть Gantt-диаграмму
+                            Добавьте этапы работ, чтобы увидеть канбан-доску
                         </Typography>
                     </Box>
                 )}
@@ -258,5 +242,4 @@ const GanttChart: React.FC<GanttChartProps> = () => {
     );
 };
 
-export default GanttChart;
-
+export default KanbanBoard;

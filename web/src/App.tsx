@@ -176,6 +176,7 @@ import SpecificationDetail from './components/SpecificationDetail';
 import ProductCard from './components/ProductCard';
 import SpecificationsList from './components/SpecificationsList';
 import GanttChart from './components/GanttChart';
+import KanbanBoard from './components/KanbanBoard';
 import ReferencesPage from './components/ReferencesPage';
 import VolumeButton from './components/VolumeButton';
 
@@ -2547,15 +2548,17 @@ export default function App() {
     switch (tabIndex) {
       case 0: // Главная - доступна всем
         return true;
-      case 1: // Проекты - доступна всем авторизованным
+      case 1: // Канбан - доступна всем авторизованным
         return true;
-      case 2: // Справочники - доступна всем авторизованным
+      case 2: // Проекты - доступна всем авторизованным
         return true;
-      case 3: // Руководители - доступна всем авторизованным
+      case 3: // Справочники - доступна всем авторизованным
         return true;
-      case 4: // Исполнители - доступна всем авторизованным
+      case 4: // Руководители - доступна всем авторизованным
         return true;
-      case 5: // Админ панель - только для администраторов
+      case 5: // Исполнители - доступна всем авторизованным
+        return true;
+      case 6: // Админ панель - только для администраторов
         return user.role === 'admin';
       default:
         return false;
@@ -2784,34 +2787,41 @@ export default function App() {
       },
       {
         index: 1,
+        label: 'Канбан',
+        icon: <GanttIcon />,
+        description: 'Канбан-доска этапов',
+        color: '#00897b'
+      },
+      {
+        index: 2,
         label: 'Проекты',
         icon: <ProjectIcon />,
         description: 'Управление проектами',
         color: '#2e7d32'
       },
       {
-        index: 2,
+        index: 3,
         label: 'Справочники',
         icon: <FolderIcon />,
         description: 'Номенклатура и единицы измерения',
         color: '#ed6c02'
       },
       {
-        index: 3,
+        index: 4,
         label: 'Руководители',
         icon: <PersonIcon />,
         description: 'Руководители проектов',
         color: '#9c27b0'
       },
       {
-        index: 4,
+        index: 5,
         label: 'Исполнители',
         icon: <GroupIcon />,
         description: 'Исполнители работ',
         color: '#d32f2f'
       },
       {
-        index: 5,
+        index: 6,
         label: 'Админ панель',
         icon: <AdminIcon />,
         description: 'Управление системой',
@@ -3092,15 +3102,23 @@ export default function App() {
             </Box>
           </Box>
         );
-      case 1: // Страница проектов
+      case 1: // Канбан-доска
+        return (
+          <Box className="page-content-container">
+            <Box sx={{ mt: 2, mb: 1, width: '100%' }}>
+              <KanbanBoard />
+            </Box>
+          </Box>
+        );
+      case 2: // Страница проектов
         return user && <ProjectsList onOpenProjectComposition={handleOpenProjectComposition} onOpenCreateProject={handleOpenCreateProject} user={user} canCreate={canCreate} canDelete={canDelete} />;
-      case 2: // Страница справочников
+      case 3: // Страница справочников
         return <ReferencesPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-      case 3: // Страница руководителей проектов
+      case 4: // Страница руководителей проектов
         return <ProjectManagersList canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-      case 4: // Страница исполнителей
+      case 5: // Страница исполнителей
         return <ContractorsList canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-      case 5: // Страница пользователей
+      case 6: // Страница пользователей
         return (
           <>
             {user && <UsersList currentUser={user} canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />}
