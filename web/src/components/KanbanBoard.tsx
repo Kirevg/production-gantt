@@ -389,14 +389,18 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                     p: '8px',
                                                     mb: 1,
                                                     backgroundColor: '#f5f5f5',
-                                                    borderRadius: '2px'
+                                                    borderRadius: '2px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '30px',
+                                                    flexWrap: 'wrap'
                                                 }}
                                             >
                                                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
                                                     📋 Проект: {projectName} - Изделий: {productsMap.size}
                                                 </Typography>
                                                 {tasks[0]?.projectManager && (
-                                                    <Typography variant="body2" sx={{ mt: 0.5, color: '#424242' }}>
+                                                    <Typography variant="body2" sx={{ color: '#424242' }}>
                                                         РП: {tasks[0].projectManager.name}
                                                         {tasks[0].projectManager.phone && ` 📞 ${tasks[0].projectManager.phone}`}
                                                         {tasks[0].projectManager.email && ` 📧 ${tasks[0].projectManager.email}`}
