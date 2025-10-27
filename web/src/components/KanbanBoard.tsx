@@ -168,7 +168,7 @@ const KanbanBoard: React.FC = () => {
         }
     };
 
-    // Обработчики
+    // Обработчик клика по карточке этапа работ
     const handleCardClick = (task: KanbanTask) => {
         console.log('Клик по карточке:', task);
         setEditingTask(task);
