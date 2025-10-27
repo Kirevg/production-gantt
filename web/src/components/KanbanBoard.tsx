@@ -30,7 +30,6 @@ interface StageForm {
     duration: number;
     workTypeId: string;
     assigneeId: string;
-    progress: number;
 }
 
 const KanbanBoard: React.FC = () => {
@@ -49,8 +48,7 @@ const KanbanBoard: React.FC = () => {
         startDate: '',
         duration: 1,
         workTypeId: '',
-        assigneeId: '',
-        progress: 0
+        assigneeId: ''
     });
 
     // Загрузка данных для канбан-доски
@@ -182,8 +180,7 @@ const KanbanBoard: React.FC = () => {
             startDate: startDate,
             duration: duration,
             workTypeId: task.workTypeId || '',
-            assigneeId: task.assigneeId || '',
-            progress: task.progress || 0
+            assigneeId: task.assigneeId || ''
         });
         setOpenEditDialog(true);
     };
@@ -197,8 +194,7 @@ const KanbanBoard: React.FC = () => {
             startDate: '',
             duration: 1,
             workTypeId: '',
-            assigneeId: '',
-            progress: 0
+            assigneeId: ''
         });
     };
 
@@ -228,7 +224,6 @@ const KanbanBoard: React.FC = () => {
                 duration: stageForm.duration,
                 nomenclatureItemId: stageForm.workTypeId || undefined,
                 assigneeId: stageForm.assigneeId || undefined,
-                progress: stageForm.progress,
                 productId: editingTask.productId
             };
 
@@ -446,60 +441,19 @@ const KanbanBoard: React.FC = () => {
             </Paper>
             
             {/* Диалог редактирования этапа работ */}
-            <Dialog
-                open={openEditDialog}
-                onClose={() => {}}
-                maxWidth="md"
-                fullWidth
-                disableEscapeKeyDown={true}
-                hideBackdrop={true}
-                disablePortal={true}
-                disableScrollLock={true}
-                keepMounted={false}
-                disableEnforceFocus={true}
-                disableAutoFocus={true}
-            >
-                <DialogTitle>Редактировать этап работ</DialogTitle>
+            <Dialog open={openEditDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
+                <DialogTitle>
+                    {editingTask ? 'Редактировать этап' : 'Создать этап'}
+                </DialogTitle>
                 <DialogContent>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-                        <TextField
-                            label="Сумма"
-                            value={stageForm.sum}
-                            onChange={(e) => setStageForm({ ...stageForm, sum: e.target.value })}
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <TextField
-                            label="Часы"
-                            value={stageForm.hours}
-                            onChange={(e) => setStageForm({ ...stageForm, hours: e.target.value })}
-                            fullWidth
-                            type="number"
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <TextField
-                            label="Дата начала"
-                            value={stageForm.startDate}
-                            onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
-                            fullWidth
-                            type="date"
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <TextField
-                            label="Продолжительность (дни)"
-                            value={stageForm.duration}
-                            onChange={(e) => setStageForm({ ...stageForm, duration: parseInt(e.target.value) || 1 })}
-                            fullWidth
-                            type="number"
-                            inputProps={{ min: 1 }}
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <FormControl fullWidth>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                        <FormControl fullWidth required>
                             <InputLabel shrink>Вид работ</InputLabel>
                             <Select
                                 value={stageForm.workTypeId}
                                 onChange={(e) => setStageForm({ ...stageForm, workTypeId: e.target.value })}
                                 label="Вид работ"
+                                required
                                 notched
                             >
                                 <MenuItem value="">
@@ -530,20 +484,45 @@ const KanbanBoard: React.FC = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <TextField
-                            label="Прогресс (%)"
-                            value={stageForm.progress}
-                            onChange={(e) => setStageForm({ ...stageForm, progress: parseInt(e.target.value) || 0 })}
-                            fullWidth
-                            type="number"
-                            inputProps={{ min: 0, max: 100 }}
-                            InputLabelProps={{ shrink: true }}
-                        />
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <TextField
+                                label="Сумма"
+                                value={stageForm.sum}
+                                onChange={(e) => setStageForm({ ...stageForm, sum: e.target.value })}
+                                sx={{ flex: 1 }}
+                            />
+                            <TextField
+                                label="Часов"
+                                value={stageForm.hours}
+                                onChange={(e) => setStageForm({ ...stageForm, hours: e.target.value })}
+                                sx={{ flex: 1 }}
+                            />
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <TextField
+                                label="Дата начала"
+                                type="date"
+                                value={stageForm.startDate}
+                                onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ flex: 1 }}
+                            />
+                            <TextField
+                                label="Срок"
+                                type="number"
+                                value={stageForm.duration}
+                                onChange={(e) => setStageForm({ ...stageForm, duration: parseInt(e.target.value) || 1 })}
+                                inputProps={{ min: 1 }}
+                                sx={{ flex: 1 }}
+                            />
+                        </Box>
                     </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseEditDialog}>Отмена</Button>
-                    <Button onClick={handleSaveStage} variant="contained">Сохранить</Button>
+                    <Button onClick={handleSaveStage} variant="contained" sx={{ fontSize: '14px' }}>
+                        {editingTask ? 'Сохранить' : 'Создать'}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>
