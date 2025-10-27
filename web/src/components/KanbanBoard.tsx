@@ -42,8 +42,8 @@ interface KanbanTask {
     productName?: string;
     serialNumber?: string | null;
     projectStatus?: string;
-    assigneeId?: string;
-    workTypeId?: string;
+    assigneeId?: string | null;
+    workTypeId?: string | null;
 }
 
 interface KanbanBoardProps {
@@ -139,8 +139,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                     workType: stage.workType || 'Не указан',
                     sum: stage.sum || '0',
                     hours: stage.hours || '0',
-                    assigneeId: stage.assigneeId || undefined,
-                    workTypeId: stage.workTypeId || undefined,
+                    assigneeId: stage.assigneeId || null,
+                    workTypeId: stage.workTypeId || null,
                     projectId: stage.projectId,
                     projectName: stage.projectName || 'Проект',
                     productId: stage.productId,
@@ -209,15 +209,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
         const startDate = task.start.toISOString().split('T')[0];
         const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         
+        // Используем тот же подход что в StagesPage: преобразуем в строку или пустую строку
         setStageForm({
             sum: task.sum || '',
             hours: task.hours || '',
             startDate: startDate,
             duration: duration,
-            workTypeId: task.workTypeId || '',
-            assigneeId: task.assigneeId || ''
+            workTypeId: (task.workTypeId || '') as string,
+            assigneeId: (task.assigneeId || '') as string
         });
-        console.log('stageForm после установки:', { workTypeId: task.workTypeId || '' });
+        console.log('stageForm после установки:', { workTypeId: (task.workTypeId || '') });
         setOpenEditDialog(true);
     };
 
