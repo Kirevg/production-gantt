@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, Paper, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
 
 // Интерфейс для задач канбан-доски
@@ -19,12 +19,39 @@ interface KanbanTask {
     productName?: string;
     serialNumber?: string | null;
     projectStatus?: string;
+    assigneeId?: string;
+    workTypeId?: string;
+}
+
+interface StageForm {
+    sum: string;
+    hours: string;
+    startDate: string;
+    duration: number;
+    workTypeId: string;
+    assigneeId: string;
+    progress: number;
 }
 
 const KanbanBoard: React.FC = () => {
     const [kanbanTasks, setKanbanTasks] = useState<KanbanTask[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
+    
+    // Состояние для диалога редактирования
+    const [openEditDialog, setOpenEditDialog] = useState(false);
+    const [editingTask, setEditingTask] = useState<KanbanTask | null>(null);
+    const [workTypes, setWorkTypes] = useState<Array<{ id: string, name: string }>>([]);
+    const [contractors, setContractors] = useState<Array<{ id: string, name: string }>>([]);
+    const [stageForm, setStageForm] = useState<StageForm>({
+        sum: '',
+        hours: '',
+        startDate: '',
+        duration: 1,
+        workTypeId: '',
+        assigneeId: '',
+        progress: 0
+    });
 
     // Загрузка данных для канбан-доски
     const fetchKanbanData = async () => {
@@ -80,6 +107,8 @@ const KanbanBoard: React.FC = () => {
                     workType: stage.workType || 'Не указан',
                     sum: stage.sum || '0',
                     hours: stage.hours || '0',
+                    assigneeId: stage.assigneeId || undefined,
+                    workTypeId: stage.workTypeId || undefined,
                     projectId: stage.projectId,
                     projectName: stage.projectName || 'Проект',
                     productId: stage.productId,
@@ -104,12 +133,128 @@ const KanbanBoard: React.FC = () => {
     // Загружаем данные при монтировании компонента
     useEffect(() => {
         fetchKanbanData();
+        fetchWorkTypes();
+        fetchContractors();
     }, []);
+
+    // Загрузка справочников
+    const fetchWorkTypes = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature-kinds`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setWorkTypes(data.map((wt: { id: string; name: string }) => ({ id: wt.id, name: wt.name })));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки видов работ:', error);
+        }
+    };
+
+    const fetchContractors = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/counterparties?isContractor=true`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setContractors(data.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки подрядчиков:', error);
+        }
+    };
 
     // Обработчики
     const handleCardClick = (task: KanbanTask) => {
         console.log('Клик по карточке:', task);
-        // Здесь можно добавить логику редактирования
+        setEditingTask(task);
+        // Форматируем дату для input
+        const startDate = task.start.toISOString().split('T')[0];
+        const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        
+        setStageForm({
+            sum: task.sum || '',
+            hours: task.hours || '',
+            startDate: startDate,
+            duration: duration,
+            workTypeId: task.workTypeId || '',
+            assigneeId: task.assigneeId || '',
+            progress: task.progress || 0
+        });
+        setOpenEditDialog(true);
+    };
+
+    const handleCloseEditDialog = () => {
+        setOpenEditDialog(false);
+        setEditingTask(null);
+        setStageForm({
+            sum: '',
+            hours: '',
+            startDate: '',
+            duration: 1,
+            workTypeId: '',
+            assigneeId: '',
+            progress: 0
+        });
+    };
+
+    const handleSaveStage = async () => {
+        if (!editingTask || !editingTask.productId) {
+            alert('Ошибка: не указан продукт');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Токен не найден');
+                return;
+            }
+
+            // Вычисляем дату окончания
+            const startDate = new Date(stageForm.startDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + stageForm.duration);
+
+            const requestData = {
+                sum: stageForm.sum,
+                hours: stageForm.hours,
+                startDate: stageForm.startDate || null,
+                endDate: endDate.toISOString(),
+                duration: stageForm.duration,
+                nomenclatureItemId: stageForm.workTypeId || undefined,
+                assigneeId: stageForm.assigneeId || undefined,
+                progress: stageForm.progress,
+                productId: editingTask.productId
+            };
+
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/projects/products/${editingTask.productId}/work-stages/${editingTask.id}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
+            }
+
+            handleCloseEditDialog();
+            await fetchKanbanData(); // Обновляем данные канбан-доски
+        } catch (error) {
+            console.error('Ошибка сохранения этапа:', error);
+            alert(`Произошла ошибка при сохранении: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+        }
     };
 
     const handleRefresh = () => {
@@ -299,6 +444,108 @@ const KanbanBoard: React.FC = () => {
                     </Box>
                 )}
             </Paper>
+            
+            {/* Диалог редактирования этапа работ */}
+            <Dialog
+                open={openEditDialog}
+                onClose={() => {}}
+                maxWidth="md"
+                fullWidth
+                disableEscapeKeyDown={true}
+                hideBackdrop={true}
+                disablePortal={true}
+                disableScrollLock={true}
+                keepMounted={false}
+                disableEnforceFocus={true}
+                disableAutoFocus={true}
+            >
+                <DialogTitle>Редактировать этап работ</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+                        <TextField
+                            label="Сумма"
+                            value={stageForm.sum}
+                            onChange={(e) => setStageForm({ ...stageForm, sum: e.target.value })}
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Часы"
+                            value={stageForm.hours}
+                            onChange={(e) => setStageForm({ ...stageForm, hours: e.target.value })}
+                            fullWidth
+                            type="number"
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Дата начала"
+                            value={stageForm.startDate}
+                            onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
+                            fullWidth
+                            type="date"
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Продолжительность (дни)"
+                            value={stageForm.duration}
+                            onChange={(e) => setStageForm({ ...stageForm, duration: parseInt(e.target.value) || 1 })}
+                            fullWidth
+                            type="number"
+                            inputProps={{ min: 1 }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel shrink>Вид работ</InputLabel>
+                            <Select
+                                value={stageForm.workTypeId}
+                                onChange={(e) => setStageForm({ ...stageForm, workTypeId: e.target.value })}
+                                label="Вид работ"
+                                notched
+                            >
+                                <MenuItem value="">
+                                    <em>Не выбран</em>
+                                </MenuItem>
+                                {workTypes.map((workType) => (
+                                    <MenuItem key={workType.id} value={workType.id}>
+                                        {workType.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel shrink>Исполнитель</InputLabel>
+                            <Select
+                                value={stageForm.assigneeId}
+                                onChange={(e) => setStageForm({ ...stageForm, assigneeId: e.target.value })}
+                                label="Исполнитель"
+                                notched
+                            >
+                                <MenuItem value="">
+                                    <em>Не выбран</em>
+                                </MenuItem>
+                                {contractors.map((contractor) => (
+                                    <MenuItem key={contractor.id} value={contractor.id}>
+                                        {contractor.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            label="Прогресс (%)"
+                            value={stageForm.progress}
+                            onChange={(e) => setStageForm({ ...stageForm, progress: parseInt(e.target.value) || 0 })}
+                            fullWidth
+                            type="number"
+                            inputProps={{ min: 0, max: 100 }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditDialog}>Отмена</Button>
+                    <Button onClick={handleSaveStage} variant="contained">Сохранить</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

@@ -126,6 +126,8 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       workType: stage.nomenclatureItem?.name || 'Не указан',
       sum: stage.sum,
       hours: stage.hours || '0',
+      assigneeId: stage.assigneeId || null, // ID исполнителя
+      workTypeId: stage.nomenclatureItemId || null, // ID вида работ
       projectId: stage.product.project.id,
       projectName: stage.product.project.name,
       productId: stage.product.id,
