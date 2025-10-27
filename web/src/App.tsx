@@ -2937,6 +2937,13 @@ export default function App() {
     setSelectedProductId(null);
   };
 
+  // Функция для открытия страницы этапов из канбана
+  const handleOpenStageFromKanban = (productId: string, stageId?: string) => {
+    setSelectedProductId(productId);
+    setShowStagesPage(true);
+    // TODO: Можно добавить автоматическое открытие конкретного этапа по stageId
+  };
+
   // Функция для открытия списка спецификаций проекта
   const handleOpenSpecificationsList = (productId: string, productName: string) => {
     setSelectedProductId(productId);
@@ -3106,7 +3113,7 @@ export default function App() {
         return (
           <Box className="page-content-container">
             <Box sx={{ mt: 2, mb: 1, width: '100%' }}>
-              <KanbanBoard />
+              <KanbanBoard onOpenStage={handleOpenStageFromKanban} />
             </Box>
           </Box>
         );
