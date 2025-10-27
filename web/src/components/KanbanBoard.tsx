@@ -369,22 +369,31 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
 
                                 return (
                                     <Box key={projectId} sx={{ mb: 4 }}>
-                                        {/* Заголовок проекта */}
+                                        {/* Контейнер проекта с рамкой */}
                                         <Paper
                                             sx={{
-                                                p: '8px',
-                                                mb: 1,
-                                                backgroundColor: '#f5f5f5',
-                                                borderLeft: '4px solid #1976d2'
+                                                border: '2px solid #1976d2',
+                                                borderRadius: '4px',
+                                                p: 1
                                             }}
                                         >
-                                                                                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                                                📋 Проект: {projectName} - Изделий: {productsMap.size}
-                                            </Typography>
-                                        </Paper>
-                                        
-                                        {/* Группировка по изделиям */}
-                                        {Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
+                                            {/* Заголовок проекта */}
+                                            <Box
+                                                sx={{
+                                                    p: '8px',
+                                                    mb: 1,
+                                                    backgroundColor: '#f5f5f5',
+                                                    borderLeft: '4px solid #1976d2',
+                                                    borderRadius: '2px'
+                                                }}
+                                            >
+                                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                                    📋 Проект: {projectName} - Изделий: {productsMap.size}
+                                                </Typography>
+                                            </Box>
+                                            
+                                            {/* Группировка по изделиям */}
+                                            {Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
                                             const productName = productTasks[0]?.productName || 'Без изделия';
                                             const serialNumber = productTasks[0]?.serialNumber;
                                             // Формируем полное название с серийным номером
@@ -460,7 +469,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                                                      </Paper>
                                                  </Box>
                                              );
-                                        })}
+                                            })}
+                                        </Paper>
                                     </Box>
                                 );
                             });
