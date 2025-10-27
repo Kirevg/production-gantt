@@ -253,7 +253,7 @@ const KanbanBoard: React.FC = () => {
                                                                 }}
                                                                 onClick={() => handleCardClick(task)}
                                                             >
-                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: '30px' }}>
                                                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                                                         {task.name}
                                                                     </Typography>
