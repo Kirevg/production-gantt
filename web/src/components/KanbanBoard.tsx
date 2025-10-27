@@ -213,7 +213,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
         setEditingTask(task);
         // Форматируем дату для input
         const startDate = task.start.toISOString().split('T')[0];
-        const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        // Вычисляем длительность: endDate - startDate в днях
+        const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24));
+        console.log('Вычисленная длительность:', duration, 'дней');
+        console.log('Даты:', { start: task.start, end: task.end });
         
         // Используем тот же подход что в StagesPage: преобразуем в строку или пустую строку
         setStageForm({
@@ -224,7 +227,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
             workTypeId: (task.workTypeId || '') as string,
             assigneeId: (task.assigneeId || '') as string
         });
-        console.log('stageForm после установки:', { workTypeId: (task.workTypeId || '') });
+        console.log('stageForm после установки:', { workTypeId: (task.workTypeId || ''), duration });
         setOpenEditDialog(true);
     };
 
