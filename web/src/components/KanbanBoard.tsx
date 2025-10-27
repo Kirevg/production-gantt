@@ -180,9 +180,9 @@ const KanbanBoard: React.FC = () => {
                         <Typography variant="h6" sx={{ mb: 2 }}>
                             Этапы работ ({kanbanTasks.length})
                         </Typography>
-                        {/* Группируем задачи по проектам */}
+                        {/* Группируем задачи по проектам и изделиям */}
                         {(() => {
-                            // Группируем задачи по projectId
+                            // Сначала группируем задачи по projectId
                             const projectsMap = new Map<string, KanbanTask[]>();
                             kanbanTasks.forEach(task => {
                                 if (!projectsMap.has(task.projectId || '')) {
@@ -193,8 +193,19 @@ const KanbanBoard: React.FC = () => {
 
                             return Array.from(projectsMap.entries()).map(([projectId, tasks]) => {
                                 const projectName = tasks[0]?.projectName || 'Без проекта';
+                                
+                                // Теперь группируем этапы этого проекта по изделиям
+                                const productsMap = new Map<string, KanbanTask[]>();
+                                tasks.forEach(task => {
+                                    const productKey = `${task.productId || ''}:${task.productName || 'Без изделия'}`;
+                                    if (!productsMap.has(productKey)) {
+                                        productsMap.set(productKey, []);
+                                    }
+                                    productsMap.get(productKey)?.push(task);
+                                });
+
                                 return (
-                                    <Box key={projectId} sx={{ mb: 3 }}>
+                                    <Box key={projectId} sx={{ mb: 4 }}>
                                         {/* Заголовок проекта */}
                                         <Paper
                                             sx={{
@@ -208,46 +219,66 @@ const KanbanBoard: React.FC = () => {
                                                 📋 {projectName} ({tasks.length})
                                             </Typography>
                                         </Paper>
-                                        {/* Карточки этапов работ этого проекта */}
-                                        <Box sx={{
-                                            display: 'grid',
-                                            gap: 1,
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                                            ml: 2
-                                        }}>
-                                            {tasks.map((task) => (
-                                                <Paper
-                                                    key={task.id}
-                                                    sx={{
-                                                        p: 2,
-                                                        border: '1px solid #e0e0e0',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.2s ease',
-                                                        '&:hover': {
-                                                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                                                            transform: 'translateY(-2px)'
-                                                        }
-                                                    }}
-                                                    onClick={() => handleCardClick(task)}
-                                                >
-                                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                                        {task.name}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                        🏗️ <strong>Изделие:</strong> {task.productName}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                        📅 <strong>Сроки:</strong> {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                        👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
-                                                    </Typography>
-                                                </Paper>
-                                            ))}
-                                        </Box>
+                                        
+                                        {/* Группировка по изделиям */}
+                                        {Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
+                                            const productName = productTasks[0]?.productName || 'Без изделия';
+                                            return (
+                                                <Box key={productKey} sx={{ mb: 2, ml: 2 }}>
+                                                    {/* Заголовок изделия */}
+                                                    <Paper
+                                                        sx={{
+                                                            p: 1,
+                                                            mb: 1,
+                                                            backgroundColor: '#fafafa',
+                                                            borderLeft: '3px solid #4caf50'
+                                                        }}
+                                                    >
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                                                            🏗️ {productName} ({productTasks.length})
+                                                        </Typography>
+                                                    </Paper>
+                                                    
+                                                    {/* Карточки этапов работ этого изделия */}
+                                                    <Box sx={{
+                                                        display: 'grid',
+                                                        gap: 1,
+                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                                                        ml: 2
+                                                    }}>
+                                                        {productTasks.map((task) => (
+                                                            <Paper
+                                                                key={task.id}
+                                                                sx={{
+                                                                    p: 2,
+                                                                    border: '1px solid #e0e0e0',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.2s ease',
+                                                                    '&:hover': {
+                                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                                                        transform: 'translateY(-2px)'
+                                                                    }
+                                                                }}
+                                                                onClick={() => handleCardClick(task)}
+                                                            >
+                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                                                    {task.name}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                                    📅 <strong>Сроки:</strong> {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                                    👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    💰 <strong>Сумма:</strong> {task.sum || '0'} ₽
+                                                                </Typography>
+                                                            </Paper>
+                                                        ))}
+                                                    </Box>
+                                                </Box>
+                                            );
+                                        })}
                                     </Box>
                                 );
                             });
