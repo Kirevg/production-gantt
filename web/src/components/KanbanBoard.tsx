@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, Paper, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
 
 // Интерфейс для задач канбан-доски
@@ -27,10 +27,33 @@ interface KanbanBoardProps {
     onOpenStage?: (productId: string, stageId?: string) => void;
 }
 
+interface StageForm {
+    sum: string;
+    hours: string;
+    startDate: string;
+    duration: number;
+    workTypeId: string;
+    assigneeId: string;
+}
+
 const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
     const [kanbanTasks, setKanbanTasks] = useState<KanbanTask[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
+    
+    // Состояние для диалога редактирования
+    const [openEditDialog, setOpenEditDialog] = useState(false);
+    const [editingTask, setEditingTask] = useState<KanbanTask | null>(null);
+    const [workTypes, setWorkTypes] = useState<Array<{ id: string, name: string }>>([]);
+    const [contractors, setContractors] = useState<Array<{ id: string, name: string }>>([]);
+    const [stageForm, setStageForm] = useState<StageForm>({
+        sum: '',
+        hours: '',
+        startDate: '',
+        duration: 1,
+        workTypeId: '',
+        assigneeId: ''
+    });
 
     // Загрузка данных для канбан-доски
     const fetchKanbanData = async () => {
@@ -112,14 +135,124 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
     // Загружаем данные при монтировании компонента
     useEffect(() => {
         fetchKanbanData();
+        fetchWorkTypes();
+        fetchContractors();
     }, []);
+    
+    // Загрузка справочников
+    const fetchWorkTypes = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature-kinds`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setWorkTypes(data.map((wt: { id: string; name: string }) => ({ id: wt.id, name: wt.name })));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки видов работ:', error);
+        }
+    };
+
+    const fetchContractors = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/counterparties?isContractor=true`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setContractors(data.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки подрядчиков:', error);
+        }
+    };
 
     // Обработчик клика по карточке этапа работ
     const handleCardClick = (task: KanbanTask) => {
         console.log('Клик по карточке:', task);
-        if (onOpenStage && task.productId) {
-            // Открываем страницу этапов и переходим к нужному этапу
-            onOpenStage(task.productId, task.id);
+        setEditingTask(task);
+        // Форматируем дату для input
+        const startDate = task.start.toISOString().split('T')[0];
+        const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        
+        setStageForm({
+            sum: task.sum || '',
+            hours: task.hours || '',
+            startDate: startDate,
+            duration: duration,
+            workTypeId: task.workTypeId || '',
+            assigneeId: task.assigneeId || ''
+        });
+        setOpenEditDialog(true);
+    };
+
+    const handleCloseEditDialog = () => {
+        setOpenEditDialog(false);
+        setEditingTask(null);
+        setStageForm({
+            sum: '',
+            hours: '',
+            startDate: '',
+            duration: 1,
+            workTypeId: '',
+            assigneeId: ''
+        });
+    };
+
+    const handleSaveStage = async () => {
+        if (!editingTask || !editingTask.productId) {
+            alert('Ошибка: не указан продукт');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Токен не найден');
+                return;
+            }
+
+            // Вычисляем дату окончания
+            const startDate = new Date(stageForm.startDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + stageForm.duration);
+
+            const requestData = {
+                sum: stageForm.sum,
+                hours: stageForm.hours,
+                startDate: stageForm.startDate || null,
+                endDate: endDate.toISOString(),
+                duration: stageForm.duration,
+                nomenclatureItemId: stageForm.workTypeId || undefined,
+                assigneeId: stageForm.assigneeId || undefined,
+                productId: editingTask.productId
+            };
+
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/projects/products/${editingTask.productId}/work-stages/${editingTask.id}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
+            }
+
+            handleCloseEditDialog();
+            await fetchKanbanData(); // Обновляем данные канбан-доски
+        } catch (error) {
+            console.error('Ошибка сохранения этапа:', error);
+            alert(`Произошла ошибка при сохранении: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
         }
     };
 
@@ -310,6 +443,118 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                     </Box>
                 )}
             </Paper>
+            
+            {/* Диалог редактирования этапа работ */}
+            <Dialog open={openEditDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
+                <DialogTitle>
+                    {editingTask ? 'Редактировать этап' : 'Создать этап'}
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                        <FormControl fullWidth required>
+                            <InputLabel shrink>Вид работ</InputLabel>
+                            <Select
+                                value={stageForm.workTypeId}
+                                onChange={(e) => setStageForm({ ...stageForm, workTypeId: e.target.value })}
+                                label="Вид работ"
+                                required
+                                notched
+                            >
+                                <MenuItem value="">
+                                    <em>Не выбран</em>
+                                </MenuItem>
+                                {workTypes.map((workType) => (
+                                    <MenuItem key={workType.id} value={workType.id}>
+                                        {workType.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel shrink>Исполнитель</InputLabel>
+                            <Select
+                                value={stageForm.assigneeId}
+                                onChange={(e) => setStageForm({ ...stageForm, assigneeId: e.target.value })}
+                                label="Исполнитель"
+                                notched
+                            >
+                                <MenuItem value="">
+                                    <em>Не выбран</em>
+                                </MenuItem>
+                                {contractors.map((contractor) => (
+                                    <MenuItem key={contractor.id} value={contractor.id}>
+                                        {contractor.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <TextField
+                                label="Сумма"
+                                value={stageForm.sum}
+                                onChange={(e) => setStageForm({ ...stageForm, sum: e.target.value })}
+                                sx={{ flex: 1 }}
+                            />
+                            <TextField
+                                label="Часов"
+                                value={stageForm.hours}
+                                onChange={(e) => setStageForm({ ...stageForm, hours: e.target.value })}
+                                sx={{ flex: 1 }}
+                            />
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Box sx={{ flex: 1, position: 'relative' }}>
+                                <TextField
+                                    label="Дата начала"
+                                    type="date"
+                                    value={stageForm.startDate}
+                                    onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{ width: '100%' }}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    const input = e.currentTarget.parentElement?.querySelector('input[type="date"]') as HTMLInputElement;
+                                                    if (input) {
+                                                        input.focus();
+                                                        setTimeout(() => {
+                                                            try {
+                                                                input.showPicker?.();
+                                                            } catch (error) {
+                                                                input.click();
+                                                            }
+                                                        }, 0);
+                                                    }
+                                                }}
+                                                sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}
+                                            >
+                                                📅
+                                            </IconButton>
+                                        )
+                                    }}
+                                />
+                            </Box>
+                            <TextField
+                                label="Срок"
+                                type="number"
+                                value={stageForm.duration}
+                                onChange={(e) => setStageForm({ ...stageForm, duration: parseInt(e.target.value) || 1 })}
+                                inputProps={{ min: 1 }}
+                                sx={{ flex: 1 }}
+                            />
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditDialog}>Отмена</Button>
+                    <Button onClick={handleSaveStage} variant="contained" sx={{ fontSize: '14px' }}>
+                        {editingTask ? 'Сохранить' : 'Создать'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
