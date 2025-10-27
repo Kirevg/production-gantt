@@ -252,9 +252,14 @@ const KanbanBoard: React.FC = () => {
                                                                 }}
                                                                 onClick={() => handleCardClick(task)}
                                                             >
-                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                                                    {task.name} <span style={{ color: '#666', fontWeight: 'normal', fontSize: '0.9em' }}>📅 {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}</span>
-                                                                </Typography>
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                                                        {task.name}
+                                                                    </Typography>
+                                                                    <Typography variant="caption" sx={{ color: '#666', fontSize: '0.85em' }}>
+                                                                        📅 {task.start.toLocaleDateString('ru-RU')} - {task.end.toLocaleDateString('ru-RU')}
+                                                                    </Typography>
+                                                                </Box>
                                                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                                                     👤 <strong>Исполнитель:</strong> {task.assignee || 'Не назначен'}
                                                                 </Typography>
