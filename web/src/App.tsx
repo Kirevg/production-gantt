@@ -3077,15 +3077,6 @@ export default function App() {
               }}>
                 Gantt-диаграмма проектов
               </Typography>
-              <Typography variant="body1" sx={{
-                fontSize: '1.1rem',
-                lineHeight: 1.6,
-                mb: 3,
-                textAlign: 'center',
-                color: 'text.secondary'
-              }}>
-                Визуализация всех проектов и их этапов работ
-              </Typography>
 
               {/* Gantt-диаграмма */}
               <GanttChart

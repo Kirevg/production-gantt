@@ -156,7 +156,7 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                 backgroundColor: '#f5f5f5',
                 borderRadius: 1
             }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#424242' }}>
                     Gantt-диаграмма проекта
                 </Typography>
 
