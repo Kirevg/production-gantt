@@ -241,7 +241,7 @@ const KanbanBoard: React.FC = () => {
                                                             <Paper
                                                                 key={task.id}
                                                                 sx={{
-                                                                    p: 2,
+                                                                    p: 4,
                                                                     minWidth: '150px',
                                                                     border: '1px solid #e0e0e0',
                                                                     cursor: 'pointer',
