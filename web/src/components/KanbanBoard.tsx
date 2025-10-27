@@ -218,7 +218,7 @@ const KanbanBoard: React.FC = () => {
                                             }}
                                         >
                                             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                                                📋 {projectName} ({tasks.length})
+                                                📋 {projectName} - Изделий: {productsMap.size}
                                             </Typography>
                                         </Paper>
                                         
