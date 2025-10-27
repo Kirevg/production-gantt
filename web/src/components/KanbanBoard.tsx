@@ -195,7 +195,7 @@ const KanbanBoard: React.FC = () => {
                                         {/* Заголовок проекта */}
                                         <Paper
                                             sx={{
-                                                p: 1.5,
+                                                p: '8px',
                                                 mb: 1,
                                                 backgroundColor: '#f5f5f5',
                                                 borderLeft: '4px solid #1976d2'
