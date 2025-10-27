@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
+import VolumeButton from './VolumeButton';
 
 // Интерфейс для задач канбан-доски
 interface KanbanTask {
@@ -553,10 +554,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onOpenStage }) => {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseEditDialog}>Отмена</Button>
-                    <Button onClick={handleSaveStage} variant="contained" sx={{ fontSize: '14px' }}>
+                    <VolumeButton onClick={handleSaveStage} variant="contained" color="blue" sx={{ fontSize: '14px' }}>
                         {editingTask ? 'Сохранить' : 'Создать'}
-                    </Button>
+                    </VolumeButton>
+                    <VolumeButton onClick={handleCloseEditDialog} color="orange">
+                        Отмена
+                    </VolumeButton>
                 </DialogActions>
             </Dialog>
         </Box>
