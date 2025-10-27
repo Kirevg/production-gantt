@@ -158,7 +158,7 @@ const KanbanBoard: React.FC = () => {
                     <Box sx={{ p: 2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                             <Typography variant="h6">
-                                Этапы работ ({kanbanTasks.length})
+                                Проекты, изделия и этапы работ
                             </Typography>
                             <Tooltip title="Обновить">
                                 <IconButton onClick={handleRefresh} size="small">
