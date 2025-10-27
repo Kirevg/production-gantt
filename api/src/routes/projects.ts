@@ -407,4 +407,49 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res
   }
 });
 
+// PUT /projects/products/:productId/work-stages/order - обновить порядок этапов
+router.put('/products/:productId/work-stages/order', authenticateToken, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { stages } = req.body;
+
+    // Валидация входных данных
+    if (!Array.isArray(stages)) {
+      return res.status(400).json({ error: 'stages должен быть массивом' });
+    }
+
+    // Проверяем, что все этапы принадлежат указанному изделию
+    const existingStages = await prisma.workStage.findMany({
+      where: { productId },
+      select: { id: true }
+    });
+
+    const existingStageIds = existingStages.map(stage => stage.id);
+    const requestStageIds = stages.map((stage: any) => stage.id);
+
+    // Проверяем, что все запрашиваемые этапы существуют и принадлежат изделию
+    const invalidStages = requestStageIds.filter(id => !existingStageIds.includes(id));
+    if (invalidStages.length > 0) {
+      return res.status(400).json({
+        error: `Этапы не найдены или не принадлежат изделию: ${invalidStages.join(', ')}`
+      });
+    }
+
+    // Обновляем порядок этапов
+    const updatePromises = stages.map((stage: any) =>
+      prisma.workStage.update({
+        where: { id: stage.id },
+        data: { orderIndex: stage.order }
+      })
+    );
+
+    await Promise.all(updatePromises);
+
+    res.json({ message: 'Порядок этапов успешно обновлен' });
+  } catch (error) {
+    console.error('Ошибка обновления порядка этапов:', error);
+    res.status(500).json({ error: 'Ошибка обновления порядка этапов' });
+  }
+});
+
 export default router;

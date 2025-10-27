@@ -86,6 +86,7 @@ interface NomenclatureItem {
     id: string;
     groupId?: string;
     kindId?: string;
+    type?: 'Product' | 'Service' | 'Work'; // Тип номенклатуры
     designation?: string;
     name: string;
     article?: string;
@@ -1585,16 +1586,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     Карточка номенклатуры
                 </DialogTitle>
                 <DialogContent>
-                    {/* Строка 1: Обозначение | Наименование */}
+                    {/* Строка 1: Наименование | Обозначение */}
                     <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                        <TextField
-                            label="Обозначение"
-                            value={itemForm.designation}
-                            onChange={(e) => setItemForm({ ...itemForm, designation: e.target.value })}
-                            margin="dense"
-                            sx={{ width: '40%' }}
-                            InputLabelProps={{ shrink: true }}
-                        />
                         <TextField
                             autoFocus
                             label="Наименование"
@@ -1603,6 +1596,14 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                             margin="dense"
                             required
                             sx={{ width: '60%' }}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Обозначение"
+                            value={itemForm.designation}
+                            onChange={(e) => setItemForm({ ...itemForm, designation: e.target.value })}
+                            margin="dense"
+                            sx={{ width: '40%' }}
                             InputLabelProps={{ shrink: true }}
                         />
                     </Box>

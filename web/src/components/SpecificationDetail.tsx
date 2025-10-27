@@ -195,7 +195,17 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         widths.push(cell.getBoundingClientRect().width);
                     }
                 });
-                setColumnWidths(widths);
+                // Преобразуем массив в объект с правильными ключами
+                const newWidths = {
+                    number: widths[0] || 40,
+                    name: (widths[1] || 'auto') as string, // Приводим к строке
+                    article: widths[2] || 100,
+                    quantity: widths[3] || 80,
+                    unit: widths[4] || 80,
+                    price: widths[5] || 100,
+                    total: widths[6] || 100
+                };
+                setColumnWidths(newWidths);
             }
         }
     }, [excelData]);
@@ -237,7 +247,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 setSpecifications(prev =>
                     prev.map(spec =>
                         spec.id === specificationId
-                            ? { ...spec, quantity: newQuantity, totalPrice: spec.price ? spec.price * newQuantity : null }
+                            ? { ...spec, quantity: newQuantity, totalPrice: spec.price ? spec.price * newQuantity : undefined }
                             : spec
                     )
                 );
@@ -312,7 +322,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 setSpecifications(prev =>
                     prev.map(spec =>
                         spec.id === specificationId
-                            ? { ...spec, price: newPrice, totalPrice: spec.quantity ? spec.quantity * newPrice : null }
+                            ? { ...spec, price: newPrice, totalPrice: spec.quantity ? spec.quantity * newPrice : undefined }
                             : spec
                     )
                 );
@@ -386,6 +396,13 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     };
 
     const [columnWidths, setColumnWidths] = useState(getInitialColumnWidths);
+
+    // Функция для получения ширины колонки по индексу
+    const getColumnWidth = (index: number) => {
+        const widths = [columnWidths.number, columnWidths.name, columnWidths.article, columnWidths.quantity, columnWidths.unit, columnWidths.price, columnWidths.total];
+        const width = widths[index];
+        return width === 'auto' ? 'auto' : `${width}px`;
+    };
 
     // Фиксированные ширины колонок (без возможности изменения)
 
@@ -2314,7 +2331,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 tableLayout: 'fixed',
                                 width: '100%',
                                 '& .MuiTableCell-root': {
-                                    width: columnWidths.length > 0 ? `${columnWidths[0]}px` : 'auto',
+                                    width: `${columnWidths.number}px`,
                                     maxWidth: 'none',
                                     fontSize: '12px !important'
                                 }
@@ -2326,7 +2343,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                             <TableCell key={index} sx={{
                                                 textAlign: 'center',
                                                 padding: '4px !important',
-                                                width: columnWidths.length > index ? `${columnWidths[index]}px` : 'auto'
+                                                width: getColumnWidth(index)
                                             }}>
                                                 <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
                                                     <Select
@@ -2371,7 +2388,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 fontSize: '12px !important',
                                                 textAlign: 'center',
                                                 padding: '4px !important',
-                                                width: columnWidths.length > index ? `${columnWidths[index]}px` : 'auto',
+                                                width: getColumnWidth(index),
                                                 border: '2px solid #333',
                                                 borderTop: '2px solid #333',
                                                 borderLeft: '2px solid #333',

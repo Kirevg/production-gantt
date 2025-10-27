@@ -124,11 +124,6 @@ const GanttChart: React.FC<GanttChartProps> = () => {
     }, []);
 
 
-    // Обработчики для карточек (пока заглушки)
-    const handleCardClick = (task: GanttTask) => {
-        console.log('Клик по карточке:', task);
-        // Здесь можно добавить логику редактирования
-    };
 
     // Обработчики масштабирования (пока заглушки)
     const handleZoomIn = () => {
