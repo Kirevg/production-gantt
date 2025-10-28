@@ -2948,7 +2948,7 @@ export default function App() {
   // Обработчики контекстного меню карточки
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
-    event.stopPropagation(); // Останавливаем всплытие события
+    // НЕ останавливаем всплытие события, чтобы страница могла обработать его
 
     // Закрываем меню страницы если оно открыто
     if (pageContextMenu !== null) {
@@ -2993,6 +2993,15 @@ export default function App() {
   // Обработчики контекстного меню страницы
   const handlePageContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
+
+    // Проверяем, был ли клик по карточке
+    const target = event.target as HTMLElement;
+    const isCardClick = target.closest('[data-context-menu-trigger="card"]');
+    
+    if (isCardClick) {
+      // Если клик был по карточке, не открываем меню страницы
+      return;
+    }
 
     // Закрываем меню карточки если оно открыто
     if (contextMenu !== null) {
