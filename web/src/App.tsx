@@ -2963,8 +2963,8 @@ export default function App() {
   };
 
   // Обработчик клика по карточке
-  const handleCardClick = (event: React.MouseEvent) => {
-    event.stopPropagation();
+  const handleCardClick = () => {
+    // НЕ останавливаем всплытие события, чтобы клик дошел до страницы
     // При клике по карточке закрываем только меню страницы, но не карточки
     setPageContextMenu(null);
   };
@@ -3008,8 +3008,9 @@ export default function App() {
 
   // Обработчик клика по странице
   const handlePageClick = () => {
-    // При клике по странице закрываем только меню карточки, но не страницы
+    // При клике по странице закрываем оба меню
     setContextMenu(null);
+    setPageContextMenu(null);
   };
 
   const handleClosePageContextMenu = () => {
