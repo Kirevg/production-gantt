@@ -1,6 +1,6 @@
 // Импорт React хуков для управления состоянием компонентов
 // Production Gantt - Система управления проектами
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 
 // Импорт единого стиля для кнопок
@@ -127,6 +127,8 @@ import {
   DialogTitle,  // Заголовок диалога
   DialogContent, // Содержимое диалога
   DialogActions, // Действия в диалоге
+  Menu,         // Контекстное меню
+  MenuItem,     // Элемент контекстного меню
   FormControlLabel, // Лейбл для элементов формы
   Checkbox     // Чекбокс
 } from '@mui/material';
@@ -175,7 +177,7 @@ import StagesPage from './components/StagesPage';
 import SpecificationDetail from './components/SpecificationDetail';
 import ProductCard from './components/ProductCard';
 import SpecificationsList from './components/SpecificationsList';
-import GanttChart from './components/GanttChart';
+// import GanttChart from './components/GanttChart'; // Не используется
 import KanbanBoard from './components/KanbanBoard';
 import ReferencesPage from './components/ReferencesPage';
 import VolumeButton from './components/VolumeButton';
@@ -2504,6 +2506,13 @@ export default function App() {
   const [error, setError] = useState('');        // Ошибка авторизации
   const [user, setUser] = useState<User | null>(null); // Данные авторизованного пользователя
   const [currentTab, setCurrentTab] = useState(0);    // Текущая активная вкладка
+
+  // Состояние для позиции перетаскиваемой карточки
+  const [cardPosition, setCardPosition] = useState({ x: 50, y: 50 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [showPage1, setShowPage1] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
   // Состояние для показа/скрытия состава проекта
   const [showProjectComposition, setShowProjectComposition] = useState(false);
   // Состояние для хранения проекта, состав которого просматривается
@@ -2524,6 +2533,18 @@ export default function App() {
   const [selectedSpecificationId, setSelectedSpecificationId] = useState<string | null>(null);
   const [selectedSpecificationName, setSelectedSpecificationName] = useState<string | null>(null);
 
+  // Состояние для контекстного меню карточки
+  const [contextMenu, setContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
+
+  // Состояние для контекстного меню страницы
+  const [pageContextMenu, setPageContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
+
   // Эффект для обработчика переключения на старую страницу спецификаций
   useEffect(() => {
     const handleSwitchToOldSpecifications = (event: any) => {
@@ -2538,6 +2559,32 @@ export default function App() {
 
     return () => {
       window.removeEventListener('switchToOldSpecifications', handleSwitchToOldSpecifications);
+    };
+  }, []);
+
+  // Эффект для закрытия контекстных меню при клике вне их
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Закрываем меню при клике вне элементов с data-context-menu-trigger
+      const target = event.target as Element;
+      if (!target.closest('[data-context-menu-trigger]')) {
+        setContextMenu(null);
+        setPageContextMenu(null);
+      }
+    };
+
+    const handleContextMenuOutside = (event: MouseEvent) => {
+      event.preventDefault();
+      setContextMenu(null);
+      setPageContextMenu(null);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('contextmenu', handleContextMenuOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('contextmenu', handleContextMenuOutside);
     };
   }, []);
 
@@ -2782,7 +2829,7 @@ export default function App() {
         index: 0,
         label: 'Главная',
         icon: <HomeIcon />,
-        description: 'Gantt-диаграмма всех проектов',
+        description: 'Главная страница',
         color: '#1976d2'
       },
       {
@@ -2895,6 +2942,91 @@ export default function App() {
 
       // Переключаем вкладку
       setCurrentTab(newValue);
+    }
+  };
+
+  // Обработчики контекстного меню карточки
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation(); // Останавливаем всплытие события
+
+    // Закрываем меню страницы если оно открыто
+    if (pageContextMenu !== null) {
+      setPageContextMenu(null);
+    }
+
+    // Открываем наше меню в новой позиции
+    setContextMenu({
+      mouseX: event.clientX + 2,
+      mouseY: event.clientY - 6,
+    });
+  };
+
+  // Обработчик клика по карточке
+  const handleCardClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    // При клике по карточке закрываем только меню страницы, но не карточки
+    setPageContextMenu(null);
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  const handleContextMenuAction = (action: string) => {
+    handleCloseContextMenu();
+    switch (action) {
+      case 'open':
+        setShowPage1(true);
+        break;
+      case 'edit':
+        // Здесь можно добавить логику редактирования
+        console.log('Редактировать карточку');
+        break;
+      case 'delete':
+        // Здесь можно добавить логику удаления
+        console.log('Удалить карточку');
+        break;
+    }
+  };
+
+  // Обработчики контекстного меню страницы
+  const handlePageContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+
+    // Закрываем меню карточки если оно открыто
+    if (contextMenu !== null) {
+      setContextMenu(null);
+    }
+
+    // Открываем наше меню в новой позиции
+    setPageContextMenu({
+      mouseX: event.clientX + 2,
+      mouseY: event.clientY - 6,
+    });
+  };
+
+  // Обработчик клика по странице
+  const handlePageClick = () => {
+    // При клике по странице закрываем только меню карточки, но не страницы
+    setContextMenu(null);
+  };
+
+  const handleClosePageContextMenu = () => {
+    setPageContextMenu(null);
+  };
+
+  const handlePageContextMenuAction = (action: string) => {
+    handleClosePageContextMenu();
+    switch (action) {
+      case 'paste':
+        // Здесь можно добавить логику вставки
+        console.log('Вставить');
+        break;
+      case 'refresh':
+        // Здесь можно добавить логику обновления
+        console.log('Обновить');
+        break;
     }
   };
 
@@ -3081,21 +3213,93 @@ export default function App() {
     }
 
     switch (currentTab) {
-      case 0: // Главная страница - Gantt-диаграмма
+      case 0: // Главная страница - перетаскиваемая карточка
         return (
-          <Box className="page-content-container">
-            <Box sx={{ mt: 2, mb: 1, width: '100%' }}>
-              <Typography variant="h4" sx={{
-                fontWeight: 'bold',
-                mb: 3,
-                color: '#1976d2',
-                textAlign: 'center'
-              }}>
-                Gantt-диаграмма проектов
-              </Typography>
+          <Box className="page-content-container" onContextMenu={handlePageContextMenu} onClick={handlePageClick} data-context-menu-trigger="page">
+            <Box sx={{ mt: 2, mb: 1, width: '100%', position: 'relative', minHeight: '500px' }}>
+              <Paper
+                ref={cardRef}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
 
-              {/* Gantt-диаграмма */}
-              <GanttChart />
+                  const card = cardRef.current;
+                  if (!card) return;
+
+                  const container = card.parentElement;
+                  const containerRect = container?.getBoundingClientRect();
+
+                  const handleMouseMove = (e: MouseEvent) => {
+                    if (containerRect && card) {
+                      const x = e.clientX - containerRect.left - 100; // половина ширины карточки
+                      const y = e.clientY - containerRect.top - 50; // половина высоты карточки
+
+                      const newX = Math.max(0, Math.min(x, containerRect.width - 200));
+                      const newY = Math.max(0, Math.min(y, containerRect.height - 100));
+
+                      // Прямо изменяем стили для плавного движения
+                      card.style.left = `${newX}px`;
+                      card.style.top = `${newY}px`;
+                    }
+                  };
+
+                  const handleMouseUp = () => {
+                    setIsDragging(false);
+                    if (card && container) {
+                      const containerRect = container.getBoundingClientRect();
+                      const cardRect = card.getBoundingClientRect();
+                      const newX = cardRect.left - containerRect.left;
+                      const newY = cardRect.top - containerRect.top;
+                      setCardPosition({ x: newX, y: newY });
+                    }
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                }}
+                onDoubleClick={() => {
+                  setShowPage1(true);
+                }}
+                onContextMenu={handleContextMenu}
+                onClick={handleCardClick}
+                data-context-menu-trigger="card"
+                sx={{
+                  p: 3,
+                  height: '100px',
+                  width: '200px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#fafafa',
+                  cursor: 'default',
+                  userSelect: 'none',
+                  position: 'absolute',
+                  left: `${cardPosition.x}px`,
+                  top: `${cardPosition.y}px`,
+                  transform: isDragging ? 'scale(1.05)' : 'scale(1)',
+                  border: '2px solid rgb(210, 25, 105)',
+                  borderRadius: '8px',
+                  boxShadow: isDragging ? 6 : 3,
+                  zIndex: isDragging ? 1000 : 1,
+                  transition: isDragging ? 'none' : 'all 0.3s ease-in-out',
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'scale(1.02)',
+                    transition: 'all 0.01s ease-in-out',
+                    border: '2px solid #1565c0'
+                  }
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  color="text.secondary"
+                  sx={{ textAlign: 'center' }}
+                >
+                  Страница1
+                </Typography>
+              </Paper>
             </Box>
           </Box>
         );
@@ -3328,7 +3532,150 @@ export default function App() {
         </Tabs>
 
         {/* Основной контент */}
-        {renderTabContent()}
+        {showPage1 ? (
+          <Box className="page-content-container" sx={{
+            width: '100%',
+            height: 'calc(100vh - 112px)',
+            backgroundColor: '#D6CEA2',
+            position: 'relative',
+            borderRadius: '12px'
+          }}>
+            {/* Заголовок страницы */}
+            <Box sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              paddingLeft: '16px',
+              backgroundColor: '#9e9e9e',
+              borderRadius: '12px 0 0 0',
+              zIndex: 1000
+            }}>
+              <Typography variant="h6" sx={{
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '16px'
+              }}>
+                Страница1
+              </Typography>
+            </Box>
+
+            {/* Крестик закрытия как в Windows */}
+            <Box
+              onClick={() => setShowPage1(false)}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                zIndex: 1000,
+                width: '60px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#9e9e9e',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '30px',
+                fontWeight: 500,
+                borderRadius: '0 12px 0 0',
+                flexWrap: 'nowrap',
+                '&:hover': {
+                  backgroundColor: '#d32f2f'
+                },
+                '&:active': {
+                  backgroundColor: '#b71c1c'
+                }
+              }}
+            >
+              <Box sx={{ transform: 'translateY(-3px)' }}>
+                ×
+              </Box>
+            </Box>
+
+          </Box>
+        ) : (
+          renderTabContent()
+        )}
+
+        {/* Контекстное меню карточки */}
+        <Menu
+          open={contextMenu !== null}
+          onClose={handleCloseContextMenu}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            contextMenu !== null
+              ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+              : undefined
+          }
+          onClick={(e) => e.stopPropagation()}
+          disableAutoFocusItem
+          disableEnforceFocus
+          disableRestoreFocus
+          // Убираем aria-hidden с контейнера меню для соответствия стандартам ARIA
+          slotProps={{
+            root: {
+              'aria-hidden': false
+            },
+            paper: {
+              'aria-hidden': false
+            }
+          }}
+          MenuListProps={{
+            'aria-labelledby': 'context-menu-card',
+            role: 'menu'
+          }}
+        >
+          <MenuItem onClick={() => handleContextMenuAction('open')}>
+            Открыть
+          </MenuItem>
+          <MenuItem onClick={() => handleContextMenuAction('edit')}>
+            Редактировать
+          </MenuItem>
+          <MenuItem onClick={() => handleContextMenuAction('delete')}>
+            Удалить
+          </MenuItem>
+        </Menu>
+
+        {/* Контекстное меню страницы */}
+        <Menu
+          open={pageContextMenu !== null}
+          onClose={handleClosePageContextMenu}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            pageContextMenu !== null
+              ? { top: pageContextMenu.mouseY, left: pageContextMenu.mouseX }
+              : undefined
+          }
+          onClick={(e) => e.stopPropagation()}
+          disableAutoFocusItem
+          disableEnforceFocus
+          disableRestoreFocus
+          // Убираем aria-hidden с контейнера меню для соответствия стандартам ARIA
+          slotProps={{
+            root: {
+              'aria-hidden': false
+            },
+            paper: {
+              'aria-hidden': false
+            }
+          }}
+          MenuListProps={{
+            'aria-labelledby': 'context-menu-page',
+            role: 'menu'
+          }}
+        >
+          <MenuItem onClick={() => handlePageContextMenuAction('paste')}>
+            Вставить
+          </MenuItem>
+          <MenuItem onClick={() => handlePageContextMenuAction('refresh')}>
+            Обновить
+          </MenuItem>
+        </Menu>
+
       </Box>
     );
   }

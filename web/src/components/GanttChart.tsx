@@ -151,9 +151,6 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                 backgroundColor: '#f5f5f5',
                 borderRadius: 1
             }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#424242' }}>
-                    Gantt-диаграмма проекта
-                </Typography>
 
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title="Увеличить масштаб">
@@ -220,16 +217,6 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                         gap: 2,
                         p: 4
                     }}>
-                        <Typography variant="h5" color="text.primary">
-                            📊 Gantt-диаграмма в разработке
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                            Найдено этапов работ: <strong>{ganttTasks.length}</strong>
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" align="center" sx={{ maxWidth: '600px' }}>
-                            В данный момент Gantt-диаграмма находится в стадии разработки.
-                            Для просмотра этапов работ используйте вкладку <strong>Канбан</strong>.
-                        </Typography>
                     </Box>
                 ) : (
                     <Box sx={{

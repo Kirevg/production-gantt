@@ -542,26 +542,26 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     };
 
     // Функция для вычисления процента пересечения
-    const getIntersectionRatio = (rect1: any, rect2: any) => {
-        // Проверяем, что все необходимые свойства существуют
-        if (!rect1 || !rect2 ||
-            typeof rect1.left !== 'number' || typeof rect1.width !== 'number' || typeof rect1.height !== 'number' ||
-            typeof rect2.left !== 'number' || typeof rect2.width !== 'number' || typeof rect2.height !== 'number') {
-            return 0;
-        }
+    // const getIntersectionRatio = (rect1: any, rect2: any) => {
+    //     // Проверяем, что все необходимые свойства существуют
+    //     if (!rect1 || !rect2 ||
+    //         typeof rect1.left !== 'number' || typeof rect1.width !== 'number' || typeof rect1.height !== 'number' ||
+    //         typeof rect2.left !== 'number' || typeof rect2.width !== 'number' || typeof rect2.height !== 'number') {
+    //         return 0;
+    //     }
 
-        const x1 = Math.max(rect1.left, rect2.left);
-        const y1 = Math.max(rect1.top, rect2.top);
-        const x2 = Math.min(rect1.left + rect1.width, rect2.left + rect2.width);
-        const y2 = Math.min(rect1.top + rect1.height, rect2.top + rect2.height);
+    //     const x1 = Math.max(rect1.left, rect2.left);
+    //     const y1 = Math.max(rect1.top, rect2.top);
+    //     const x2 = Math.min(rect1.left + rect1.width, rect2.left + rect2.width);
+    //     const y2 = Math.min(rect1.top + rect1.height, rect2.top + rect2.height);
 
-        if (x2 <= x1 || y2 <= y1) return 0;
+    //     if (x2 <= x1 || y2 <= y1) return 0;
 
-        const intersectionArea = (x2 - x1) * (y2 - y1);
-        const rect2Area = rect2.width * rect2.height;
+    //     const intersectionArea = (x2 - x1) * (y2 - y1);
+    //     const rect2Area = rect2.width * rect2.height;
 
-        return rect2Area > 0 ? intersectionArea / rect2Area : 0;
-    };
+    //     return rect2Area > 0 ? intersectionArea / rect2Area : 0;
+    // };
 
     // Функция сохранения порядка этапов
     const saveTaskOrder = async (tasks: KanbanTask[]) => {
@@ -1123,6 +1123,18 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
                             : undefined
                     }
+                    // Убираем aria-hidden с контейнера меню для соответствия стандартам ARIA
+                    slotProps={{
+                        root: {
+                            'aria-hidden': false
+                        },
+                        paper: {
+                            'aria-hidden': false
+                        }
+                    }}
+                    MenuListProps={{
+                        role: 'menu'
+                    }}
                 >
                     <MenuItem onClick={handleEditFromContextMenu}>
                         <ListItemIcon>

@@ -2193,6 +2193,18 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 anchorEl={groupsMenuAnchor}
                 open={Boolean(groupsMenuAnchor)}
                 onClose={handleGroupsMenuClose}
+                // Убираем aria-hidden с контейнера меню для соответствия стандартам ARIA
+                slotProps={{
+                    root: {
+                        'aria-hidden': false
+                    },
+                    paper: {
+                        'aria-hidden': false
+                    }
+                }}
+                MenuListProps={{
+                    role: 'menu'
+                }}
                 PaperProps={{
                     sx: {
                         minWidth: '280px',

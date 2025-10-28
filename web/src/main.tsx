@@ -90,7 +90,7 @@ window.addEventListener('unhandledrejection', (event) => {
 console.log('🔍 Удалённое логирование консоли включено');
 // ============= КОНЕЦ УДАЛЁННОГО ЛОГИРОВАНИЯ =============
 
-// Предотвращаем применение aria-hidden к корневому элементу
+// Предотвращаем применение aria-hidden к элементам с фокусом
 // Это нарушает стандарты ARIA согласно спецификации WAI-ARIA
 const rootElement = document.getElementById('root');
 if (rootElement) {
@@ -98,10 +98,21 @@ if (rootElement) {
     mutations.forEach((mutation) => {
       if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
         const target = mutation.target as HTMLElement;
+        
+        // Удаляем aria-hidden с корневого элемента
         if (target.id === 'root' && target.getAttribute('aria-hidden') === 'true') {
-          // Немедленно удаляем aria-hidden с корневого элемента
           target.removeAttribute('aria-hidden');
           console.warn('Removed aria-hidden from root element to comply with ARIA standards');
+        }
+        
+        // Проверяем, есть ли внутри элемента с aria-hidden фокусируемые элементы
+        if (target.getAttribute('aria-hidden') === 'true') {
+          const focusedElement = document.activeElement;
+          if (focusedElement && target.contains(focusedElement)) {
+            // Удаляем aria-hidden если внутри есть элемент с фокусом
+            target.removeAttribute('aria-hidden');
+            console.warn(`Removed aria-hidden from ${target.className} because it contains focused element`);
+          }
         }
       }
     });
@@ -109,7 +120,8 @@ if (rootElement) {
 
   observer.observe(rootElement, {
     attributes: true,
-    attributeFilter: ['aria-hidden']
+    attributeFilter: ['aria-hidden'],
+    subtree: true // Отслеживаем изменения во всех дочерних элементах
   });
 }
 
