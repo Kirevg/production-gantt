@@ -19,6 +19,24 @@
   pointer-events: auto !important;
 }
 
+/* Предотвращаем применение aria-hidden к корневому элементу */
+#root {
+  /* Принудительно убираем aria-hidden с корневого элемента */
+  aria-hidden: false !important;
+}
+
+/* Предотвращаем проблемы с доступностью в Material-UI меню */
+.MuiMenu-root[aria-hidden="true"] {
+  /* Убираем aria-hidden с меню, которые содержат фокусируемые элементы */
+  aria-hidden: false !important;
+}
+
+/* Обеспечиваем доступность для скрин-ридеров */
+.MuiMenu-root .MuiList-root {
+  /* Список меню должен быть доступен для скрин-ридеров */
+  aria-hidden: false !important;
+}
+
 a {
   font-weight: 500;
   color: #646cff;

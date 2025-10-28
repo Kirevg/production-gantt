@@ -94,15 +94,32 @@ console.log('🔍 Удалённое логирование консоли вк�
 // Это нарушает стандарты ARIA согласно спецификации WAI-ARIA
 const rootElement = document.getElementById('root');
 if (rootElement) {
+  let lastWarningTime = 0;
+  const WARNING_COOLDOWN = 10000; // 10 секунд между предупреждениями
+  
+  // Перехватываем попытки установки aria-hidden на корневой элемент
+  const originalSetAttribute = rootElement.setAttribute;
+  rootElement.setAttribute = function(name: string, value: string) {
+    if (name === 'aria-hidden' && value === 'true' && this.id === 'root') {
+      // Блокируем установку aria-hidden на корневой элемент
+      const now = Date.now();
+      if (now - lastWarningTime > WARNING_COOLDOWN) {
+        console.warn('Blocked aria-hidden on root element to comply with ARIA standards');
+        lastWarningTime = now;
+      }
+      return; // Не устанавливаем атрибут
+    }
+    return originalSetAttribute.call(this, name, value);
+  };
+  
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
         const target = mutation.target as HTMLElement;
         
-        // Удаляем aria-hidden с корневого элемента
+        // Удаляем aria-hidden с корневого элемента (если все же проскочил)
         if (target.id === 'root' && target.getAttribute('aria-hidden') === 'true') {
           target.removeAttribute('aria-hidden');
-          console.warn('Removed aria-hidden from root element to comply with ARIA standards');
         }
         
         // Проверяем, есть ли внутри элемента с aria-hidden фокусируемые элементы
@@ -111,7 +128,13 @@ if (rootElement) {
           if (focusedElement && target.contains(focusedElement)) {
             // Удаляем aria-hidden если внутри есть элемент с фокусом
             target.removeAttribute('aria-hidden');
-            console.warn(`Removed aria-hidden from ${target.className} because it contains focused element`);
+            
+            // Показываем предупреждение не чаще чем раз в 10 секунд
+            const now = Date.now();
+            if (now - lastWarningTime > WARNING_COOLDOWN) {
+              console.warn(`Removed aria-hidden from ${target.className} because it contains focused element`);
+              lastWarningTime = now;
+            }
           }
         }
       }
