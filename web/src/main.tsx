@@ -98,19 +98,19 @@ if (rootElement) {
   let lastWarningTime = 0;
   const WARNING_COOLDOWN = 15000; // 15 секунд между предупреждениями
 
-  // Перехватываем попытки установки aria-hidden на корневой элемент
-  const originalSetAttribute = rootElement.setAttribute;
-  rootElement.setAttribute = function (name: string, value: string) {
-    if (name === 'aria-hidden' && value === 'true' && this.id === 'root') {
-      // Блокируем установку aria-hidden на корневой элемент
-      if (!hasWarnedAboutRoot) {
-        console.warn('✅ ARIA Protection: Blocked aria-hidden on root element to comply with WAI-ARIA standards');
-        hasWarnedAboutRoot = true;
-      }
-      return; // Не устанавливаем атрибут
-    }
-    return originalSetAttribute.call(this, name, value);
-  };
+  // ВРЕМЕННО ОТКЛЮЧАЕМ защиту ARIA для тестирования меню
+  // const originalSetAttribute = rootElement.setAttribute;
+  // rootElement.setAttribute = function (name: string, value: string) {
+  //   if (name === 'aria-hidden' && value === 'true' && this.id === 'root') {
+  //     // Блокируем установку aria-hidden на корневой элемент
+  //     if (!hasWarnedAboutRoot) {
+  //       console.warn('✅ ARIA Protection: Blocked aria-hidden on root element to comply with WAI-ARIA standards');
+  //       hasWarnedAboutRoot = true;
+  //     }
+  //     return; // Не устанавливаем атрибут
+  //   }
+  //   return originalSetAttribute.call(this, name, value);
+  // };
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {

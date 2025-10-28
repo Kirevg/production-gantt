@@ -2568,6 +2568,7 @@ export default function App() {
       // Закрываем меню при клике вне элементов с data-context-menu-trigger
       const target = event.target as Element;
       if (!target.closest('[data-context-menu-trigger]')) {
+        console.log('🔍 handleClickOutside: закрываем меню');
         setContextMenu(null);
         setPageContextMenu(null);
       }
@@ -2575,8 +2576,22 @@ export default function App() {
 
     const handleContextMenuOutside = (event: MouseEvent) => {
       event.preventDefault();
-      setContextMenu(null);
-      setPageContextMenu(null);
+
+      // Добавляем небольшую задержку, чтобы дать время handlePageContextMenu сработать
+      setTimeout(() => {
+        // Проверяем, был ли клик по элементу с data-context-menu-trigger
+        const target = event.target as Element;
+        const isContextMenuTrigger = target.closest('[data-context-menu-trigger]');
+
+        if (isContextMenuTrigger) {
+          console.log('🔍 handleContextMenuOutside: клик по элементу с контекстным меню, не закрываем');
+          return;
+        }
+
+        console.log('🔍 handleContextMenuOutside: закрываем меню');
+        setContextMenu(null);
+        setPageContextMenu(null);
+      }, 10); // 10ms задержка
     };
 
     document.addEventListener('click', handleClickOutside);
@@ -2587,6 +2602,18 @@ export default function App() {
       document.removeEventListener('contextmenu', handleContextMenuOutside);
     };
   }, []);
+
+  // Логирование состояния pageContextMenu для отладки
+  useEffect(() => {
+    console.log('🔍 pageContextMenu изменилось:', pageContextMenu);
+    if (pageContextMenu) {
+      console.log('🔍 Меню должно быть открыто!');
+      console.log('🔍 Рендеринг Menu, open: true, pageContextMenu:', pageContextMenu);
+    } else {
+      console.log('🔍 Меню закрыто');
+      console.log('🔍 Рендеринг Menu, open: false, pageContextMenu:', pageContextMenu);
+    }
+  }, [pageContextMenu]);
 
   // Функция для проверки доступа к вкладке
   const canAccessTab = useCallback((tabIndex: number) => {
@@ -2948,10 +2975,12 @@ export default function App() {
   // Обработчики контекстного меню карточки
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
+    console.log('🔍 handleContextMenu карточки вызван');
     // НЕ останавливаем всплытие события, чтобы страница могла обработать его
 
     // Закрываем меню страницы если оно открыто
     if (pageContextMenu !== null) {
+      console.log('🔍 handleContextMenu карточки: закрываем меню страницы');
       setPageContextMenu(null);
     }
 
@@ -2963,7 +2992,10 @@ export default function App() {
   };
 
   // Обработчик клика по карточке
-  const handleCardClick = () => {
+  const handleCardClick = (event: React.MouseEvent) => {
+    // Срабатывает только при левом клике (не правом)
+    if (event.button !== 0) return;
+
     // НЕ останавливаем всплытие события, чтобы клик дошел до страницы
     // При клике по карточке закрываем только меню страницы, но не карточки
     setPageContextMenu(null);
@@ -2993,15 +3025,29 @@ export default function App() {
   // Обработчики контекстного меню страницы
   const handlePageContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
+    console.log('🔍 handlePageContextMenu вызван');
 
     // Проверяем, был ли клик по карточке
     const target = event.target as HTMLElement;
     const isCardClick = target.closest('[data-context-menu-trigger="card"]');
-    
+
+    console.log('🔍 target:', target);
+    console.log('🔍 isCardClick:', isCardClick);
+
     if (isCardClick) {
       // Если клик был по карточке, не открываем меню страницы
+      console.log('🔍 Клик был по карточке, не открываем меню страницы');
       return;
     }
+
+    // Защита от множественных вызовов - если меню уже открыто, не открываем снова
+    if (pageContextMenu !== null) {
+      console.log('🔍 Меню уже открыто, игнорируем повторный вызов');
+      return;
+    }
+
+    console.log('🔍 Открываем меню страницы');
+    console.log('🔍 Текущее состояние pageContextMenu:', pageContextMenu);
 
     // Закрываем меню карточки если оно открыто
     if (contextMenu !== null) {
@@ -3009,20 +3055,25 @@ export default function App() {
     }
 
     // Открываем наше меню в новой позиции
-    setPageContextMenu({
+    const newMenuPosition = {
       mouseX: event.clientX + 2,
       mouseY: event.clientY - 6,
-    });
+    };
+    console.log('🔍 Устанавливаем новую позицию меню:', newMenuPosition);
+    setPageContextMenu(newMenuPosition);
   };
 
   // Обработчик клика по странице
   const handlePageClick = () => {
+    console.log('🔍 handlePageClick вызван');
     // При клике по странице закрываем оба меню
+    console.log('🔍 handlePageClick: закрываем оба меню');
     setContextMenu(null);
     setPageContextMenu(null);
   };
 
   const handleClosePageContextMenu = () => {
+    console.log('🔍 handleClosePageContextMenu вызван');
     setPageContextMenu(null);
   };
 
@@ -3653,7 +3704,10 @@ export default function App() {
         {/* Контекстное меню страницы */}
         <Menu
           open={pageContextMenu !== null}
-          onClose={handleClosePageContextMenu}
+          onClose={(event, reason) => {
+            console.log('🔍 Menu onClose вызван, reason:', reason, 'event:', event);
+            handleClosePageContextMenu();
+          }}
           anchorReference="anchorPosition"
           anchorPosition={
             pageContextMenu !== null
