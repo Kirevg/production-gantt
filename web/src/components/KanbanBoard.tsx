@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Menu, ListItemIcon, ListItemText } from '@mui/material';
-import { Refresh, Edit, Delete } from '@mui/icons-material';
+import { Refresh, Edit, Delete, ExpandLess, ExpandMore } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import {
     DndContext,
@@ -87,13 +87,17 @@ interface SortableStageCardProps {
     onDoubleClick: (task: KanbanTask) => void;
     onContextMenu: (event: React.MouseEvent, task: KanbanTask) => void;
     formatSum: (value: string | undefined | null) => string;
+    isCollapsed: boolean; // Свернута ли карточка
+    onToggleCollapse: (taskId: string) => void; // Переключение состояния
 }
 
 const SortableStageCard: React.FC<SortableStageCardProps> = ({
     task,
     onDoubleClick,
     onContextMenu,
-    formatSum
+    formatSum,
+    isCollapsed,
+    onToggleCollapse
 }) => {
     const {
         attributes,
@@ -132,28 +136,76 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
             onDoubleClick={() => onDoubleClick(task)}
             onContextMenu={(e: React.MouseEvent) => onContextMenu(e, task)}
         >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: '30px' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: isCollapsed ? 0 : 1, gap: '12px' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {task.name}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.85em' }}>
-                    📅 {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.start)} - {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.end)}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" sx={{ color: '#666', fontSize: '0.85em' }}>
+                        📅 {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.start)} - {new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(task.end)}
+                    </Typography>
+                    <Tooltip title={isCollapsed ? 'Развернуть' : 'Свернуть'}>
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); onToggleCollapse(task.id); }} aria-label={isCollapsed ? 'Развернуть карточку' : 'Свернуть карточку'}>
+                            {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
+                        </IconButton>
+                    </Tooltip>
+                </Box>
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                    👤 {task.assignee || 'Не назначен'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    💰 <strong>Сумма:</strong> {formatSum(task.sum)} ₽
-                </Typography>
-            </Box>
+            {!isCollapsed && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        👤 {task.assignee || 'Не назначен'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        💰 <strong>Сумма:</strong> {formatSum(task.sum)} ₽
+                    </Typography>
+                </Box>
+            )}
         </Paper>
     );
 };
 
 const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     const [kanbanTasks, setKanbanTasks] = useState<KanbanTask[]>([]);
+    // Свернутые карточки этапов (по id) с ленивой инициализацией из localStorage
+    const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => {
+        try {
+            const raw = localStorage.getItem('kanban-collapsed-stages');
+            return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+        } catch {
+            return new Set<string>();
+        }
+    });
+    // Свернутые проекты (по projectId) с ленивой инициализацией из localStorage
+    const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(() => {
+        try {
+            const raw = localStorage.getItem('kanban-collapsed-projects');
+            return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+        } catch {
+            return new Set<string>();
+        }
+    });
+
+    // Переключение свёрнутости карточки
+    const toggleCollapse = (taskId: string) => {
+        setCollapsedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(taskId)) next.delete(taskId); else next.add(taskId);
+            try { localStorage.setItem('kanban-collapsed-stages', JSON.stringify(Array.from(next))); } catch { }
+            return next;
+        });
+    };
+    // Переключение свёрнутости проекта
+    const toggleProjectCollapse = (projectId: string) => {
+        setCollapsedProjects((prev) => {
+            const next = new Set(prev);
+            if (next.has(projectId)) next.delete(projectId); else next.add(projectId);
+            try { localStorage.setItem('kanban-collapsed-projects', JSON.stringify(Array.from(next))); } catch { }
+            return next;
+        });
+    };
+
+    // (сохранение выполняется в toggle-функциях)
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
 
@@ -852,7 +904,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                         flexWrap: 'wrap'
                                                     }}
                                                 >
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <Tooltip title={collapsedProjects.has(projectId) ? 'Развернуть проект' : 'Свернуть проект'}>
+                                                            <IconButton size="small" onClick={() => toggleProjectCollapse(projectId)} aria-label={collapsedProjects.has(projectId) ? 'Развернуть проект' : 'Свернуть проект'}>
+                                                                {collapsedProjects.has(projectId) ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
+                                                            </IconButton>
+                                                        </Tooltip>
                                                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
                                                             📋 Проект: {projectName} - Изделий: {productsMap.size}
                                                         </Typography>
@@ -882,8 +939,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     )}
                                                 </Box>
 
-                                                {/* Группировка по изделиям */}
-                                                {Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
+                                                {/* Группировка по изделиям (показываем только если проект не свернут) */}
+                                                {!collapsedProjects.has(projectId) && Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
                                                     const productName = productTasks[0]?.productName || 'Без изделия';
                                                     const serialNumber = productTasks[0]?.serialNumber;
                                                     return (
@@ -960,6 +1017,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 onDoubleClick={handleCardClick}
                                                                                 onContextMenu={handleContextMenu}
                                                                                 formatSum={formatSum}
+                                                                                isCollapsed={collapsedIds.has(task.id)}
+                                                                                onToggleCollapse={toggleCollapse}
                                                                             />
                                                                         ))}
                                                                     </Box>
