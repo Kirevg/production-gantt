@@ -19,23 +19,7 @@
   pointer-events: auto !important;
 }
 
-/* Предотвращаем применение aria-hidden к корневому элементу */
-#root {
-  /* Принудительно убираем aria-hidden с корневого элемента */
-  aria-hidden: false !important;
-}
-
-/* Предотвращаем проблемы с доступностью в Material-UI меню */
-.MuiMenu-root[aria-hidden="true"] {
-  /* Убираем aria-hidden с меню, которые содержат фокусируемые элементы */
-  aria-hidden: false !important;
-}
-
-/* Обеспечиваем доступность для скрин-ридеров */
-.MuiMenu-root .MuiList-root {
-  /* Список меню должен быть доступен для скрин-ридеров */
-  aria-hidden: false !important;
-}
+/* (удалены устаревшие правила aria-hidden) */
 
 a {
   font-weight: 500;
@@ -179,6 +163,75 @@ button:focus-visible {
   margin-bottom: 8px;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+/* Кастомный класс по запросу */
+.css-jcaoon {
+  padding: 0px;
+  margin-bottom: 4px;
+  background-color: #fafafa;
+  border-radius: 2px;
+}
+
+/* Кастомный класс по запросу */
+.css-1eqfolh {
+  margin-bottom: 8px;
+  margin-left: 16px;
+}
+
+/* Кастомный класс по запросу */
+.css-1b5ppih {
+  padding: 4px;
+  margin-bottom: 8px;
+}
+
+/* Кастомный класс по запросу */
+.css-i61mfg-MuiTypography-root {
+  font-size: 1.0rem;
+}
+
+/* Кастомный класс по запросу */
+.css-o3fzd0 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  min-height: 60px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  margin-bottom: 8px;
+  margin-left: 16px;
+}
+
+/* Кастомные классы по запросу */
+.css-12nk8gj {
+  display: flex;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center;
+  margin-bottom: 0px;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.css-qo1qu7 {
+  display: flex;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+/* Кастомный класс по запросу */
+.css-yjlaer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  min-width: 0;
 }
 
 @media (prefers-color-scheme: light) {
