@@ -388,7 +388,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     id: product.id,
                     name: product.product?.name || product.name || 'Без названия'
                 }));
-                setCatalogProducts(projectProducts);
+                // Убираем дубликаты по ID и по названию
+                const uniqueProducts = Array.from(
+                    new Map(projectProducts.map((item: any) => [item.id || item.name, item])).values()
+                );
+                setCatalogProducts(uniqueProducts);
             }
         } catch (error) {
             console.error('Ошибка загрузки изделий проекта:', error);
@@ -1508,6 +1512,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             getOptionLabel={(option) => {
                                 if (typeof option === 'string') return option;
                                 return `${option.name}`;
+                            }}
+                            isOptionEqualToValue={(option, value) => {
+                                if (typeof option === 'string' || typeof value === 'string') return option === value;
+                                return option.id === value.id;
                             }}
                             value={productForm.productId ? catalogProducts.find(p => p.id === productForm.productId) || null : productForm.productName}
                             onChange={(_, newValue) => {
