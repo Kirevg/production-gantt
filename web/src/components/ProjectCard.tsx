@@ -113,6 +113,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         status: 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems'
     });
     const [managers, setManagers] = useState<any[]>([]);
+    const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]); // Каталог изделий для выпадающего списка (только из текущего проекта)
     const [productForm, setProductForm] = useState({
         productId: '', // ID из справочника (если выбрано)
         productName: '', // Название изделия (ручной ввод или выбор)
@@ -311,6 +312,22 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             // Сортируем продукты по orderIndex
             const sortedProducts = productsData.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
             setProducts(sortedProducts);
+
+            // Обновляем каталог изделий для выпадающего списка (только из текущего проекта)
+            const uniqueProductsMap = new Map<string, { id: string, name: string }>();
+            sortedProducts.forEach((product: any) => {
+                if (product.product?.id && product.product?.name) {
+                    const nameKey = product.product.name.trim().toLowerCase();
+                    if (!uniqueProductsMap.has(nameKey)) {
+                        uniqueProductsMap.set(nameKey, {
+                            id: product.product.id,
+                            name: product.product.name
+                        });
+                    }
+                }
+            });
+            const uniqueProducts = Array.from(uniqueProductsMap.values());
+            setCatalogProducts(uniqueProducts);
         } catch (error) {
             console.error('Ошибка загрузки изделий:', error);
         } finally {
@@ -319,10 +336,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     }, [projectId]);
 
 
+
     useEffect(() => {
         if (!isNew) {
             fetchProjectData();
-            fetchProducts();
+            fetchProducts(); // fetchProducts обновит catalogProducts после загрузки
         }
         fetchManagers();
     }, [projectId, isNew, fetchProjectData, fetchManagers, fetchProducts]);
@@ -382,9 +400,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     };
 
     const handleAddEmptyProduct = () => {
-        // Открываем пустую карточку изделия с временным ID
-        const tempProductId = `temp-${Date.now()}`;
-        onOpenSpecifications(tempProductId, '');
+        // Открываем диалог создания изделия
+        setEditingProduct(null);
+        setProductForm({
+            productId: '',
+            productName: '',
+            serialNumber: '',
+            quantity: 1,
+            link: ''
+        });
+        setOpenProductDialog(true);
     };
 
     // Обработчик для drag-and-drop событий
@@ -478,29 +503,86 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 return;
             }
 
-            // Если введено вручную, сначала создаём изделие в справочнике
+            // Если введено вручную, сначала проверяем существование или создаём изделие в справочнике
             let productId = productForm.productId;
 
             if (!productId && productForm.productName.trim()) {
-                // Создаём новое изделие в справочнике
-                const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: productForm.productName.trim(),
-                        isActive: true
-                    })
-                });
+                try {
+                    // Сначала проверяем, существует ли изделие с таким названием
+                    const searchResponse = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/catalog-products?query=${encodeURIComponent(productForm.productName.trim())}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        }
+                    );
 
-                if (!createProductResponse.ok) {
-                    throw new Error('Ошибка создания изделия в справочнике');
+                    if (searchResponse.ok) {
+                        const existingProducts = await searchResponse.json();
+                        // Ищем точное совпадение (без учета регистра)
+                        const exactMatch = existingProducts.find((p: any) =>
+                            p.name.trim().toLowerCase() === productForm.productName.trim().toLowerCase()
+                        );
+
+                        if (exactMatch) {
+                            // Используем существующий ID
+                            productId = exactMatch.id;
+                            console.log(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
+                        } else {
+                            // Создаём новое изделие только если не найдено точное совпадение
+                            const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    name: productForm.productName.trim(),
+                                    isActive: true
+                                })
+                            });
+
+                            if (!createProductResponse.ok) {
+                                throw new Error('Ошибка создания изделия в справочнике');
+                            }
+
+                            const newProduct = await createProductResponse.json();
+                            productId = newProduct.id;
+                            console.log(`Создано новое изделие: ${newProduct.name} (ID: ${newProduct.id})`);
+                        }
+                    } else {
+                        // Если поиск не удался, пробуем создать новое
+                        const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: productForm.productName.trim(),
+                                isActive: true
+                            })
+                        });
+
+                        if (!createProductResponse.ok) {
+                            throw new Error('Ошибка создания изделия в справочнике');
+                        }
+
+                        const newProduct = await createProductResponse.json();
+                        productId = newProduct.id;
+                    }
+                } catch (error) {
+                    console.error('Ошибка при создании/поиске изделия в справочнике:', error);
+                    alert('Произошла ошибка при создании изделия в справочнике');
+                    return;
                 }
+            }
 
-                const newProduct = await createProductResponse.json();
-                productId = newProduct.id;
+            // Проверяем, что productId валидный
+            if (!productId || !productId.trim()) {
+                alert('Ошибка: не удалось определить ID изделия. Пожалуйста, попробуйте снова.');
+                return;
             }
 
             const url = editingProduct
@@ -518,7 +600,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 orderIndex?: number;
                 productSum?: number;
             } = {
-                productId: productId,
+                productId: productId.trim(),
                 serialNumber: productForm.serialNumber || undefined,
                 description: productForm.link || undefined,
                 quantity: productForm.quantity
@@ -883,8 +965,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             <Dialog
                 open={openProductDialog}
                 onClose={() => { }}
-                maxWidth="md"
-                fullWidth
                 disableEscapeKeyDown={true}
                 hideBackdrop={true}
                 disablePortal={true}
@@ -892,6 +972,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 keepMounted={false}
                 disableEnforceFocus={true}
                 disableAutoFocus={true}
+                PaperProps={{
+                    sx: {
+                        width: '600px',
+                        maxWidth: '600px'
+                    }
+                }}
             >
                 <DialogTitle>
                     {editingProduct ? 'Редактировать изделие' : 'Создать изделие'}
@@ -900,28 +986,58 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                         <Autocomplete
                             freeSolo
-                            options={[]}
+                            options={catalogProducts}
                             getOptionLabel={(option) => {
                                 if (typeof option === 'string') return option;
                                 return option.name || '';
                             }}
-                            value={productForm.productName || null}
+                            isOptionEqualToValue={(option, value) => {
+                                if (typeof option === 'string' || typeof value === 'string') return option === value;
+                                return option.id === value.id;
+                            }}
+                            value={productForm.productId ? catalogProducts.find(p => p.id === productForm.productId) || null : productForm.productName}
                             onChange={(_, newValue) => {
-                                // Только ручной ввод, каталога нет
-                                setProductForm({
-                                    ...productForm,
-                                    productId: '',
-                                    productName: typeof newValue === 'string' ? newValue : (newValue?.name || '')
-                                });
+                                if (typeof newValue === 'string') {
+                                    // Ручной ввод
+                                    setProductForm({
+                                        ...productForm,
+                                        productId: '',
+                                        productName: newValue
+                                    });
+                                } else if (newValue && newValue.id) {
+                                    // Выбор из списка
+                                    setProductForm({
+                                        ...productForm,
+                                        productId: newValue.id,
+                                        productName: newValue.name
+                                    });
+                                } else {
+                                    // Очистка
+                                    setProductForm({
+                                        ...productForm,
+                                        productId: '',
+                                        productName: ''
+                                    });
+                                }
                             }}
                             onInputChange={(_, newInputValue) => {
                                 // Обновляем название при ручном вводе
                                 setProductForm({
                                     ...productForm,
-                                    productName: newInputValue
+                                    productName: newInputValue,
+                                    productId: '' // Сбрасываем ID при ручном вводе
                                 });
                             }}
                             inputValue={productForm.productName}
+                            renderOption={(props, option) => {
+                                // Явно указываем key на основе id для избежания дубликатов
+                                const key = typeof option === 'string' ? option : option.id;
+                                return (
+                                    <li {...props} key={key}>
+                                        {typeof option === 'string' ? option : option.name}
+                                    </li>
+                                );
+                            }}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -931,6 +1047,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                     helperText="Выберите из списка или введите название вручную"
                                 />
                             )}
+                            disabled={loading}
                         />
                         <TextField
                             label="Количество"
@@ -961,10 +1078,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseProductDialog}>Отмена</Button>
-                    <Button onClick={handleSaveProduct} variant="contained" sx={{ fontSize: '14px' }}>
+                    <VolumeButton onClick={handleSaveProduct} color="blue">
                         {editingProduct ? 'Сохранить' : 'Создать'}
-                    </Button>
+                    </VolumeButton>
+                    <VolumeButton onClick={handleCloseProductDialog} color="orange">
+                        Отмена
+                    </VolumeButton>
                 </DialogActions>
             </Dialog>
 

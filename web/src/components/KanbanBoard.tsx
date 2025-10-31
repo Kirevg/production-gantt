@@ -56,6 +56,7 @@ interface KanbanTask {
     projectName?: string;
     productId?: string;
     productName?: string;
+    productDescription?: string | null; // Описание из справочника Product
     serialNumber?: string | null;
     projectStatus?: string;
     assigneeId?: string | null;
@@ -325,25 +326,35 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             // Преобразуем данные в формат для канбан-доски
             const tasks: KanbanTask[] = data.map((stage: any) => {
-                const startDate = new Date(stage.start);
-                const endDate = new Date(stage.end);
+                // Для изделий без этапов и проектов без изделий даты могут быть null
+                // Определяем, является ли это изделием без этапов (по специальному ID)
+                const isProductOnly = stage.id && stage.id.startsWith('product-only-');
+                // Определяем, является ли это проектом без изделий (по специальному ID)
+                const isProjectOnly = stage.id && stage.id.startsWith('project-only-');
 
-                // Проверяем валидность дат
-                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                    console.warn('⚠️ Невалидная дата для этапа:', stage);
-                    return null;
+                let startDate: Date;
+                let endDate: Date;
+
+                if (isProductOnly || isProjectOnly || !stage.start || !stage.end) {
+                    // Для изделий без этапов и проектов без изделий используем текущую дату как заглушку
+                    // Эти даты не будут использоваться для отображения
+                    const today = new Date();
+                    startDate = today;
+                    endDate = today;
+                } else {
+                    startDate = new Date(stage.start);
+                    endDate = new Date(stage.end);
+
+                    // Проверяем валидность дат только для реальных этапов
+                    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                        console.warn('⚠️ Невалидная дата для этапа:', stage);
+                        return null;
+                    }
                 }
-
-                // console.log('📊 Данные этапа из API:', {
-                //     id: stage.id,
-                //     name: stage.name,
-                //     workTypeId: stage.workTypeId,
-                //     _debug: stage._debug
-                // });
 
                 return {
                     id: stage.id,
-                    name: stage.name || 'Этап', // Только название этапа, изделие показывается ниже
+                    name: stage.name || '', // Пустое имя для изделий без этапов
                     start: startDate,
                     end: endDate,
                     progress: Math.min(Math.max(stage.progress || 0, 0), 100),
@@ -357,6 +368,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     projectName: stage.projectName || 'Проект',
                     productId: stage.productId,
                     productName: stage.productName || 'Изделие',
+                    productDescription: stage.productDescription || null, // Описание из Product
                     serialNumber: stage.serialNumber || null,
                     projectStatus: stage.projectStatus,
                     projectManager: stage.projectManager || null
@@ -885,17 +897,28 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                     const projectName = tasks[0]?.projectName || 'Без проекта';
 
                                     // Теперь группируем этапы этого проекта по изделиям
+                                    // Используем productId как ключ, чтобы каждое изделие было уникальным
                                     const productsMap = new Map<string, KanbanTask[]>();
                                     tasks.forEach(task => {
-                                        const productKey = `${task.productId || ''}:${task.productName || 'Без изделия'}`;
+                                        // Пропускаем записи проектов без изделий (project-only-)
+                                        if (task.id && task.id.startsWith('project-only-')) {
+                                            return;
+                                        }
+                                        // Используем productId как ключ для уникальности изделий
+                                        const productKey = task.productId || 'unknown';
                                         if (!productsMap.has(productKey)) {
                                             productsMap.set(productKey, []);
                                         }
                                         productsMap.get(productKey)?.push(task);
                                     });
 
+                                    // Определяем, есть ли у проекта изделия
+                                    const hasProducts = productsMap.size > 0;
+                                    // Если нет изделий, карточка должна быть свернута и кнопка неактивна
+                                    const isCollapsed = collapsedProjects.has(projectId) || !hasProducts;
+
                                     return (
-                                        <Box key={projectId} sx={{ mb: 4 }}>
+                                        <Box key={projectId} sx={{ mb: 2 }}>
                                             {/* Контейнер проекта с рамкой */}
                                             <Paper
                                                 sx={{
@@ -918,14 +941,34 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     }}
                                                 >
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <Tooltip title={collapsedProjects.has(projectId) ? 'Развернуть проект' : 'Свернуть проект'}>
-                                                            <IconButton size="small" onClick={() => toggleProjectCollapse(projectId)} aria-label={collapsedProjects.has(projectId) ? 'Развернуть проект' : 'Свернуть проект'}>
-                                                                {collapsedProjects.has(projectId) ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
+                                                        <Tooltip title={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => hasProducts && toggleProjectCollapse(projectId)}
+                                                                aria-label={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}
+                                                                disabled={!hasProducts}
+                                                                disableRipple
+                                                                sx={{
+                                                                    '&:focus': {
+                                                                        outline: 'none',
+                                                                        border: 'none'
+                                                                    },
+                                                                    '&:focus-visible': {
+                                                                        outline: 'none',
+                                                                        border: 'none'
+                                                                    },
+                                                                    '&:hover': {
+                                                                        backgroundColor: 'transparent'
+                                                                    },
+                                                                    '&.Mui-disabled': {
+                                                                        opacity: 0.5
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
                                                             </IconButton>
                                                         </Tooltip>
-                                                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                                                            📋 Проект: {projectName} - Изделий: {productsMap.size}
-                                                        </Typography>
+                                                        {/* Кнопка добавления изделия - размер 40x40px */}
                                                         <VolumeButton
                                                             onClick={() => handleAddProduct(projectId)}
                                                             color="blue"
@@ -937,11 +980,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 p: 0,
                                                                 display: 'flex',
                                                                 alignItems: 'center',
-                                                                justifyContent: 'center'
+                                                                justifyContent: 'center',
+                                                                fontSize: '20px'
                                                             }}
                                                         >
                                                             +
                                                         </VolumeButton>
+                                                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                                            📋 Проект: {projectName} - Изделий: {productsMap.size}
+                                                        </Typography>
                                                     </Box>
                                                     {tasks[0]?.projectManager && (
                                                         <Typography variant="body2" sx={{ color: '#424242' }}>
@@ -952,9 +999,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     )}
                                                 </Box>
 
-                                                {/* Группировка по изделиям (показываем только если проект не свернут) */}
-                                                {!collapsedProjects.has(projectId) && Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
+                                                {/* Группировка по изделиям (показываем только если проект не свернут и есть изделия) */}
+                                                {!isCollapsed && hasProducts && Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
                                                     const productName = productTasks[0]?.productName || 'Без изделия';
+                                                    const productDescription = productTasks[0]?.productDescription; // Описание из Product
                                                     const serialNumber = productTasks[0]?.serialNumber;
                                                     return (
                                                         <Box key={productKey} sx={{ mb: 2, ml: 2 }}>
@@ -976,74 +1024,168 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                     }}
                                                                 >
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                                        <Tooltip title={collapsedProducts.has(productKey) ? 'Развернуть изделие' : 'Свернуть изделие'}>
-                                                                            <IconButton size="small" onClick={() => toggleProductCollapse(productKey)} aria-label={collapsedProducts.has(productKey) ? 'Развернуть изделие' : 'Свернуть изделие'}>
-                                                                                {collapsedProducts.has(productKey) ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
-                                                                            </IconButton>
-                                                                        </Tooltip>
+                                                                        {(() => {
+                                                                            // Фильтруем только настоящие этапы (не изделия без этапов)
+                                                                            const actualStages = productTasks.filter(task =>
+                                                                                task.id &&
+                                                                                !task.id.startsWith('product-only-') &&
+                                                                                task.name &&
+                                                                                task.name.trim() !== ''
+                                                                            );
+                                                                            // Если нет этапов, карточка должна быть свернута и кнопка неактивна
+                                                                            const hasStages = actualStages.length > 0;
+                                                                            const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
+
+                                                                            return (
+                                                                                <Tooltip title={isCollapsed ? 'Развернуть изделие' : 'Свернуть изделие'}>
+                                                                                    <IconButton
+                                                                                        size="small"
+                                                                                        onClick={() => hasStages && toggleProductCollapse(productKey)}
+                                                                                        aria-label={isCollapsed ? 'Развернуть изделие' : 'Свернуть изделие'}
+                                                                                        disabled={!hasStages}
+                                                                                        disableRipple
+                                                                                        sx={{
+                                                                                            '&:focus': {
+                                                                                                outline: 'none',
+                                                                                                border: 'none'
+                                                                                            },
+                                                                                            '&:focus-visible': {
+                                                                                                outline: 'none',
+                                                                                                border: 'none'
+                                                                                            },
+                                                                                            '&:hover': {
+                                                                                                backgroundColor: 'transparent'
+                                                                                            },
+                                                                                            '&.Mui-disabled': {
+                                                                                                opacity: 0.5
+                                                                                            }
+                                                                                        }}
+                                                                                    >
+                                                                                        {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
+                                                                                    </IconButton>
+                                                                                </Tooltip>
+                                                                            );
+                                                                        })()}
+                                                                        {/* Кнопка добавления этапа - размер 40x40px */}
+                                                                        <VolumeButton
+                                                                            onClick={() => handleAddStage(productTasks[0]?.productId || '')}
+                                                                            color="green"
+                                                                            sx={{
+                                                                                width: '30px',
+                                                                                height: '30px',
+                                                                                minWidth: '30px',
+                                                                                minHeight: '30px',
+                                                                                p: 0,
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'center',
+                                                                                fontSize: '20px'
+                                                                            }}
+                                                                        >
+                                                                            +
+                                                                        </VolumeButton>
                                                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                                            🏗️ Изделие: {productName}
+                                                                            {productName}
                                                                         </Typography>
-                                                                        {serialNumber && (
-                                                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                                                (Сер №: {serialNumber})
-                                                                            </Typography>
-                                                                        )}
-                                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                                                                                - Этапов: {productTasks.length}
-                                                                            </Typography>
-                                                                            <VolumeButton
-                                                                                onClick={() => handleAddStage(productTasks[0]?.productId || '')}
-                                                                                color="green"
-                                                                                sx={{
-                                                                                    width: '30px',
-                                                                                    height: '30px',
-                                                                                    minWidth: '30px',
-                                                                                    minHeight: '30px',
-                                                                                    p: 0,
-                                                                                    display: 'flex',
-                                                                                    alignItems: 'center',
-                                                                                    justifyContent: 'center'
-                                                                                }}
-                                                                            >
-                                                                                +
-                                                                            </VolumeButton>
-                                                                        </Box>
+                                                                        {productDescription && productDescription.trim() !== '' &&
+                                                                            productDescription.toLowerCase() !== '[null]' &&
+                                                                            productDescription.toLowerCase() !== 'null' && (
+                                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
+                                                                                    {productDescription}
+                                                                                </Typography>
+                                                                            )}
+                                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#2e7d32' : '#d32f2f' }}>
+                                                                            {serialNumber ? `(Сер № ${serialNumber})` : '(Сер № ...)'}
+                                                                        </Typography>
                                                                     </Box>
                                                                 </Box>
 
                                                                 {/* Карточки этапов работ этого изделия */}
-                                                                {!collapsedProducts.has(productKey) && (
-                                                                    <SortableContext
-                                                                        items={productTasks.map(task => task.id)}
-                                                                        strategy={rectSortingStrategy}
-                                                                    >
-                                                                        <Box sx={{
-                                                                            display: 'flex',
-                                                                            flexWrap: 'wrap',
-                                                                            gap: 1,
-                                                                            alignItems: 'flex-start',
-                                                                            minHeight: '60px', // Минимальная высота для стабильности
-                                                                            position: 'relative', // Для правильного позиционирования
-                                                                            overflow: 'hidden', // Скрываем карточки, выходящие за границы изделия
-                                                                            width: '100%' // Полная ширина контейнера
-                                                                        }}>
-                                                                            {productTasks.map((task) => (
-                                                                                <SortableStageCard
-                                                                                    key={task.id}
-                                                                                    task={task}
-                                                                                    onDoubleClick={handleCardClick}
-                                                                                    onContextMenu={handleContextMenu}
-                                                                                />
-                                                                            ))}
-                                                                        </Box>
-                                                                    </SortableContext>
-                                                                )}
+                                                                {(() => {
+                                                                    // Фильтруем только настоящие этапы (не изделия без этапов)
+                                                                    // Изделия без этапов имеют ID вида "product-only-${productId}" или пустое name
+                                                                    const actualStages = productTasks.filter(task =>
+                                                                        task.id &&
+                                                                        !task.id.startsWith('product-only-') &&
+                                                                        task.name &&
+                                                                        task.name.trim() !== ''
+                                                                    );
+                                                                    // Если нет этапов, карточка должна быть свернута
+                                                                    const hasStages = actualStages.length > 0;
+                                                                    const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
+
+                                                                    // Показываем этапы только если карточка развернута и есть этапы
+                                                                    if (isCollapsed || !hasStages) {
+                                                                        return null;
+                                                                    }
+
+                                                                    // Если есть этапы, показываем их с SortableContext
+                                                                    if (actualStages.length > 0) {
+                                                                        return (
+                                                                            <SortableContext
+                                                                                items={actualStages.map(task => task.id)}
+                                                                                strategy={rectSortingStrategy}
+                                                                            >
+                                                                                <Box sx={{
+                                                                                    display: 'flex',
+                                                                                    flexWrap: 'wrap',
+                                                                                    gap: 1,
+                                                                                    alignItems: 'flex-start',
+                                                                                    minHeight: '60px', // Минимальная высота для стабильности
+                                                                                    position: 'relative', // Для правильного позиционирования
+                                                                                    overflow: 'hidden', // Скрываем карточки, выходящие за границы изделия
+                                                                                    width: '100%' // Полная ширина контейнера
+                                                                                }}>
+                                                                                    {actualStages.map((task) => (
+                                                                                        <SortableStageCard
+                                                                                            key={task.id}
+                                                                                            task={task}
+                                                                                            onDoubleClick={handleCardClick}
+                                                                                            onContextMenu={handleContextMenu}
+                                                                                        />
+                                                                                    ))}
+                                                                                </Box>
+                                                                            </SortableContext>
+                                                                        );
+                                                                    } else {
+                                                                        // Если нет этапов, показываем сообщение или просто пустой блок
+                                                                        return (
+                                                                            <Box sx={{
+                                                                                p: 2,
+                                                                                textAlign: 'center',
+                                                                                color: 'text.secondary',
+                                                                                fontSize: '0.875rem',
+                                                                                minHeight: '60px',
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'center'
+                                                                            }}>
+                                                                                Нет этапов работ. Нажмите +, чтобы добавить этап.
+                                                                            </Box>
+                                                                        );
+                                                                    }
+                                                                })()}
                                                             </Paper>
                                                         </Box>
                                                     );
                                                 })}
+
+                                                {/* Сообщение для проектов без изделий (показываем только если проект развернут, но нет изделий) */}
+                                                {!isCollapsed && !hasProducts && (
+                                                    <Box sx={{
+                                                        p: 2,
+                                                        textAlign: 'center',
+                                                        color: 'text.secondary',
+                                                        fontSize: '0.875rem',
+                                                        minHeight: '60px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        ml: 2
+                                                    }}>
+                                                        Нет изделий. Нажмите +, чтобы добавить изделие.
+                                                    </Box>
+                                                )}
                                             </Paper>
                                         </Box>
                                     );

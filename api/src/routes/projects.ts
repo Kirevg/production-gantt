@@ -124,9 +124,40 @@ router.get('/gantt', authenticateToken, async (req, res) => {
     } as any);
 
     console.log('📊 Найдено этапов работ:', workStages.length);
-    console.log('📋 Первый этап:', workStages[0]);
 
-    // Преобразуем в формат для Gantt-диаграммы
+    // Получаем все проекты с изделиями, чтобы показать изделия без этапов
+    const projectsWithProducts = await prisma.project.findMany({
+      include: {
+        projectManager: {
+          select: {
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            phone: true,
+            email: true
+          }
+        },
+        products: {
+          include: {
+            product: true // Справочник изделий
+          },
+          orderBy: {
+            orderIndex: 'asc'
+          }
+        }
+      },
+      orderBy: {
+        orderIndex: 'asc'
+      }
+    } as any);
+
+    // Создаем карту изделий с этапами, чтобы не дублировать их
+    const productsWithStages = new Set<string>();
+    workStages.forEach((stage: any) => {
+      productsWithStages.add(stage.product.id);
+    });
+
+    // Преобразуем этапы работ в формат для Gantt-диаграммы
     const ganttData = workStages.map((stage: any) => ({
       id: stage.id,
       name: stage.nomenclatureItem?.name || 'Не указан',
@@ -148,6 +179,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       projectName: stage.product.project.name,
       productId: stage.product.id,
       productName: stage.product.product?.name || 'Изделие', // Теперь правильно получаем название из справочника
+      productDescription: stage.product.product?.description || null, // Описание из справочника Product
       serialNumber: stage.product.serialNumber || null, // Серийный номер изделия
       projectStatus: stage.product.project.status,
       duration: stage.duration,
@@ -157,6 +189,86 @@ router.get('/gantt', authenticateToken, async (req, res) => {
         email: stage.product.project.projectManager.email || null
       } : null
     }));
+
+    // Создаем карту проектов, которые уже есть в ganttData
+    const projectsInGantt = new Set<string>();
+    ganttData.forEach((item: any) => {
+      if (item.projectId) {
+        projectsInGantt.add(item.projectId);
+      }
+    });
+
+    // Добавляем изделия без этапов как пустые записи (без id, только для отображения структуры)
+    projectsWithProducts.forEach((project: any) => {
+      // Если у проекта нет изделий, добавляем его как проект без изделий
+      if (project.products.length === 0) {
+        const projectManager = project.projectManager ? {
+          name: `${project.projectManager.lastName || ''} ${project.projectManager.firstName || ''} ${project.projectManager.middleName || ''}`.trim() || 'Не указан',
+          phone: project.projectManager.phone || null,
+          email: project.projectManager.email || null
+        } : null;
+
+        // Создаем запись проекта без изделий (используем специальный ID)
+        ganttData.push({
+          id: `project-only-${project.id}`, // Специальный ID для проектов без изделий
+          name: '', // Пустое имя этапа
+          start: null,
+          end: null,
+          progress: 0,
+          assignee: null,
+          workType: null,
+          sum: null,
+          hours: null,
+          assigneeId: null,
+          workTypeId: null,
+          projectId: project.id,
+          projectName: project.name,
+          productId: null, // Нет изделия
+          productName: null,
+          productDescription: null,
+          serialNumber: null,
+          projectStatus: project.status,
+          duration: null,
+          projectManager: projectManager
+        });
+      } else {
+        // Если у проекта есть изделия, добавляем изделия без этапов
+        project.products.forEach((projectProduct: any) => {
+          // Если у изделия нет этапов, добавляем его для отображения
+          if (!productsWithStages.has(projectProduct.id)) {
+            const projectManager = project.projectManager ? {
+              name: `${project.projectManager.lastName || ''} ${project.projectManager.firstName || ''} ${project.projectManager.middleName || ''}`.trim() || 'Не указан',
+              phone: project.projectManager.phone || null,
+              email: project.projectManager.email || null
+            } : null;
+
+            // Создаем запись изделия без этапа (используем специальный ID для идентификации)
+            ganttData.push({
+              id: `product-only-${projectProduct.id}`, // Специальный ID для изделий без этапов
+              name: '', // Пустое имя этапа, так как этапа нет
+              start: null, // Нет дат
+              end: null,
+              progress: 0,
+              assignee: null,
+              workType: null,
+              sum: null,
+              hours: null,
+              assigneeId: null,
+              workTypeId: null,
+              projectId: project.id,
+              projectName: project.name,
+              productId: projectProduct.id,
+              productName: projectProduct.product?.name || 'Изделие',
+              productDescription: projectProduct.product?.description || null,
+              serialNumber: projectProduct.serialNumber || null,
+              projectStatus: project.status,
+              duration: null,
+              projectManager: projectManager
+            });
+          }
+        });
+      }
+    });
 
     console.log('🎯 Отправляем данные Gantt:', ganttData.length, 'задач');
     res.json(ganttData);

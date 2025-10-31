@@ -368,13 +368,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
-    // Загрузка справочника изделий
+    // Загрузка справочника изделий из текущего проекта (только изделия из данного проекта)
     const fetchCatalogProducts = async () => {
         try {
             setLoadingProducts(true);
             const token = localStorage.getItem('token');
+            if (!token || !projectId) {
+                return;
+            }
 
-            // Загружаем изделия только из текущего проекта
+            // Загружаем изделия из текущего проекта
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -383,15 +386,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (response.ok) {
                 const data = await response.json();
-                // Преобразуем данные изделий проекта в формат для выпадающего списка
-                const projectProducts = data.map((product: any) => ({
-                    id: product.id,
-                    name: product.product?.name || product.name || 'Без названия'
-                }));
-                // Убираем дубликаты по ID и по названию
-                const uniqueProducts = Array.from(
-                    new Map(projectProducts.map((item: any) => [item.id || item.name, item])).values()
-                );
+                // Преобразуем в формат для выпадающего списка и убираем дубликаты по названию (без учета регистра)
+                const uniqueProductsMap = new Map<string, { id: string, name: string }>();
+                data.forEach((product: any) => {
+                    // Используем product.name из связанного справочника изделий
+                    const productName = product.product?.name || product.name || 'Без названия';
+                    const productId = product.product?.id || product.id;
+                    if (productId && productName) {
+                        const nameKey = productName.trim().toLowerCase();
+                        if (!uniqueProductsMap.has(nameKey)) {
+                            uniqueProductsMap.set(nameKey, {
+                                id: productId,
+                                name: productName
+                            });
+                        }
+                    }
+                });
+                // Преобразуем Map в массив
+                const uniqueProducts = Array.from(uniqueProductsMap.values());
                 setCatalogProducts(uniqueProducts);
             }
         } catch (error) {
@@ -452,41 +464,96 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const token = localStorage.getItem('token');
             let finalProductId = productForm.productId;
 
-            // Если введено название вручную, но не выбрано из справочника - создаём новое изделие в справочнике
+            // Если введено название вручную, но не выбрано из справочника - проверяем существование или создаём новое изделие
             if (!productForm.productId && productForm.productName) {
                 try {
-                    const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            name: productForm.productName,
-                            isActive: true
-                        })
-                    });
+                    // Сначала проверяем, существует ли изделие с таким названием
+                    const searchResponse = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/catalog-products?query=${encodeURIComponent(productForm.productName.trim())}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        }
+                    );
 
-                    if (createProductResponse.ok) {
-                        const newProduct = await createProductResponse.json();
-                        finalProductId = newProduct.id;
+                    if (searchResponse.ok) {
+                        const existingProducts = await searchResponse.json();
+                        // Ищем точное совпадение (без учета регистра)
+                        const exactMatch = existingProducts.find((p: any) =>
+                            p.name.trim().toLowerCase() === productForm.productName.trim().toLowerCase()
+                        );
+
+                        if (exactMatch) {
+                            // Используем существующий ID
+                            finalProductId = exactMatch.id;
+                            console.log(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
+                        } else {
+                            // Создаём новое изделие только если не найдено точное совпадение
+                            const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    name: productForm.productName.trim(),
+                                    isActive: true
+                                })
+                            });
+
+                            if (createProductResponse.ok) {
+                                const newProduct = await createProductResponse.json();
+                                finalProductId = newProduct.id;
+                                console.log(`Создано новое изделие: ${newProduct.name} (ID: ${newProduct.id})`);
+                            } else {
+                                const errorData = await createProductResponse.json().catch(() => ({ error: 'Unknown error' }));
+                                console.error('Ошибка создания изделия в справочнике:', errorData);
+                                alert(`Ошибка при создании изделия в справочнике: ${JSON.stringify(errorData)}`);
+                                return;
+                            }
+                        }
                     } else {
-                        const errorData = await createProductResponse.json().catch(() => ({ error: 'Unknown error' }));
-                        console.error('Ошибка создания изделия в справочнике:', errorData);
-                        alert(`Ошибка при создании изделия в справочнике: ${JSON.stringify(errorData)}`);
-                        return;
+                        // Если поиск не удался, пробуем создать новое
+                        const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                name: productForm.productName.trim(),
+                                isActive: true
+                            })
+                        });
+
+                        if (createProductResponse.ok) {
+                            const newProduct = await createProductResponse.json();
+                            finalProductId = newProduct.id;
+                        } else {
+                            const errorData = await createProductResponse.json().catch(() => ({ error: 'Unknown error' }));
+                            console.error('Ошибка создания изделия в справочнике:', errorData);
+                            alert(`Ошибка при создании изделия в справочнике: ${JSON.stringify(errorData)}`);
+                            return;
+                        }
                     }
                 } catch (error) {
-                    console.error('Ошибка при создании изделия в справочнике:', error);
+                    console.error('Ошибка при создании/поиске изделия в справочнике:', error);
                     alert('Произошла ошибка при создании изделия в справочнике');
                     return;
                 }
             }
 
+            // Проверяем, что finalProductId валидный перед отправкой
+            if (!finalProductId || !finalProductId.trim()) {
+                alert('Ошибка: не удалось определить ID изделия. Пожалуйста, попробуйте снова.');
+                return;
+            }
+
             const isNewProduct = productId?.startsWith('temp-');
 
             const requestBody = {
-                productId: (finalProductId && !finalProductId.startsWith('temp-')) ? finalProductId : undefined,
+                productId: finalProductId.trim(),
                 serialNumber: productForm.serialNumber || undefined,
                 description: productForm.link || undefined,
                 quantity: productForm.quantity,
@@ -1517,6 +1584,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 if (typeof option === 'string' || typeof value === 'string') return option === value;
                                 return option.id === value.id;
                             }}
+                            renderOption={(props, option) => {
+                                // Явно указываем key на основе id для избежания дубликатов
+                                const key = typeof option === 'string' ? option : option.id;
+                                return (
+                                    <li {...props} key={key}>
+                                        {typeof option === 'string' ? option : option.name}
+                                    </li>
+                                );
+                            }}
                             value={productForm.productId ? catalogProducts.find(p => p.id === productForm.productId) || null : productForm.productName}
                             onChange={(_, newValue) => {
                                 if (typeof newValue === 'string') {
@@ -1548,7 +1624,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                     setProductForm({
                                         ...productForm,
                                         productName: newInputValue,
-                                        productId: ''
+                                        productId: '' // Сбрасываем ID при ручном вводе
                                     });
                                 }
                             }}

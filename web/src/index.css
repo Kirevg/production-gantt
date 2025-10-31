@@ -168,7 +168,7 @@ button:focus-visible {
 /* Кастомный класс по запросу */
 .css-jcaoon {
   padding: 0px;
-  margin-bottom: 4px;
+  margin-bottom: 0px;
   background-color: #fafafa;
   border-radius: 2px;
 }
@@ -182,7 +182,7 @@ button:focus-visible {
 /* Кастомный класс по запросу */
 .css-1b5ppih {
   padding: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 0px;
 }
 
 /* Кастомный класс по запросу */
@@ -248,7 +248,7 @@ button:focus-visible {
   height: 20px !important;
 }
 
-.css-143t0pm-MuiTableCell-root{
+.css-143t0pm-MuiTableCell-root {
   line-height: 1.0 !important;
 }
 
