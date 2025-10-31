@@ -3078,7 +3078,7 @@ export default function App() {
     if (showSpecificationDetail && selectedSpecificationId && selectedSpecificationName) {
       return (
         <SpecificationDetail
-          productSpecificationId={selectedSpecificationId}
+          projectProductSpecificationListId={selectedSpecificationId}
           productName={selectedSpecificationName}
           onBack={handleCloseSpecificationDetail}
           canEdit={canEdit}

@@ -76,7 +76,7 @@ interface Specification {
 }
 
 interface SpecificationsPageProps {
-    productSpecificationId: string;
+    projectProductSpecificationListId: string;
     productName: string;
     onBack: () => void;
     canEdit?: () => boolean;
@@ -85,7 +85,7 @@ interface SpecificationsPageProps {
 }
 
 const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
-    productSpecificationId,
+    projectProductSpecificationListId: productSpecificationId,
     productName,
     onBack,
     canEdit = () => true,
