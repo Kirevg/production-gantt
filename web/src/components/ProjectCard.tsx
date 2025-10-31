@@ -250,7 +250,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             }
 
             const data = await response.json();
-            setCatalogProducts(data);
+            // Убираем дубликаты по ID и по названию
+            const uniqueProducts = Array.from(
+                new Map(data.map((item: any) => [item.id || item.name, item])).values()
+            );
+            setCatalogProducts(uniqueProducts);
         } catch (error) {
             console.error('Ошибка загрузки справочника изделий:', error);
         } finally {
@@ -939,6 +943,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                             getOptionLabel={(option) => {
                                 if (typeof option === 'string') return option;
                                 return option.name;
+                            }}
+                            isOptionEqualToValue={(option, value) => {
+                                if (typeof option === 'string' || typeof value === 'string') return option === value;
+                                return option.id === value.id;
                             }}
                             value={catalogProducts.find(p => p.id === productForm.productId) || null}
                             onChange={(_, newValue) => {
