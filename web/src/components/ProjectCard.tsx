@@ -120,8 +120,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         quantity: 1,
         link: ''
     });
-    const [catalogProducts, setCatalogProducts] = useState<any[]>([]); // Изменено: список из справочника изделий
-    const [loadingProducts, setLoadingProducts] = useState(false); // Изменено
 
     // Настройка сенсоров для drag-and-drop
     const sensors = useSensors(
@@ -228,39 +226,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         }
     }, []);
 
-    // Загрузка справочника изделий
-    const fetchCatalogProducts = useCallback(async () => {
-        try {
-            setLoadingProducts(true);
-            const token = localStorage.getItem('token');
-            if (!token) {
-                console.error('Токен не найден');
-                return;
-            }
-
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products?isActive=true`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            // Убираем дубликаты по ID и по названию
-            const uniqueProducts = Array.from(
-                new Map(data.map((item: any) => [item.id || item.name, item])).values()
-            );
-            setCatalogProducts(uniqueProducts);
-        } catch (error) {
-            console.error('Ошибка загрузки справочника изделий:', error);
-        } finally {
-            setLoadingProducts(false);
-        }
-    }, []);
 
     const fetchProjectData = useCallback(async () => {
         try {
@@ -360,8 +325,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             fetchProducts();
         }
         fetchManagers();
-        fetchCatalogProducts();
-    }, [projectId, isNew, fetchProjectData, fetchManagers, fetchProducts, fetchCatalogProducts]);
+    }, [projectId, isNew, fetchProjectData, fetchManagers, fetchProducts]);
 
     const handleUpdateProject = async () => {
         try {
@@ -537,9 +501,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
                 const newProduct = await createProductResponse.json();
                 productId = newProduct.id;
-
-                // Обновляем список изделий
-                await fetchCatalogProducts();
             }
 
             const url = editingProduct
@@ -939,39 +900,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                         <Autocomplete
                             freeSolo
-                            options={catalogProducts}
+                            options={[]}
                             getOptionLabel={(option) => {
                                 if (typeof option === 'string') return option;
-                                return option.name;
+                                return option.name || '';
                             }}
-                            isOptionEqualToValue={(option, value) => {
-                                if (typeof option === 'string' || typeof value === 'string') return option === value;
-                                return option.id === value.id;
-                            }}
-                            value={catalogProducts.find(p => p.id === productForm.productId) || null}
+                            value={productForm.productName || null}
                             onChange={(_, newValue) => {
-                                if (typeof newValue === 'string') {
-                                    // Ручной ввод
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: '',
-                                        productName: newValue
-                                    });
-                                } else if (newValue && newValue.id) {
-                                    // Выбор из списка
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: newValue.id,
-                                        productName: newValue.name
-                                    });
-                                } else {
-                                    // Очистка
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: '',
-                                        productName: ''
-                                    });
-                                }
+                                // Только ручной ввод, каталога нет
+                                setProductForm({
+                                    ...productForm,
+                                    productId: '',
+                                    productName: typeof newValue === 'string' ? newValue : (newValue?.name || '')
+                                });
                             }}
                             onInputChange={(_, newInputValue) => {
                                 // Обновляем название при ручном вводе
@@ -981,7 +922,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                 });
                             }}
                             inputValue={productForm.productName}
-                            disabled={loadingProducts}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
