@@ -17,7 +17,7 @@ async function createBackup() {
             projects,
             projectProducts,
             workStages,
-            productSpecifications,
+            projectProductSpecificationLists,
             specifications,
             nomenclatureKinds,
             nomenclatureGroups,
@@ -32,7 +32,7 @@ async function createBackup() {
             prisma.project.findMany(),
             prisma.projectProduct.findMany(),
             prisma.workStage.findMany(),
-            prisma.productSpecification.findMany(),
+            prisma.projectProductSpecificationList.findMany(),
             prisma.specification.findMany(),
             prisma.nomenclatureKind.findMany(),
             prisma.nomenclatureGroup.findMany(),
@@ -53,7 +53,7 @@ async function createBackup() {
                 projects,
                 projectProducts,
                 workStages,
-                productSpecifications,
+                projectProductSpecificationLists,
                 specifications,
                 nomenclatureKinds,
                 nomenclatureGroups,
@@ -88,7 +88,7 @@ async function createBackup() {
         console.log(`   - Проекты: ${projects.length}`);
         console.log(`   - Продукты проектов: ${projectProducts.length}`);
         console.log(`   - Этапы работ: ${workStages.length}`);
-        console.log(`   - Спецификации изделий: ${productSpecifications.length}`);
+        console.log(`   - Спецификации изделий: ${projectProductSpecificationLists.length}`);
         console.log(`   - Спецификации: ${specifications.length}`);
         console.log(`   - Виды номенклатуры: ${nomenclatureKinds.length}`);
         console.log(`   - Группы номенклатуры: ${nomenclatureGroups.length}`);

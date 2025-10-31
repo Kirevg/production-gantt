@@ -24,7 +24,7 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
             projects,
             projectProducts,
             workStages,
-            productSpecifications,
+            projectProductSpecificationLists,
             specifications,
             nomenclatureKinds,
             nomenclatureGroups,
@@ -39,7 +39,7 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
             prisma.project.findMany(),
             prisma.projectProduct.findMany(),
             prisma.workStage.findMany(),
-            prisma.productSpecification.findMany(),
+            prisma.projectProductSpecificationList.findMany(),
             prisma.specification.findMany(),
             prisma.nomenclatureKind.findMany(),
             prisma.nomenclatureGroup.findMany(),
@@ -60,7 +60,7 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
                 projects,
                 projectProducts,
                 workStages,
-                productSpecifications,
+                projectProductSpecificationLists,
                 specifications,
                 nomenclatureKinds,
                 nomenclatureGroups,
@@ -103,7 +103,7 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
         await prisma.refreshToken.deleteMany({});
         await prisma.auditLog.deleteMany({});
         await prisma.specification.deleteMany({});
-        await prisma.productSpecification.deleteMany({});
+        await prisma.projectProductSpecificationList.deleteMany({});
         await prisma.workStage.deleteMany({});
         await prisma.projectProduct.deleteMany({});
         await prisma.project.deleteMany({});
@@ -126,7 +126,7 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
         if (data.projects?.length) await prisma.project.createMany({ data: data.projects });
         if (data.projectProducts?.length) await prisma.projectProduct.createMany({ data: data.projectProducts });
         if (data.workStages?.length) await prisma.workStage.createMany({ data: data.workStages });
-        if (data.productSpecifications?.length) await prisma.productSpecification.createMany({ data: data.productSpecifications });
+        if (data.projectProductSpecificationLists?.length) await prisma.projectProductSpecificationList.createMany({ data: data.projectProductSpecificationLists });
         if (data.specifications?.length) await prisma.specification.createMany({ data: data.specifications });
         if (data.auditLogs?.length) await prisma.auditLog.createMany({ data: data.auditLogs });
         if (data.refreshTokens?.length) await prisma.refreshToken.createMany({ data: data.refreshTokens });
@@ -145,7 +145,7 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
                 projects: data.projects?.length || 0,
                 projectProducts: data.projectProducts?.length || 0,
                 workStages: data.workStages?.length || 0,
-                productSpecifications: data.productSpecifications?.length || 0,
+                projectProductSpecificationLists: data.projectProductSpecificationLists?.length || 0,
                 specifications: data.specifications?.length || 0
             }
         });

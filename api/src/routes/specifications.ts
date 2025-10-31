@@ -14,16 +14,16 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Функция для пересчёта итоговой суммы документа
-async function recalculateProductSpecificationTotal(productSpecificationId: string) {
+async function recalculateProjectProductSpecificationListTotal(projectProductSpecificationListId: string) {
     const specifications = await prisma.specification.findMany({
-        where: { productSpecificationId },
+        where: { projectProductSpecificationListId },
         select: { totalPrice: true }
     });
 
     const totalSum = specifications.reduce((sum, spec) => sum + (spec.totalPrice || 0), 0);
 
-    await prisma.productSpecification.update({
-        where: { id: productSpecificationId },
+    await prisma.projectProductSpecificationList.update({
+        where: { id: projectProductSpecificationListId },
         data: { totalSum }
     });
 }
@@ -50,7 +50,7 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
         }
 
         // Проверяем права доступа к спецификации изделия
-        const productSpec = await prisma.productSpecification.findFirst({
+        const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -61,12 +61,12 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
             }
         });
 
-        if (!productSpec) {
+        if (!projectProductSpecificationList) {
             return res.status(404).json({ error: 'Спецификация изделия не найдена' });
         }
 
         const specifications = await prisma.specification.findMany({
-            where: { productSpecificationId: id },
+            where: { projectProductSpecificationListId: id },
             include: {
                 nomenclatureItem: {
                     select: {
@@ -140,7 +140,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
         }
 
         // Проверяем права доступа к спецификации изделия
-        const productSpec = await prisma.productSpecification.findFirst({
+        const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -151,7 +151,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
             }
         });
 
-        if (!productSpec) {
+        if (!projectProductSpecificationList) {
             return res.status(404).json({ error: 'Спецификация изделия не найдена' });
         }
 
@@ -180,7 +180,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
 
         // Получаем максимальный orderIndex для сортировки
         const lastSpecification = await prisma.specification.findFirst({
-            where: { productSpecificationId: id },
+            where: { projectProductSpecificationListId: id },
             orderBy: { orderIndex: 'desc' }
         });
 
@@ -195,7 +195,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
         const specificationData: any = {
             quantity: specData.quantity,
             price: specData.price ?? null,
-            productSpecificationId: id,
+            projectProductSpecificationListId: id,
             orderIndex,
             totalPrice: totalPrice ?? null,
             nomenclatureItemId: specData.nomenclatureItemId ?? null,
@@ -207,7 +207,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
         });
 
         // Пересчитываем итоговую сумму документа
-        await recalculateProductSpecificationTotal(id);
+        await recalculateProjectProductSpecificationListTotal(id);
 
         res.status(201).json(specification);
     } catch (error) {
@@ -234,7 +234,7 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
         const existingSpecification = await prisma.specification.findFirst({
             where: {
                 id,
-                productSpecification: {
+                projectProductSpecificationList: {
                     product: {
                         project: {
                             ownerId: (req as AuthenticatedRequest).user.id
@@ -273,7 +273,7 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
 
         // Пересчитываем итоговую сумму документа
         if (existingSpecification) {
-            await recalculateProductSpecificationTotal(existingSpecification.productSpecificationId);
+            await recalculateProjectProductSpecificationListTotal(existingSpecification.projectProductSpecificationListId);
         }
 
         res.json(specification);
@@ -299,7 +299,7 @@ router.delete('/specifications/:id', authenticateToken, async (req, res) => {
         const specification = await prisma.specification.findFirst({
             where: {
                 id,
-                productSpecification: {
+                projectProductSpecificationList: {
                     product: {
                         project: {
                             ownerId: (req as AuthenticatedRequest).user.id
@@ -313,14 +313,14 @@ router.delete('/specifications/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Спецификация не найдена' });
         }
 
-        const productSpecificationId = specification.productSpecificationId;
+        const projectProductSpecificationListId = specification.projectProductSpecificationListId;
 
         await prisma.specification.delete({
             where: { id }
         });
 
         // Пересчитываем итоговую сумму документа
-        await recalculateProductSpecificationTotal(productSpecificationId);
+        await recalculateProjectProductSpecificationListTotal(projectProductSpecificationListId);
 
         res.status(204).send();
     } catch (error) {
@@ -343,7 +343,7 @@ router.put('/specifications/reorder', authenticateToken, async (req, res) => {
         const specifications = await prisma.specification.findMany({
             where: {
                 id: { in: specificationIds },
-                productSpecification: {
+                projectProductSpecificationList: {
                     product: {
                         project: {
                             ownerId: (req as AuthenticatedRequest).user.id

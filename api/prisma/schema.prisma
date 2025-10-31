@@ -126,7 +126,7 @@ model ProjectProduct {
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   productId             String
-  productSpecifications ProductSpecification[]
+  projectProductSpecificationLists ProjectProductSpecificationList[]
   product               Product                @relation(fields: [productId], references: [id])
   project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
   workStages            WorkStage[]
@@ -160,7 +160,7 @@ model WorkStage {
   @@index([startDate, endDate])
 }
 
-model ProductSpecification {
+model ProjectProductSpecificationList {
   id             String          @id @default(uuid())
   productId      String
   name           String
@@ -178,26 +178,26 @@ model ProductSpecification {
 }
 
 model Specification {
-  id                     String               @id @default(uuid())
-  productSpecificationId String
-  quantity               Int                  @default(1)
-  price                  Float?
-  totalPrice             Float?
-  orderIndex             Int                  @default(0)
-  version                Int                  @default(1)
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
-  nomenclatureItemId     String
-  unitId                 String?
-  nomenclatureItem       NomenclatureItem     @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
-  productSpecification   ProductSpecification @relation(fields: [productSpecificationId], references: [id], onDelete: Cascade)
-  unit                   Unit?                @relation(fields: [unitId], references: [id])
+  id                             String                         @id @default(uuid())
+  projectProductSpecificationListId String
+  quantity                       Int                            @default(1)
+  price                          Float?
+  totalPrice                     Float?
+  orderIndex                     Int                            @default(0)
+  version                        Int                            @default(1)
+  createdAt                      DateTime                       @default(now())
+  updatedAt                      DateTime                       @updatedAt
+  nomenclatureItemId             String
+  unitId                         String?
+  nomenclatureItem               NomenclatureItem              @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
+  projectProductSpecificationList ProjectProductSpecificationList @relation(fields: [projectProductSpecificationListId], references: [id], onDelete: Cascade)
+  unit                           Unit?                          @relation(fields: [unitId], references: [id])
 
-  @@index([productSpecificationId])
+  @@index([projectProductSpecificationListId])
   @@index([nomenclatureItemId])
   @@index([orderIndex])
   @@index([version])
-  @@index([productSpecificationId, version])
+  @@index([projectProductSpecificationListId, version])
 }
 
 model AuditLog {

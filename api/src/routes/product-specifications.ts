@@ -14,21 +14,21 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Схема для создания спецификации изделия
-const productSpecificationCreateSchema = z.object({
+const projectProductSpecificationListCreateSchema = z.object({
     name: z.string().min(1, 'Название обязательно'),
     description: z.string().optional(),
     version: z.number().int().min(1).optional(),
 });
 
 // Схема для обновления спецификации изделия
-const productSpecificationUpdateSchema = productSpecificationCreateSchema.partial();
+const projectProductSpecificationListUpdateSchema = projectProductSpecificationListCreateSchema.partial();
 
 // GET /products/:productId/specifications - Получить все спецификации изделия
 router.get('/products/:productId/specifications', authenticateToken, async (req, res) => {
     const { productId } = req.params;
 
     try {
-        const productSpecifications = await prisma.productSpecification.findMany({
+        const projectProductSpecificationLists = await prisma.projectProductSpecificationList.findMany({
             where: { productId },
             include: {
                 product: {
@@ -49,13 +49,13 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
 
         console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
         console.log('Product ID:', productId);
-        console.log('Found specifications:', productSpecifications.length);
-        productSpecifications.forEach(spec => {
+        console.log('Found specifications:', projectProductSpecificationLists.length);
+        projectProductSpecificationLists.forEach(spec => {
             console.log(`Spec: ${spec.name}, isLocked: ${spec.isLocked}, ID: ${spec.id}`);
         });
 
         // Проверяем права доступа
-        const userSpecifications = productSpecifications.filter(ps =>
+        const userSpecifications = projectProductSpecificationLists.filter(ps =>
             ps.productId === productId
         );
 
@@ -84,12 +84,12 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
             return res.status(404).json({ error: 'Изделие не найдено' });
         }
 
-        const validatedData = productSpecificationCreateSchema.parse(req.body);
+        const validatedData = projectProductSpecificationListCreateSchema.parse(req.body);
         console.log('=== CREATING PRODUCT SPECIFICATION ===');
         console.log('Validated data:', validatedData);
         console.log('Product ID:', productId);
 
-        const productSpecification = await prisma.productSpecification.create({
+        const projectProductSpecificationList = await prisma.projectProductSpecificationList.create({
             data: {
                 name: validatedData.name,
                 description: validatedData.description,
@@ -99,7 +99,7 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
                 }
             },
         });
-        res.status(201).json(productSpecification);
+        res.status(201).json(projectProductSpecificationList);
     } catch (error) {
         console.error('Ошибка при создании спецификации изделия:', error);
         if (error instanceof z.ZodError) {
@@ -114,7 +114,7 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
     const { id } = req.params;
     try {
         // Проверяем права доступа
-        const existingSpec = await prisma.productSpecification.findFirst({
+        const existingSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -136,12 +136,12 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
             });
         }
 
-        const validatedData = productSpecificationUpdateSchema.parse(req.body);
-        const productSpecification = await prisma.productSpecification.update({
+        const validatedData = projectProductSpecificationListUpdateSchema.parse(req.body);
+        const projectProductSpecificationList = await prisma.projectProductSpecificationList.update({
             where: { id },
             data: validatedData,
         });
-        res.json(productSpecification);
+        res.json(projectProductSpecificationList);
     } catch (error) {
         console.error('Ошибка при обновлении спецификации изделия:', error);
         if (error instanceof z.ZodError) {
@@ -156,7 +156,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа
-        const existingSpec = await prisma.productSpecification.findFirst({
+        const existingSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -179,7 +179,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         }
 
         // Разблокируем предыдущую версию (если есть)
-        const previousSpec = await prisma.productSpecification.findFirst({
+        const previousSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 productId: existingSpec.productId,
                 name: existingSpec.name,
@@ -190,13 +190,13 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         if (previousSpec) {
             console.log(`Разблокируем предыдущую версию ${previousSpec.id} (v${previousSpec.version})`);
-            await prisma.productSpecification.update({
+            await prisma.projectProductSpecificationList.update({
                 where: { id: previousSpec.id },
                 data: { isLocked: false }
             });
         }
 
-        await prisma.productSpecification.delete({
+        await prisma.projectProductSpecificationList.delete({
             where: { id },
         });
         res.status(204).send();
@@ -211,7 +211,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа
-        const productSpec = await prisma.productSpecification.findFirst({
+        const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -222,11 +222,11 @@ router.get('/:id', authenticateToken, async (req, res) => {
             }
         });
 
-        if (!productSpec) {
+        if (!projectProductSpecificationList) {
             return res.status(404).json({ error: 'Спецификация изделия не найдена' });
         }
 
-        res.json(productSpec);
+        res.json(projectProductSpecificationList);
     } catch (error) {
         console.error('Ошибка при получении спецификации:', error);
         res.status(500).json({ error: 'Ошибка при получении спецификации' });
@@ -238,7 +238,7 @@ router.get('/:id/specifications', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа
-        const productSpec = await prisma.productSpecification.findFirst({
+        const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -249,12 +249,12 @@ router.get('/:id/specifications', authenticateToken, async (req, res) => {
             }
         });
 
-        if (!productSpec) {
+        if (!projectProductSpecificationList) {
             return res.status(404).json({ error: 'Спецификация изделия не найдена' });
         }
 
         const specifications = await prisma.specification.findMany({
-            where: { productSpecificationId: id },
+            where: { projectProductSpecificationListId: id },
             include: {
                 nomenclatureItem: {
                     select: {
@@ -282,7 +282,7 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         // Проверяем права доступа к оригинальной спецификации
-        const originalSpec = await prisma.productSpecification.findFirst({
+        const originalSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -306,7 +306,7 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
         }
 
         // Создаем копию спецификации
-        const copiedSpec = await prisma.productSpecification.create({
+        const copiedSpec = await prisma.projectProductSpecificationList.create({
             data: {
                 name: originalSpec.name, // Название копируется БЕЗ добавления "(копия)"
                 description: '', // Описание НЕ копируется - остается пустым
@@ -321,14 +321,14 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
         for (const spec of originalSpec.specifications) {
             await prisma.specification.create({
                 data: {
-                    productSpecificationId: copiedSpec.id,
+                    projectProductSpecificationListId: copiedSpec.id,
                     nomenclatureItemId: spec.nomenclatureItemId,
                     quantity: spec.quantity,
                     price: spec.price,
                     totalPrice: spec.totalPrice,
                     unitId: spec.unitId,
                     orderIndex: spec.orderIndex,
-                    version: copiedSpec.version // Синхронизируем версию с ProductSpecification
+                    version: copiedSpec.version // Синхронизируем версию с ProjectProductSpecificationList
                 }
             });
         }
@@ -338,7 +338,7 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
         console.log('Original spec ID:', id);
         console.log('Setting isLocked to true');
 
-        const updatedSpec = await prisma.productSpecification.update({
+        const updatedSpec = await prisma.projectProductSpecificationList.update({
             where: { id },
             data: { isLocked: true }
         });
@@ -361,7 +361,7 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
         const existingSpec = await prisma.specification.findFirst({
             where: {
                 id,
-                productSpecification: {
+                projectProductSpecificationList: {
                     product: {
                         project: {
                             ownerId: (req as AuthenticatedRequest).user.id
@@ -425,7 +425,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
 
     try {
         // Проверяем права доступа
-        const productSpec = await prisma.productSpecification.findFirst({
+        const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -436,12 +436,12 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             }
         });
 
-        if (!productSpec) {
+        if (!projectProductSpecificationList) {
             return res.status(404).json({ error: 'Спецификация изделия не найдена' });
         }
 
         // Получаем текущую спецификацию для определения productId и name
-        const currentSpec = await prisma.productSpecification.findFirst({
+        const currentSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
                 product: {
@@ -463,7 +463,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
         // Находим родительскую и дочернюю спецификации
         const [parentSpec, childSpec] = await Promise.all([
             // Родительская спецификация (версия = текущая - 1)
-            prisma.productSpecification.findFirst({
+            prisma.projectProductSpecificationList.findFirst({
                 where: {
                     productId: currentSpec.productId,
                     name: currentSpec.name,
@@ -471,7 +471,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
                 }
             }),
             // Дочерняя спецификация (версия = текущая)
-            prisma.productSpecification.findFirst({
+            prisma.projectProductSpecificationList.findFirst({
                 where: {
                     productId: currentSpec.productId,
                     name: currentSpec.name,
@@ -488,7 +488,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
         const [version1Data, version2Data] = await Promise.all([
             prisma.specification.findMany({
                 where: {
-                    productSpecificationId: parentSpec.id // Строки родительской спецификации
+                    projectProductSpecificationListId: parentSpec.id // Строки родительской спецификации
                 },
                 include: {
                     nomenclatureItem: {
@@ -507,7 +507,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             }),
             prisma.specification.findMany({
                 where: {
-                    productSpecificationId: childSpec.id // Строки дочерней спецификации
+                    projectProductSpecificationListId: childSpec.id // Строки дочерней спецификации
                 },
                 include: {
                     nomenclatureItem: {
