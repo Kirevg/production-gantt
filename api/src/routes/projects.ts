@@ -70,8 +70,7 @@ router.get('/', authenticateToken, async (req, res) => {
             product: {
               select: {
                 id: true,
-                name: true,
-                designation: true
+                name: true
               }
             }
           }
@@ -213,8 +212,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
             product: {
               select: {
                 id: true,
-                name: true,
-                designation: true
+                name: true
               }
             }
           },
