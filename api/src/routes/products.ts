@@ -61,8 +61,6 @@ router.get('/:projectId/products', authenticateToken, async (req, res) => {
           select: {
             id: true,
             name: true,
-            designation: true,
-            article: true,
             description: true,
           }
         },
@@ -266,8 +264,6 @@ router.get('/products/:productId', authenticateToken, async (req, res) => {
           select: {
             id: true,
             name: true,
-            designation: true,
-            article: true,
             description: true,
           }
         }

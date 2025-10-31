@@ -104,8 +104,6 @@ model Project {
 model Product {
   id              String           @id @default(uuid())
   name            String
-  designation     String?
-  article         String?
   description     String?
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())

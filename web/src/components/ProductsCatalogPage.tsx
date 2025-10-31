@@ -29,8 +29,6 @@ import PageHeader from './PageHeader';
 interface Product {
     id: string;
     name: string;
-    designation?: string;
-    article?: string;
     description?: string;
     isActive: boolean;
     createdAt: string;
@@ -55,8 +53,6 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [productForm, setProductForm] = useState({
         name: '',
-        designation: '',
-        article: '',
         description: '',
         isActive: true,
     });
@@ -98,8 +94,6 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
             setEditingProduct(product);
             setProductForm({
                 name: product.name,
-                designation: product.designation || '',
-                article: product.article || '',
                 description: product.description || '',
                 isActive: product.isActive,
             });
@@ -107,8 +101,6 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
             setEditingProduct(null);
             setProductForm({
                 name: '',
-                designation: '',
-                article: '',
                 description: '',
                 isActive: true,
             });
@@ -140,8 +132,6 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
                 },
                 body: JSON.stringify({
                     name: productForm.name,
-                    designation: productForm.designation || undefined,
-                    article: productForm.article || undefined,
                     description: productForm.description || undefined,
                     isActive: productForm.isActive,
                 })
@@ -214,9 +204,7 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
                     <TableHead>
                         <TableRow>
                             <TableCell><Typography variant="subtitle2">Название</Typography></TableCell>
-                            <TableCell><Typography variant="subtitle2">Обозначение</Typography></TableCell>
-                            <TableCell><Typography variant="subtitle2">Артикул</Typography></TableCell>
-                            <TableCell><Typography variant="subtitle2">Описание</Typography></TableCell>
+                            <TableCell><Typography variant="subtitle2">Примечание</Typography></TableCell>
                             <TableCell><Typography variant="subtitle2">Статус</Typography></TableCell>
                             {(canEdit() || canDelete()) && (
                                 <TableCell><Typography variant="subtitle2">Действия</Typography></TableCell>
@@ -226,13 +214,13 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={6} align="center">
+                                <TableCell colSpan={4} align="center">
                                     Загрузка...
                                 </TableCell>
                             </TableRow>
                         ) : products.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} align="center">
+                                <TableCell colSpan={4} align="center">
                                     Нет изделий
                                 </TableCell>
                             </TableRow>
@@ -240,8 +228,6 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
                             products.map((product) => (
                                 <TableRow key={product.id}>
                                     <TableCell>{product.name}</TableCell>
-                                    <TableCell>{product.designation || '-'}</TableCell>
-                                    <TableCell>{product.article || '-'}</TableCell>
                                     <TableCell>{product.description || '-'}</TableCell>
                                     <TableCell>
                                         {product.isActive ? 'Активно' : 'Неактивно'}
@@ -297,21 +283,7 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
                     />
                     <TextField
                         fullWidth
-                        label="Обозначение"
-                        value={productForm.designation}
-                        onChange={(e) => setProductForm({ ...productForm, designation: e.target.value })}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Артикул"
-                        value={productForm.article}
-                        onChange={(e) => setProductForm({ ...productForm, article: e.target.value })}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Описание"
+                        label="Примечание"
                         value={productForm.description}
                         onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                         margin="normal"

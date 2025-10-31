@@ -12,8 +12,6 @@ const prisma = new PrismaClient();
 // Схема валидации для создания изделия
 const productCreateSchema = z.object({
     name: z.string().min(1, 'Название обязательно'),
-    designation: z.string().optional(),
-    article: z.string().optional(),
     description: z.string().optional(),
     isActive: z.boolean().default(true),
 });
@@ -21,8 +19,6 @@ const productCreateSchema = z.object({
 // Схема валидации для обновления изделия
 const productUpdateSchema = z.object({
     name: z.string().min(1, 'Название обязательно').optional(),
-    designation: z.string().optional(),
-    article: z.string().optional(),
     description: z.string().optional(),
     isActive: z.boolean().optional(),
 });
@@ -39,12 +35,10 @@ router.get('/', authenticateToken, async (req, res) => {
             where.isActive = isActive === 'true';
         }
 
-        // Поиск по названию, обозначению, артикулу
+        // Поиск по названию
         if (query) {
             where.OR = [
                 { name: { contains: query as string, mode: 'insensitive' } },
-                { designation: { contains: query as string, mode: 'insensitive' } },
-                { article: { contains: query as string, mode: 'insensitive' } },
             ];
         }
 
@@ -100,8 +94,6 @@ router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (re
         const product = await prisma.product.create({
             data: {
                 name: data.name,
-                designation: data.designation || null,
-                article: data.article || null,
                 description: data.description || null,
                 isActive: data.isActive ?? true,
             },
@@ -127,8 +119,6 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'manager']), async (
             where: { id },
             data: {
                 ...(data.name !== undefined && { name: data.name }),
-                ...(data.designation !== undefined && { designation: data.designation }),
-                ...(data.article !== undefined && { article: data.article }),
                 ...(data.description !== undefined && { description: data.description }),
                 ...(data.isActive !== undefined && { isActive: data.isActive }),
                 updatedAt: new Date(),

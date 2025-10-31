@@ -59,8 +59,6 @@ interface Product {
     product?: {
         id: string;
         name: string;
-        designation?: string;
-        article?: string;
         code1c?: string;
         manufacturer?: string;
         unit?: string;
@@ -940,7 +938,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                             options={catalogProducts}
                             getOptionLabel={(option) => {
                                 if (typeof option === 'string') return option;
-                                return `${option.name}${option.designation ? ` (${option.designation})` : ''}`;
+                                return option.name;
                             }}
                             value={catalogProducts.find(p => p.id === productForm.productId) || null}
                             onChange={(_, newValue) => {
