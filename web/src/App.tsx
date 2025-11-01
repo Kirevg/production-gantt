@@ -3598,7 +3598,7 @@ export default function App() {
                     <Box
                       key={idx}
                       sx={{
-                        flex: group.count,
+                        width: `${group.count * 40}px`,
                         borderRight: idx < monthGroups.length - 1 ? '1px solid #e0e0e0' : 'none',
                         py: 0.5,
                         textAlign: 'center',
@@ -3620,8 +3620,7 @@ export default function App() {
                         key={index}
                         onClick={() => setCalendarDate(day)}
                         sx={{
-                          flex: 1,
-                          minWidth: '40px',
+                          width: '40px',
                           minHeight: '40px',
                           display: 'flex',
                           flexDirection: 'column',
