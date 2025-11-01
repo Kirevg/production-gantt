@@ -21,7 +21,8 @@ if (-not $isAdmin) {
     # Пытаемся перезапустить скрипт с правами администратора
     try {
         $scriptPath = $PSCommandPath
-        Start-Process PowerShell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -NoExit -Command `"chcp 65001 >`$null; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; `$OutputEncoding = [System.Text.Encoding]::UTF8; & '$scriptPath'`""
+        $arguments = "-ExecutionPolicy Bypass -NoExit -File `"$scriptPath`""
+        Start-Process PowerShell -Verb RunAs -ArgumentList $arguments
         exit
     } catch {
         Write-Host "? Не удалось перезапустить с правами администратора" -ForegroundColor Red
