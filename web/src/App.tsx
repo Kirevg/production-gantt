@@ -154,8 +154,6 @@ import {
   Timeline as GanttIcon,
   Clear as ClearIcon,
   CalendarMonth as CalendarMonthIcon,
-  ViewWeek as ViewWeekIcon,
-  ViewDay as ViewDayIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   ViewAgenda as ViewAgendaIcon,
@@ -3558,8 +3556,8 @@ export default function App() {
                   key={index}
                   onClick={() => setCalendarDate(day)}
                   sx={{
-                    minWidth: '60px',
-                    width: '60px',
+                    minWidth: '40px',
+                    width: '40px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
