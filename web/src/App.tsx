@@ -3465,6 +3465,85 @@ export default function App() {
           </ToggleButtonGroup>
         </Box>
 
+        {/* Полоска с днями */}
+        <Box sx={{ 
+          display: 'flex', 
+          backgroundColor: '#ffffff',
+          borderBottom: '1px solid #e0e0e0',
+          overflowX: 'auto'
+        }}>
+          {(() => {
+            const days: Date[] = [];
+            if (calendarView === 'day') {
+              days.push(calendarDate);
+            } else if (calendarView === 'week') {
+              const startOfWeek = new Date(calendarDate);
+              startOfWeek.setDate(calendarDate.getDate() - calendarDate.getDay() + 1);
+              for (let i = 0; i < 7; i++) {
+                const day = new Date(startOfWeek);
+                day.setDate(startOfWeek.getDate() + i);
+                days.push(day);
+              }
+            } else {
+              const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+              const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
+              const daysInMonth = lastDay.getDate();
+              for (let i = 0; i < daysInMonth; i++) {
+                const day = new Date(firstDay);
+                day.setDate(firstDay.getDate() + i);
+                days.push(day);
+              }
+            }
+            return days.map((day, index) => {
+              const isToday = day.toDateString() === new Date().toDateString();
+              const isSelected = day.toDateString() === calendarDate.toDateString();
+              return (
+                <Box
+                  key={index}
+                  onClick={() => setCalendarDate(day)}
+                  sx={{
+                    minWidth: '60px',
+                    width: '60px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: 1,
+                    cursor: 'pointer',
+                    backgroundColor: isSelected ? '#1976d2' : isToday ? '#e3f2fd' : 'transparent',
+                    borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none',
+                    '&:hover': {
+                      backgroundColor: isSelected ? '#1565c0' : '#f5f5f5'
+                    }
+                  }}
+                >
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      fontSize: '0.65rem', 
+                      color: isSelected ? '#fff' : '#666',
+                      textTransform: 'uppercase',
+                      fontWeight: 500
+                    }}
+                  >
+                    {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
+                  </Typography>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontSize: '1.25rem', 
+                      color: isSelected ? '#fff' : '#000',
+                      fontWeight: isToday ? 700 : 400
+                    }}
+                  >
+                    {day.getDate()}
+                  </Typography>
+                </Box>
+              );
+            });
+          })()}
+        </Box>
+
         {/* Основной контент */}
         {renderTabContent()
         }
