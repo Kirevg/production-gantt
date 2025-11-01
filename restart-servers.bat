@@ -24,10 +24,10 @@ timeout /t 2 /nobreak >nul
 
 echo.
 echo Запускаем API сервер...
-start "PRODUCTION-GANTT-API" cmd /k "cd /d C:\Projects\production-gantt\api && npm run dev"
+start cmd /k "title PRODUCTION-GANTT-API && cd /d C:\Projects\production-gantt\api && npm run dev"
 
 echo Запускаем Frontend сервер...
-start "PRODUCTION-GANTT-FRONTEND" cmd /k "cd /d C:\Projects\production-gantt\web && npm run dev"
+start cmd /k "title PRODUCTION-GANTT-FRONTEND && cd /d C:\Projects\production-gantt\web && npm run dev"
 
 echo.
 echo ========================================
