@@ -266,6 +266,16 @@ interface Project {
   }>;
 }
 
+// Интерфейс для чипа изделия в календаре
+interface ProductChip {
+  id: string;                  // ID изделия проекта (ProjectProduct)
+  projectId: string;           // ID проекта
+  projectName: string;         // Название проекта
+  productName: string;         // Название изделия
+  startDate: string;           // Дата начала (самая ранняя из этапов работ)
+  endDate: string;             // Дата окончания (самая поздняя из этапов работ)
+}
+
 // Интерфейс для руководителя проекта
 interface ProjectManager {
   id: string;
@@ -2549,7 +2559,8 @@ export default function App() {
   // Состояние для календаря
   const [calendarView, setCalendarView] = useState<'month' | 'quarter' | 'halfyear' | 'year'>('month'); // Вид календаря
   const [calendarDate, setCalendarDate] = useState<Date>(new Date()); // Текущая дата календаря
-  const [calendarProjects, setCalendarProjects] = useState<Project[]>([]); // Проекты для отображения в календаре
+  const [_calendarProjects, setCalendarProjects] = useState<Project[]>([]); // Проекты для отображения в календаре (оставлено для обратной совместимости)
+  const [calendarProducts, setCalendarProducts] = useState<ProductChip[]>([]); // Изделия для отображения в календаре
 
   // Состояние для показа/скрытия состава проекта
   const [showProjectComposition, setShowProjectComposition] = useState(false);
@@ -2723,12 +2734,90 @@ export default function App() {
     }
   }, [user]);
 
+  // Функция для загрузки изделий с этапами работ для календаря
+  const fetchCalendarProducts = useCallback(async () => {
+    if (!user) {
+      setCalendarProducts([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Получаем все проекты
+      const projectsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!projectsResponse.ok) return;
+
+      const projects = await projectsResponse.json();
+
+      // Для каждого проекта получаем изделия с этапами работ
+      const productsChips: ProductChip[] = [];
+
+      for (const project of projects) {
+        try {
+          const productsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${project.id}/products`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (productsResponse.ok) {
+            const products = await productsResponse.json();
+
+            for (const product of products) {
+              // Проверяем, есть ли этапы работ
+              if (product.workStages && product.workStages.length > 0) {
+                // Находим самую раннюю дату начала из этапов работ
+                const startDates = product.workStages
+                  .filter((stage: any) => stage.startDate)
+                  .map((stage: any) => new Date(stage.startDate).getTime());
+                
+                // Находим самую позднюю дату окончания из этапов работ
+                const endDates = product.workStages
+                  .filter((stage: any) => stage.endDate)
+                  .map((stage: any) => new Date(stage.endDate).getTime());
+
+                if (startDates.length > 0 && endDates.length > 0) {
+                  const earliestStart = new Date(Math.min(...startDates));
+                  const latestEnd = new Date(Math.max(...endDates));
+
+                  productsChips.push({
+                    id: product.id,
+                    projectId: project.id,
+                    projectName: project.name,
+                    productName: product.product?.name || 'Не указано',
+                    startDate: earliestStart.toISOString(),
+                    endDate: latestEnd.toISOString()
+                  });
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Ошибка загрузки изделий для проекта ${project.id}:`, error);
+        }
+      }
+
+      setCalendarProducts(productsChips);
+    } catch (error) {
+      console.error('Ошибка загрузки изделий для календаря:', error);
+      setCalendarProducts([]);
+    }
+  }, [user]);
+
   // Загружаем проекты при изменении пользователя или календаря
   useEffect(() => {
     if (user) {
       fetchCalendarProjects();
+      fetchCalendarProducts();
     }
-  }, [user, fetchCalendarProjects]);
+  }, [user, fetchCalendarProjects, fetchCalendarProducts]);
 
   // Функция для восстановления из резервной копии
   const handleRestoreBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -3619,53 +3708,87 @@ export default function App() {
                         );
                       })}
                     </Box>
-                    {/* Остальные строки с ячейками и карточками проектов */}
+                    {/* Остальные строки с ячейками и карточками изделий */}
                     {Array.from({ length: 15 }, (_, rowIndex) => {
-                      // Функция для вычисления позиции проекта в календаре
-                      const getProjectPosition = (project: Project) => {
-                        if (!project.startDate || !project.endDate) return null;
+                      // Функция для вычисления позиции изделия в календаре
+                      const getProductPosition = (product: ProductChip) => {
+                        if (!product.startDate || !product.endDate) return null;
                         
-                        const startDate = new Date(project.startDate);
-                        const endDate = new Date(project.endDate);
+                        const startDate = new Date(product.startDate);
+                        const endDate = new Date(product.endDate);
                         
                         // Находим индекс дня начала в массиве days
                         const startIndex = days.findIndex(day => {
                           const dayDate = new Date(day);
                           dayDate.setHours(0, 0, 0, 0);
-                          const projectStart = new Date(startDate);
-                          projectStart.setHours(0, 0, 0, 0);
-                          return dayDate.getTime() === projectStart.getTime();
+                          const productStart = new Date(startDate);
+                          productStart.setHours(0, 0, 0, 0);
+                          return dayDate.getTime() === productStart.getTime();
                         });
                         
                         if (startIndex === -1) return null;
                         
-                        // Вычисляем количество дней между началом и концом проекта
+                        // Вычисляем количество дней между началом и концом изделия
                         const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
                         
                         return {
                           left: startIndex * 39, // Позиция слева в пикселях
-                          width: daysDiff * 39,  // Ширина в пикселях
+                          width: daysDiff * 39,  // Ширина в пикселях (39px на день)
                           startIndex,
                           daysCount: daysDiff
                         };
                       };
 
-                      // Получаем проекты для первой строки (можно распределить по разным строкам в будущем)
-                      const projectsForRow = rowIndex === 0 ? calendarProjects : [];
+                      // Алгоритм распределения изделий по строкам
+                      // Сначала вычисляем позиции всех изделий
+                      const productsWithPositions = calendarProducts
+                        .map(product => ({
+                          product,
+                          position: getProductPosition(product)
+                        }))
+                        .filter(item => item.position !== null);
+
+                      // Распределяем изделия по строкам
+                      const rows: Array<Array<{ product: ProductChip; position: { left: number; width: number; startIndex: number; daysCount: number } }>> = [];
+                      
+                      productsWithPositions.forEach(({ product, position }) => {
+                        if (!position) return;
+                        
+                        // Ищем строку, где изделие помещается
+                        let placed = false;
+                        for (let i = 0; i < rows.length; i++) {
+                          // Проверяем, не пересекается ли с другими изделиями в строке
+                          const overlaps = rows[i].some(({ position: otherPos }) => {
+                            if (!otherPos) return false;
+                            // Проверяем пересечение интервалов
+                            const end1 = position.startIndex + position.daysCount;
+                            const end2 = otherPos.startIndex + otherPos.daysCount;
+                            return !(position.startIndex >= end2 || otherPos.startIndex >= end1);
+                          });
+                          
+                          if (!overlaps) {
+                            rows[i].push({ product, position });
+                            placed = true;
+                            break;
+                          }
+                        }
+                        
+                        // Если не поместилось, создаем новую строку
+                        if (!placed) {
+                          rows.push([{ product, position }]);
+                        }
+                      });
+
+                      // Получаем изделия для текущей строки
+                      const productsForRow = rows[rowIndex] || [];
 
                       return (
                         <Box key={rowIndex} sx={{ display: 'flex', position: 'relative' }}>
-                          {days.map((day, index) => {
+                          {days.map((_, index) => {
                             // Верхние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
                             const borderTopColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
                             // Нижние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
                             const borderBottomColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
-                            
-                            // Проверяем, является ли это ячейкой 1 ноября в третьей строке
-                            const isNovemberFirst = rowIndex === 0 && (() => {
-                              const dayDate = new Date(day);
-                              return dayDate.getMonth() === 10 && dayDate.getDate() === 1; // Ноябрь = 10
-                            })();
                             
                             return (
                               <Box
@@ -3679,34 +3802,14 @@ export default function App() {
                                   borderBottom: `1px solid ${borderBottomColor}`,
                                   position: 'relative',
                                 }}
-                              >
-                                {/* Чип в ячейке 1 ноября в третьей строке */}
-                                {isNovemberFirst && (
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      left: 0,
-                                      top: 0,
-                                      width: '120px',
-                                      height: '40px',
-                                      backgroundColor: '#1976d2',
-                                      borderRadius: '4px',
-                                      zIndex: 5,
-                                      boxSizing: 'border-box'
-                                    }}
-                                  />
-                                )}
-                              </Box>
+                              />
                             );
                           })}
-                          {/* Карточки проектов для этой строки */}
-                          {projectsForRow.map((project) => {
-                            const position = getProjectPosition(project);
-                            if (!position) return null;
-
+                          {/* Карточки изделий для этой строки */}
+                          {productsForRow.map(({ product, position }) => {
                             return (
                               <Box
-                                key={project.id}
+                                key={product.id}
                                 sx={{
                                   position: 'absolute',
                                   left: `${position.left}px`,
@@ -3728,11 +3831,11 @@ export default function App() {
                                   boxSizing: 'border-box'
                                 }}
                                 onClick={() => {
-                                  // Можно добавить обработчик клика по карточке проекта
-                                  console.log('Клик по проекту:', project.name);
+                                  // Можно добавить обработчик клика по карточке изделия
+                                  console.log('Клик по изделию:', product.productName, 'проект:', product.projectName);
                                 }}
                               >
-                                {project.name}
+                                {product.projectName} - {product.productName}
                               </Box>
                             );
                           })}
