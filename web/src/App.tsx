@@ -3602,7 +3602,8 @@ export default function App() {
                         borderRight: idx < monthGroups.length - 1 ? '1px solid #e0e0e0' : 'none',
                         py: 0.5,
                         textAlign: 'center',
-                        backgroundColor: '#f5f5f5'
+                        backgroundColor: '#f5f5f5',
+                        boxSizing: 'border-box'
                       }}
                     >
                       <Typography variant="caption" sx={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>
@@ -3620,7 +3621,7 @@ export default function App() {
                         key={index}
                         onClick={() => setCalendarDate(day)}
                         sx={{
-                          width: '40px',
+                          width: '39px',
                           minHeight: '40px',
                           display: 'flex',
                           flexDirection: 'column',
