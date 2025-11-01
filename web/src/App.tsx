@@ -3524,10 +3524,13 @@ export default function App() {
               }
               // Добавляем дни следующего месяца для заполнения недели
               const lastDayOfMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
-              const daysFromNextMonth = 7 - (lastDayOfMonth.getDay() || 7);
-              for (let i = 1; i <= daysFromNextMonth; i++) {
-                const day = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, i);
-                days.push(day);
+              const lastDayOfWeek = lastDayOfMonth.getDay();
+              const daysFromNextMonth = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek;
+              if (daysFromNextMonth > 0) {
+                for (let i = 1; i <= daysFromNextMonth; i++) {
+                  const day = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, i);
+                  days.push(day);
+                }
               }
             } else if (calendarView === 'quarter') {
               const quarter = Math.floor(calendarDate.getMonth() / 3);
