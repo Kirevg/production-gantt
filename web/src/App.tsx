@@ -3593,6 +3593,16 @@ export default function App() {
                   <Typography 
                     variant="caption" 
                     sx={{ 
+                      fontSize: '0.6rem', 
+                      color: isSelected ? '#fff' : '#999',
+                      fontWeight: 400
+                    }}
+                  >
+                    {day.toLocaleDateString('ru-RU', { month: 'short' })}
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
                       fontSize: '0.65rem', 
                       color: isSelected ? '#fff' : '#666',
                       textTransform: 'uppercase',
