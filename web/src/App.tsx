@@ -3612,7 +3612,6 @@ export default function App() {
                 <Box sx={{ display: 'flex', width: '100%' }}>
                   {days.map((day, index) => {
                     const isToday = day.toDateString() === new Date().toDateString();
-                    const isSelected = day.toDateString() === calendarDate.toDateString();
                     return (
                       <Box
                         key={index}
@@ -3627,18 +3626,15 @@ export default function App() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           cursor: 'pointer',
-                          backgroundColor: isSelected ? '#1976d2' : isToday ? '#e3f2fd' : 'transparent',
-                          borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none',
-                          '&:hover': {
-                            backgroundColor: isSelected ? '#1565c0' : '#f5f5f5'
-                          }
+                          backgroundColor: 'transparent',
+                          borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none'
                         }}
                       >
                         <Typography 
                           variant="caption" 
                           sx={{ 
                             fontSize: '0.65rem', 
-                            color: isSelected ? '#fff' : '#666',
+                            color: '#666',
                             textTransform: 'uppercase',
                             fontWeight: 500
                           }}
@@ -3649,7 +3645,7 @@ export default function App() {
                           variant="h6" 
                           sx={{ 
                             fontSize: '14px', 
-                            color: isSelected ? '#fff' : '#000',
+                            color: '#000',
                             fontWeight: isToday ? 700 : 400
                           }}
                         >
