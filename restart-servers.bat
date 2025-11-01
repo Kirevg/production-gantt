@@ -16,8 +16,8 @@ echo Закрываем старые процессы...
 REM Закрываем все процессы Node.js
 taskkill /f /im node.exe 2>nul
 
-REM Закрываем все пустые cmd окна и с PRODUCTION в заголовке, кроме текущего
-powershell -Command "Get-Process cmd | Where-Object { ($_.MainWindowTitle -eq '' -or $_.MainWindowTitle -match 'PRODUCTION') -and $_.MainWindowTitle -ne 'Запуск перезапуска' } | Stop-Process -Force" 2>nul
+REM Закрываем только cmd окна с PRODUCTION в заголовке
+powershell -Command "Get-Process cmd | Where-Object { $_.MainWindowTitle -match 'PRODUCTION' } | Stop-Process -Force" 2>nul
 
 REM Ждем 2 секунды
 timeout /t 2 /nobreak >nul
