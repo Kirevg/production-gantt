@@ -3405,11 +3405,11 @@ export default function App() {
           alignItems: 'center',
           px: 2,
           py: 1,
-          backgroundColor: '#f5f5f5',
+          backgroundColor: 'transparent',
           borderBottom: '1px solid #e0e0e0'
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton size="small" onClick={() => {
+            <IconButton size="small" sx={{ color: 'white' }} onClick={() => {
               const newDate = new Date(calendarDate);
               if (calendarView === 'quarter') {
                 newDate.setMonth(newDate.getMonth() - 3);
@@ -3424,7 +3424,7 @@ export default function App() {
             }}>
               <ChevronLeftIcon />
             </IconButton>
-            <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center' }}>
+            <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center', color: 'white' }}>
               {calendarView === 'month' && calendarDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
               {calendarView === 'quarter' && (() => {
                 const quarter = Math.floor(calendarDate.getMonth() / 3) + 1;
@@ -3457,6 +3457,22 @@ export default function App() {
             exclusive
             onChange={(_, value) => value && setCalendarView(value)}
             size="small"
+            sx={{
+              '& .MuiToggleButton-root': {
+                color: 'white',
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)'
+                  }
+                },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }
+            }}
           >
             <ToggleButton value="month">
               <CalendarMonthIcon fontSize="small" sx={{ mr: 0.5 }} />
