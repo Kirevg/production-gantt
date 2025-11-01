@@ -3493,20 +3493,39 @@ export default function App() {
 
         {/* Полоска с днями */}
         <Box sx={{ 
-          display: 'flex', 
+          display: 'flex',
+          width: '100%',
           backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e0e0e0',
-          overflowX: 'auto'
+          borderBottom: '1px solid #e0e0e0'
         }}>
           {(() => {
             const days: Date[] = [];
             if (calendarView === 'month') {
+              // Добавляем дни предыдущего месяца
+              const currentMonth = calendarDate.getMonth();
+              const currentYear = calendarDate.getFullYear();
+              const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+              const lastDayOfPrevMonth = new Date(currentYear, currentMonth, 0);
+              const daysFromPrevMonth = firstDayOfMonth.getDay() || 7; // Количество дней для заполнения недели
+              for (let i = daysFromPrevMonth - 1; i >= 1; i--) {
+                const day = new Date(lastDayOfPrevMonth);
+                day.setDate(lastDayOfPrevMonth.getDate() - i + 1);
+                days.push(day);
+              }
+              // Добавляем дни текущего месяца
               const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
               const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
               const daysInMonth = lastDay.getDate();
               for (let i = 0; i < daysInMonth; i++) {
                 const day = new Date(firstDay);
                 day.setDate(firstDay.getDate() + i);
+                days.push(day);
+              }
+              // Добавляем дни следующего месяца для заполнения недели
+              const lastDayOfMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
+              const daysFromNextMonth = 7 - (lastDayOfMonth.getDay() || 7);
+              for (let i = 1; i <= daysFromNextMonth; i++) {
+                const day = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, i);
                 days.push(day);
               }
             } else if (calendarView === 'quarter') {
