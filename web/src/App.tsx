@@ -2723,7 +2723,7 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         // Фильтруем проекты, у которых есть даты начала и окончания
-        const projectsWithDates = data.filter((project: Project) => 
+        const projectsWithDates = data.filter((project: Project) =>
           project.startDate && project.endDate
         );
         setCalendarProjects(projectsWithDates);
@@ -2777,7 +2777,7 @@ export default function App() {
                 const startDates = product.workStages
                   .filter((stage: any) => stage.startDate)
                   .map((stage: any) => new Date(stage.startDate).getTime());
-                
+
                 // Находим самую позднюю дату окончания из этапов работ
                 const endDates = product.workStages
                   .filter((stage: any) => stage.endDate)
@@ -3353,9 +3353,9 @@ export default function App() {
         return (
           <>
             {/* Календарь под вкладками */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
               px: 2,
               py: 1,
@@ -3363,15 +3363,15 @@ export default function App() {
               borderBottom: 0
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <IconButton 
-                  size="small" 
-                  sx={{ 
+                <IconButton
+                  size="small"
+                  sx={{
                     color: 'white',
                     border: 'none',
                     '&:hover': {
                       backgroundColor: 'transparent'
                     }
-                  }} 
+                  }}
                   onClick={() => {
                     const newDate = new Date(calendarDate);
                     if (calendarView === 'quarter') {
@@ -3400,15 +3400,15 @@ export default function App() {
                   })()}
                   {calendarView === 'year' && calendarDate.getFullYear()}
                 </Typography>
-                <IconButton 
-                  size="small" 
-                  sx={{ 
+                <IconButton
+                  size="small"
+                  sx={{
                     color: 'white',
                     border: 'none',
                     '&:hover': {
                       backgroundColor: 'transparent'
                     }
-                  }} 
+                  }}
                   onClick={() => {
                     const newDate = new Date(calendarDate);
                     if (calendarView === 'quarter') {
@@ -3468,12 +3468,12 @@ export default function App() {
             </Box>
 
             {/* Полоска с днями */}
-            <Box 
+            <Box
               onWheel={(e) => {
                 const container = e.currentTarget;
                 container.scrollLeft += e.deltaY;
               }}
-              sx={{ 
+              sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: '#222946',
@@ -3578,7 +3578,7 @@ export default function App() {
                 const monthGroups: Array<{ month: string, startIndex: number, count: number }> = [];
                 let currentMonth = '';
                 let currentStart = 0;
-                
+
                 days.forEach((day, index) => {
                   // Формируем формат "НОЯБРЬ 2025" вместо "нояб. 2025 г."
                   const monthName = day.toLocaleDateString('ru-RU', { month: 'long' }).toUpperCase();
@@ -3609,7 +3609,7 @@ export default function App() {
                         const isLastDayOfMonth = monthGroup && (index === monthGroup.startIndex + monthGroup.count - 1 || index === days.length - 1);
                         // Граница справа под цвет фона внутри месяца, цветная на границе между месяцами
                         const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#4B4F50' : '#222946';
-                        
+
                         return (
                           <Box
                             key={index}
@@ -3638,10 +3638,10 @@ export default function App() {
                                   zIndex: 10
                                 }}
                               >
-                                <Typography 
-                                  variant="caption" 
-                                  sx={{ 
-                                    fontSize: '14px', 
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontSize: '14px',
                                     color: '#EDF3FA'
                                   }}
                                 >
@@ -3683,10 +3683,10 @@ export default function App() {
                               borderBottom: '1px solid #4B4F50'
                             }}
                           >
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                fontSize: '0.65rem', 
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontSize: '0.65rem',
                                 color: isRedDay ? '#d32f2f' : '#EDF3FA',
                                 textTransform: 'uppercase',
                                 fontWeight: 500
@@ -3694,10 +3694,10 @@ export default function App() {
                             >
                               {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
                             </Typography>
-                            <Typography 
-                              variant="h6" 
-                              sx={{ 
-                                fontSize: '14px', 
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontSize: '14px',
                                 color: isRedDay ? '#d32f2f' : '#EDF3FA',
                                 fontWeight: isToday ? 700 : 400
                               }}
@@ -3713,10 +3713,10 @@ export default function App() {
                       // Функция для вычисления позиции изделия в календаре
                       const getProductPosition = (product: ProductChip) => {
                         if (!product.startDate || !product.endDate) return null;
-                        
+
                         const startDate = new Date(product.startDate);
                         const endDate = new Date(product.endDate);
-                        
+
                         // Находим индекс дня начала в массиве days
                         const startIndex = days.findIndex(day => {
                           const dayDate = new Date(day);
@@ -3725,15 +3725,15 @@ export default function App() {
                           productStart.setHours(0, 0, 0, 0);
                           return dayDate.getTime() === productStart.getTime();
                         });
-                        
+
                         if (startIndex === -1) return null;
-                        
+
                         // Вычисляем количество дней между началом и концом изделия
                         const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-                        
+
                         return {
                           left: startIndex * 39, // Позиция слева в пикселях
-                          width: daysDiff * 39,  // Ширина в пикселях (39px на день)
+                          width: daysDiff * 40,  // Ширина в пикселях (40px на день)
                           startIndex,
                           daysCount: daysDiff
                         };
@@ -3750,10 +3750,10 @@ export default function App() {
 
                       // Распределяем изделия по строкам
                       const rows: Array<Array<{ product: ProductChip; position: { left: number; width: number; startIndex: number; daysCount: number } }>> = [];
-                      
+
                       productsWithPositions.forEach(({ product, position }) => {
                         if (!position) return;
-                        
+
                         // Ищем строку, где изделие помещается
                         let placed = false;
                         for (let i = 0; i < rows.length; i++) {
@@ -3765,14 +3765,14 @@ export default function App() {
                             const end2 = otherPos.startIndex + otherPos.daysCount;
                             return !(position.startIndex >= end2 || otherPos.startIndex >= end1);
                           });
-                          
+
                           if (!overlaps) {
                             rows[i].push({ product, position });
                             placed = true;
                             break;
                           }
                         }
-                        
+
                         // Если не поместилось, создаем новую строку
                         if (!placed) {
                           rows.push([{ product, position }]);
@@ -3789,7 +3789,7 @@ export default function App() {
                             const borderTopColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
                             // Нижние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
                             const borderBottomColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
-                            
+
                             return (
                               <Box
                                 key={index}
