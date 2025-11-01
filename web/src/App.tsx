@@ -130,7 +130,9 @@ import {
   Menu,         // Контекстное меню
   MenuItem,     // Элемент контекстного меню
   FormControlLabel, // Лейбл для элементов формы
-  Checkbox     // Чекбокс
+  Checkbox,     // Чекбокс
+  ToggleButtonGroup, // Группа переключателей
+  ToggleButton  // Переключатель
 } from '@mui/material';
 
 // Импорт иконок из Material-UI
@@ -150,7 +152,12 @@ import {
   Group as GroupIcon,
   AdminPanelSettings as AdminIcon,
   Timeline as GanttIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  CalendarMonth as CalendarMonthIcon,
+  ViewWeek as ViewWeekIcon,
+  ViewDay as ViewDayIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon
 } from '@mui/icons-material';
 
 // Импорт библиотек для drag-and-drop функциональности
@@ -2507,6 +2514,10 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null); // Данные авторизованного пользователя
   const [currentTab, setCurrentTab] = useState(0);    // Текущая активная вкладка
 
+  // Состояние для календаря
+  const [calendarView, setCalendarView] = useState<'day' | 'week' | 'month'>('week'); // Вид календаря
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date()); // Текущая дата календаря
+
   // Состояние для показа/скрытия состава проекта
   const [showProjectComposition, setShowProjectComposition] = useState(false);
   // Состояние для хранения проекта, состав которого просматривается
@@ -3383,6 +3394,76 @@ export default function App() {
             />
           ))}
         </Tabs>
+
+        {/* Календарь под вкладками */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          px: 2,
+          py: 1,
+          backgroundColor: '#f5f5f5',
+          borderBottom: '1px solid #e0e0e0'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton size="small" onClick={() => {
+              const newDate = new Date(calendarDate);
+              if (calendarView === 'day') {
+                newDate.setDate(newDate.getDate() - 1);
+              } else if (calendarView === 'week') {
+                newDate.setDate(newDate.getDate() - 7);
+              } else {
+                newDate.setMonth(newDate.getMonth() - 1);
+              }
+              setCalendarDate(newDate);
+            }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center' }}>
+              {calendarView === 'day' && calendarDate.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}
+              {calendarView === 'week' && (() => {
+                const startOfWeek = new Date(calendarDate);
+                startOfWeek.setDate(calendarDate.getDate() - calendarDate.getDay() + 1);
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                return `${startOfWeek.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' })} - ${endOfWeek.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+              })()}
+              {calendarView === 'month' && calendarDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+            </Typography>
+            <IconButton size="small" onClick={() => {
+              const newDate = new Date(calendarDate);
+              if (calendarView === 'day') {
+                newDate.setDate(newDate.getDate() + 1);
+              } else if (calendarView === 'week') {
+                newDate.setDate(newDate.getDate() + 7);
+              } else {
+                newDate.setMonth(newDate.getMonth() + 1);
+              }
+              setCalendarDate(newDate);
+            }}>
+              <ChevronRightIcon />
+            </IconButton>
+          </Box>
+          <ToggleButtonGroup
+            value={calendarView}
+            exclusive
+            onChange={(_, value) => value && setCalendarView(value)}
+            size="small"
+          >
+            <ToggleButton value="day">
+              <ViewDayIcon fontSize="small" sx={{ mr: 0.5 }} />
+              День
+            </ToggleButton>
+            <ToggleButton value="week">
+              <ViewWeekIcon fontSize="small" sx={{ mr: 0.5 }} />
+              Неделя
+            </ToggleButton>
+            <ToggleButton value="month">
+              <CalendarMonthIcon fontSize="small" sx={{ mr: 0.5 }} />
+              Месяц
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
 
         {/* Основной контент */}
         {renderTabContent()
