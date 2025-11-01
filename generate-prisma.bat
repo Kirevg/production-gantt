@@ -13,7 +13,7 @@ cd "C:\Projects\production-gantt\api"
 REM Запускаем генерацию Prisma Client
 echo.
 echo Генерируем Prisma Client...
-npm run prisma:generate
+call npm run prisma:generate
 
 REM Проверяем результат
 if %errorlevel% neq 0 (
