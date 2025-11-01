@@ -3,7 +3,11 @@
 #   Версия: 2.0 (улучшенная)
 # ========================================
 
-Write-Host "?? Останавливаем все серверы..." -ForegroundColor Yellow
+# Устанавливаем кодировку UTF-8 для корректного отображения русского текста
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
+Write-Host "🔧 Останавливаем все серверы..." -ForegroundColor Yellow
 
 # Проверяем права администратора
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")

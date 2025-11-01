@@ -3,6 +3,10 @@
 #   Production Gantt
 # ========================================
 
+# Устанавливаем кодировку UTF-8 для корректного отображения русского текста
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 Write-Host "🔧 Генерируем Prisma Client..." -ForegroundColor Yellow
 
 # Переходим в папку API
