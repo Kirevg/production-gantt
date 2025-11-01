@@ -3598,12 +3598,11 @@ export default function App() {
                     <Box
                       key={idx}
                       sx={{
-                        width: `${group.count * 40}px`,
+                        flex: group.count,
                         borderRight: idx < monthGroups.length - 1 ? '1px solid #e0e0e0' : 'none',
                         py: 0.5,
                         textAlign: 'center',
-                        backgroundColor: '#f5f5f5',
-                        boxSizing: 'border-box'
+                        backgroundColor: '#f5f5f5'
                       }}
                     >
                       <Typography variant="caption" sx={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>
@@ -3621,7 +3620,7 @@ export default function App() {
                         key={index}
                         onClick={() => setCalendarDate(day)}
                         sx={{
-                          width: '39px',
+                          flex: 1,
                           minHeight: '40px',
                           display: 'flex',
                           flexDirection: 'column',
