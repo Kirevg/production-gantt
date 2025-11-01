@@ -3617,9 +3617,9 @@ export default function App() {
                               width: '39px',
                               minHeight: '40px',
                               flexShrink: 0,
-                              borderRight: index < days.length - 1 ? `1px solid ${borderRightColor}` : 'none',
-                              borderTop: '1px solid #4B4F50',
-                              borderBottom: '1px solid #4B4F50',
+                              borderRight: index < days.length - 1 ? `thin solid ${borderRightColor}` : 'none',
+                              borderTop: 'thin solid #4B4F50',
+                              borderBottom: 'thin solid #4B4F50',
                               position: 'relative'
                             }}
                           >
@@ -3679,8 +3679,8 @@ export default function App() {
                               justifyContent: 'center',
                               cursor: 'pointer',
                               backgroundColor: 'transparent',
-                              borderRight: index < days.length - 1 ? '1px solid #4B4F50' : 'none',
-                              borderBottom: '1px solid #4B4F50'
+                              borderRight: index < days.length - 1 ? 'thin solid #4B4F50' : 'none',
+                              borderBottom: 'thin solid #4B4F50'
                             }}
                           >
                             <Typography
@@ -3797,9 +3797,9 @@ export default function App() {
                                   width: '39px',
                                   minHeight: '40px',
                                   flexShrink: 0,
-                                  borderRight: index < days.length - 1 ? '1px solid #4B4F50' : 'none',
-                                  borderTop: `1px solid ${borderTopColor}`,
-                                  borderBottom: `1px solid ${borderBottomColor}`,
+                                  borderRight: index < days.length - 1 ? 'thin solid #4B4F50' : 'none',
+                                  borderTop: `thin solid ${borderTopColor}`,
+                                  borderBottom: `thin solid ${borderBottomColor}`,
                                   position: 'relative',
                                 }}
                               />
