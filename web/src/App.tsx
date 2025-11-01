@@ -3620,10 +3620,9 @@ export default function App() {
                         key={index}
                         onClick={() => setCalendarDate(day)}
                         sx={{
+                          flex: 1,
                           minWidth: '40px',
-                          width: '40px',
                           minHeight: '40px',
-                          height: '40px',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
