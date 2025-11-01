@@ -704,3 +704,8 @@ textarea {
     height: 40px !important;
     min-height: 40px !important;
 }
+
+/* Контейнер основного контента */
+.MuiBox-root.css-9bf5s1 {
+    min-height: 600px;
+}

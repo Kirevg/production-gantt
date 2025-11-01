@@ -68,6 +68,37 @@ const formatPhoneInput = (value: string): string => {
   return '+7 ';
 };
 
+// Функция для определения праздничных дней России
+const isHoliday = (date: Date): boolean => {
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  // Новый год и рождественские праздники (1-8 января)
+  if (month === 0) {
+    if (day >= 1 && day <= 8) return true;
+  }
+
+  // 23 февраля - День защитника Отечества
+  if (month === 1 && day === 23) return true;
+
+  // 8 марта - Международный женский день
+  if (month === 2 && day === 8) return true;
+
+  // 1 мая - Праздник Весны и Труда
+  if (month === 4 && day === 1) return true;
+
+  // 9 мая - День Победы
+  if (month === 4 && day === 9) return true;
+
+  // 12 июня - День России
+  if (month === 5 && day === 12) return true;
+
+  // 4 ноября - День народного единства
+  if (month === 10 && day === 4) return true;
+
+  return false;
+};
+
 // Компонент для ввода телефона с маской
 const PhoneInput = React.forwardRef<HTMLInputElement, {
   value: string;
@@ -3404,22 +3435,32 @@ export default function App() {
           px: 2,
           py: 1,
           backgroundColor: 'transparent',
-          borderBottom: '1px solid #e0e0e0'
+          borderBottom: 0
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton size="small" sx={{ color: 'white' }} onClick={() => {
-              const newDate = new Date(calendarDate);
-              if (calendarView === 'quarter') {
-                newDate.setMonth(newDate.getMonth() - 3);
-              } else if (calendarView === 'halfyear') {
-                newDate.setMonth(newDate.getMonth() - 6);
-              } else if (calendarView === 'year') {
-                newDate.setFullYear(newDate.getFullYear() - 1);
-              } else {
-                newDate.setMonth(newDate.getMonth() - 1);
-              }
-              setCalendarDate(newDate);
-            }}>
+            <IconButton 
+              size="small" 
+              sx={{ 
+                color: 'white',
+                border: 'none',
+                '&:hover': {
+                  backgroundColor: 'transparent'
+                }
+              }} 
+              onClick={() => {
+                const newDate = new Date(calendarDate);
+                if (calendarView === 'quarter') {
+                  newDate.setMonth(newDate.getMonth() - 3);
+                } else if (calendarView === 'halfyear') {
+                  newDate.setMonth(newDate.getMonth() - 6);
+                } else if (calendarView === 'year') {
+                  newDate.setFullYear(newDate.getFullYear() - 1);
+                } else {
+                  newDate.setMonth(newDate.getMonth() - 1);
+                }
+                setCalendarDate(newDate);
+              }}
+            >
               <ChevronLeftIcon />
             </IconButton>
             <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center', color: 'white' }}>
@@ -3434,19 +3475,29 @@ export default function App() {
               })()}
               {calendarView === 'year' && calendarDate.getFullYear()}
             </Typography>
-            <IconButton size="small" onClick={() => {
-              const newDate = new Date(calendarDate);
-              if (calendarView === 'quarter') {
-                newDate.setMonth(newDate.getMonth() + 3);
-              } else if (calendarView === 'halfyear') {
-                newDate.setMonth(newDate.getMonth() + 6);
-              } else if (calendarView === 'year') {
-                newDate.setFullYear(newDate.getFullYear() + 1);
-              } else {
-                newDate.setMonth(newDate.getMonth() + 1);
-              }
-              setCalendarDate(newDate);
-            }}>
+            <IconButton 
+              size="small" 
+              sx={{ 
+                color: 'white',
+                border: 'none',
+                '&:hover': {
+                  backgroundColor: 'transparent'
+                }
+              }} 
+              onClick={() => {
+                const newDate = new Date(calendarDate);
+                if (calendarView === 'quarter') {
+                  newDate.setMonth(newDate.getMonth() + 3);
+                } else if (calendarView === 'halfyear') {
+                  newDate.setMonth(newDate.getMonth() + 6);
+                } else if (calendarView === 'year') {
+                  newDate.setFullYear(newDate.getFullYear() + 1);
+                } else {
+                  newDate.setMonth(newDate.getMonth() + 1);
+                }
+                setCalendarDate(newDate);
+              }}
+            >
               <ChevronRightIcon />
             </IconButton>
           </Box>
@@ -3501,9 +3552,12 @@ export default function App() {
             display: 'flex',
             flexDirection: 'column',
             backgroundColor: '#ffffff',
-            borderBottom: '1px solid #e0e0e0',
+            borderBottom: 0,
             overflowX: 'auto',
-            width: '100%'
+            width: 'calc(100% - 60px)',
+            marginLeft: '30px',
+            marginRight: '30px',
+            borderRadius: '4px',
           }}>
           {(() => {
             const days: Date[] = [];
@@ -3578,13 +3632,16 @@ export default function App() {
                 }
               }
             }
-            // Создаем массив месяцев для группировки
+            // Создаем массив групп месяцев для строки с месяцами
             const monthGroups: Array<{ month: string, startIndex: number, count: number }> = [];
             let currentMonth = '';
             let currentStart = 0;
             
             days.forEach((day, index) => {
-              const monthKey = day.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+              // Формируем формат "НОЯБРЬ 2025" вместо "нояб. 2025 г."
+              const monthName = day.toLocaleDateString('ru-RU', { month: 'long' }).toUpperCase();
+              const year = day.getFullYear();
+              const monthKey = `${monthName} ${year}`;
               if (monthKey !== currentMonth) {
                 if (currentMonth) {
                   monthGroups.push({ month: currentMonth, startIndex: currentStart, count: index - currentStart });
@@ -3596,33 +3653,76 @@ export default function App() {
             if (currentMonth) {
               monthGroups.push({ month: currentMonth, startIndex: currentStart, count: days.length - currentStart });
             }
-            
+
             return (
               <>
-                {/* Строка с месяцами */}
-                <Box sx={{ display: 'flex' }}>
-                  {monthGroups.map((group, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{
-                        width: `${group.count * 40}px`,
-                        borderRight: idx < monthGroups.length - 1 ? '1px solid #e0e0e0' : 'none',
-                        py: 0.5,
-                        textAlign: 'center',
-                        backgroundColor: '#f5f5f5',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      <Typography variant="caption" sx={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>
-                        {group.month}
-                      </Typography>
-                    </Box>
-                  ))}
+                {/* Строка с месяцами - первая */}
+                <Box sx={{ display: 'flex', position: 'relative' }}>
+                  {days.map((_, index) => {
+                    // Находим группу месяца, к которой относится текущая ячейка
+                    const monthGroup = monthGroups.find(g => index >= g.startIndex && index < g.startIndex + g.count);
+                    // Проверяем, является ли это первой ячейкой месяца
+                    const isFirstDayOfMonth = monthGroup && monthGroup.startIndex === index;
+                    // Проверяем, является ли это последней ячейкой месяца или последней ячейкой строки
+                    const isLastDayOfMonth = monthGroup && (index === monthGroup.startIndex + monthGroup.count - 1 || index === days.length - 1);
+                    // Граница справа белая внутри месяца, цветная на границе между месяцами
+                    const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#e0e0e0' : '#ffffff';
+                    
+                    return (
+                      <Box
+                        key={index}
+                        sx={{
+                          width: '39px',
+                          minHeight: '40px',
+                          flexShrink: 0,
+                          borderRight: index < days.length - 1 ? `1px solid ${borderRightColor}` : 'none',
+                          borderTop: '1px solid #e0e0e0',
+                          borderBottom: '1px solid #e0e0e0',
+                          position: 'relative'
+                        }}
+                      >
+                        {isFirstDayOfMonth && monthGroup && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              left: 0,
+                              width: `${monthGroup.count * 39}px`,
+                              top: 0,
+                              bottom: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              pointerEvents: 'none',
+                              zIndex: 10
+                            }}
+                          >
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                fontSize: '14px', 
+                                color: '#000'
+                              }}
+                            >
+                              {monthGroup.month}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    );
+                  })}
                 </Box>
-                {/* Строка с днями */}
+
+                {/* Строка с днями - вторая */}
                 <Box sx={{ display: 'flex' }}>
                   {days.map((day, index) => {
                     const isToday = day.toDateString() === new Date().toDateString();
+                    // Определяем выходной день (суббота = 6, воскресенье = 0)
+                    const dayOfWeek = day.getDay();
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                    // Определяем праздничный день
+                    const isHolidayDay = isHoliday(day);
+                    // Красный цвет для выходных и праздничных дней
+                    const isRedDay = isWeekend || isHolidayDay;
                     return (
                       <Box
                         key={index}
@@ -3644,7 +3744,7 @@ export default function App() {
                           variant="caption" 
                           sx={{ 
                             fontSize: '0.65rem', 
-                            color: '#666',
+                            color: isRedDay ? '#d32f2f' : '#666',
                             textTransform: 'uppercase',
                             fontWeight: 500
                           }}
@@ -3655,7 +3755,7 @@ export default function App() {
                           variant="h6" 
                           sx={{ 
                             fontSize: '14px', 
-                            color: '#000',
+                            color: isRedDay ? '#d32f2f' : '#000',
                             fontWeight: isToday ? 700 : 400
                           }}
                         >
@@ -3665,6 +3765,29 @@ export default function App() {
                     );
                   })}
                 </Box>
+                {/* Остальные строки с ячейками */}
+                {Array.from({ length: 15 }, (_, rowIndex) => {
+                  return (
+                    <Box key={rowIndex} sx={{ display: 'flex' }}>
+                      {days.map((_, index) => {
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              width: '39px',
+                              minHeight: '40px',
+                              flexShrink: 0,
+                              borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none',
+                              borderTop: '1px solid #e0e0e0',
+                              borderBottom: '1px solid #e0e0e0'
+                            }}
+                          >
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  );
+                })}
               </>
             );
           })()}
