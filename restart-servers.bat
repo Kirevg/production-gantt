@@ -1,5 +1,5 @@
 @echo off
-title Запуск перезапуска
+title RESTART
 REM ========================================
 REM   ПЕРЕЗАПУСК СЕРВЕРОВ PRODUCTION GANTT
 REM ========================================
@@ -16,8 +16,8 @@ echo Закрываем старые процессы...
 REM Закрываем все процессы Node.js
 taskkill /f /im node.exe 2>nul
 
-REM Закрываем cmd окна с PRODUCTION в заголовке или пустые окна
-powershell -Command "Get-Process cmd | Where-Object { $_.MainWindowTitle -match 'PRODUCTION' -or $_.MainWindowTitle -eq '' } | Stop-Process -Force" 2>nul
+REM Закрываем cmd окна с PRODUCTION в заголовке или пустые окна, кроме текущего
+powershell -Command "Get-Process cmd | Where-Object { ($_.MainWindowTitle -match 'PRODUCTION' -or $_.MainWindowTitle -eq '') -and $_.MainWindowTitle -ne 'RESTART' } | Stop-Process -Force" 2>nul
 
 REM Ждем 2 секунды
 timeout /t 2 /nobreak >nul
