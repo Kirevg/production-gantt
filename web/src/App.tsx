@@ -3587,7 +3587,7 @@ export default function App() {
                   <Typography 
                     variant="h6" 
                     sx={{ 
-                      fontSize: '1.25rem', 
+                      fontSize: '14px', 
                       color: isSelected ? '#fff' : '#000',
                       fontWeight: isToday ? 700 : 400
                     }}
