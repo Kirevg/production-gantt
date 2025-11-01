@@ -3524,8 +3524,8 @@ export default function App() {
               }
               // Добавляем дни следующего месяца для заполнения недели
               const lastDayOfMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
-              const lastDayOfWeek = lastDayOfMonth.getDay();
-              const daysFromNextMonth = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek;
+              const lastDayOfWeek = lastDayOfMonth.getDay() || 7; // Воскресенье = 7
+              const daysFromNextMonth = lastDayOfWeek === 7 ? 0 : 7 - lastDayOfWeek;
               if (daysFromNextMonth > 0) {
                 for (let i = 1; i <= daysFromNextMonth; i++) {
                   const day = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, i);
