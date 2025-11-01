@@ -157,7 +157,10 @@ import {
   ViewWeek as ViewWeekIcon,
   ViewDay as ViewDayIcon,
   ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  ViewAgenda as ViewAgendaIcon,
+  CalendarToday as CalendarTodayIcon,
+  Event as EventIcon
 } from '@mui/icons-material';
 
 // Импорт библиотек для drag-and-drop функциональности
@@ -2515,7 +2518,7 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState(0);    // Текущая активная вкладка
 
   // Состояние для календаря
-  const [calendarView, setCalendarView] = useState<'day' | 'week' | 'month'>('week'); // Вид календаря
+  const [calendarView, setCalendarView] = useState<'month' | 'quarter' | 'halfyear' | 'year'>('month'); // Вид календаря
   const [calendarDate, setCalendarDate] = useState<Date>(new Date()); // Текущая дата календаря
 
   // Состояние для показа/скрытия состава проекта
@@ -3408,10 +3411,12 @@ export default function App() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <IconButton size="small" onClick={() => {
               const newDate = new Date(calendarDate);
-              if (calendarView === 'day') {
-                newDate.setDate(newDate.getDate() - 1);
-              } else if (calendarView === 'week') {
-                newDate.setDate(newDate.getDate() - 7);
+              if (calendarView === 'quarter') {
+                newDate.setMonth(newDate.getMonth() - 3);
+              } else if (calendarView === 'halfyear') {
+                newDate.setMonth(newDate.getMonth() - 6);
+              } else if (calendarView === 'year') {
+                newDate.setFullYear(newDate.getFullYear() - 1);
               } else {
                 newDate.setMonth(newDate.getMonth() - 1);
               }
@@ -3420,22 +3425,25 @@ export default function App() {
               <ChevronLeftIcon />
             </IconButton>
             <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center' }}>
-              {calendarView === 'day' && calendarDate.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}
-              {calendarView === 'week' && (() => {
-                const startOfWeek = new Date(calendarDate);
-                startOfWeek.setDate(calendarDate.getDate() - calendarDate.getDay() + 1);
-                const endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                return `${startOfWeek.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' })} - ${endOfWeek.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}`;
-              })()}
               {calendarView === 'month' && calendarDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+              {calendarView === 'quarter' && (() => {
+                const quarter = Math.floor(calendarDate.getMonth() / 3) + 1;
+                return `${quarter} квартал ${calendarDate.getFullYear()}`;
+              })()}
+              {calendarView === 'halfyear' && (() => {
+                const halfyear = Math.floor(calendarDate.getMonth() / 6) + 1;
+                return `${halfyear} полугодие ${calendarDate.getFullYear()}`;
+              })()}
+              {calendarView === 'year' && calendarDate.getFullYear()}
             </Typography>
             <IconButton size="small" onClick={() => {
               const newDate = new Date(calendarDate);
-              if (calendarView === 'day') {
-                newDate.setDate(newDate.getDate() + 1);
-              } else if (calendarView === 'week') {
-                newDate.setDate(newDate.getDate() + 7);
+              if (calendarView === 'quarter') {
+                newDate.setMonth(newDate.getMonth() + 3);
+              } else if (calendarView === 'halfyear') {
+                newDate.setMonth(newDate.getMonth() + 6);
+              } else if (calendarView === 'year') {
+                newDate.setFullYear(newDate.getFullYear() + 1);
               } else {
                 newDate.setMonth(newDate.getMonth() + 1);
               }
@@ -3450,17 +3458,21 @@ export default function App() {
             onChange={(_, value) => value && setCalendarView(value)}
             size="small"
           >
-            <ToggleButton value="day">
-              <ViewDayIcon fontSize="small" sx={{ mr: 0.5 }} />
-              День
-            </ToggleButton>
-            <ToggleButton value="week">
-              <ViewWeekIcon fontSize="small" sx={{ mr: 0.5 }} />
-              Неделя
-            </ToggleButton>
             <ToggleButton value="month">
               <CalendarMonthIcon fontSize="small" sx={{ mr: 0.5 }} />
               Месяц
+            </ToggleButton>
+            <ToggleButton value="quarter">
+              <ViewAgendaIcon fontSize="small" sx={{ mr: 0.5 }} />
+              Квартал
+            </ToggleButton>
+            <ToggleButton value="halfyear">
+              <CalendarTodayIcon fontSize="small" sx={{ mr: 0.5 }} />
+              Полугодие
+            </ToggleButton>
+            <ToggleButton value="year">
+              <EventIcon fontSize="small" sx={{ mr: 0.5 }} />
+              Год
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
@@ -3474,17 +3486,7 @@ export default function App() {
         }}>
           {(() => {
             const days: Date[] = [];
-            if (calendarView === 'day') {
-              days.push(calendarDate);
-            } else if (calendarView === 'week') {
-              const startOfWeek = new Date(calendarDate);
-              startOfWeek.setDate(calendarDate.getDate() - calendarDate.getDay() + 1);
-              for (let i = 0; i < 7; i++) {
-                const day = new Date(startOfWeek);
-                day.setDate(startOfWeek.getDate() + i);
-                days.push(day);
-              }
-            } else {
+            if (calendarView === 'month') {
               const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
               const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
               const daysInMonth = lastDay.getDate();
@@ -3492,6 +3494,44 @@ export default function App() {
                 const day = new Date(firstDay);
                 day.setDate(firstDay.getDate() + i);
                 days.push(day);
+              }
+            } else if (calendarView === 'quarter') {
+              const quarter = Math.floor(calendarDate.getMonth() / 3);
+              const startMonth = quarter * 3;
+              for (let month = startMonth; month < startMonth + 3; month++) {
+                const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                for (let i = 0; i < daysInMonth; i++) {
+                  const day = new Date(firstDay);
+                  day.setDate(firstDay.getDate() + i);
+                  days.push(day);
+                }
+              }
+            } else if (calendarView === 'halfyear') {
+              const halfyear = Math.floor(calendarDate.getMonth() / 6);
+              const startMonth = halfyear * 6;
+              for (let month = startMonth; month < startMonth + 6; month++) {
+                const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                for (let i = 0; i < daysInMonth; i++) {
+                  const day = new Date(firstDay);
+                  day.setDate(firstDay.getDate() + i);
+                  days.push(day);
+                }
+              }
+            } else {
+              // Год
+              for (let month = 0; month < 12; month++) {
+                const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                for (let i = 0; i < daysInMonth; i++) {
+                  const day = new Date(firstDay);
+                  day.setDate(firstDay.getDate() + i);
+                  days.push(day);
+                }
               }
             }
             return days.map((day, index) => {
