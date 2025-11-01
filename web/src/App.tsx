@@ -3602,7 +3602,7 @@ export default function App() {
                         backgroundColor: '#f5f5f5'
                       }}
                     >
-                      <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#666', fontWeight: 500 }}>
+                      <Typography variant="caption" sx={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>
                         {group.month}
                       </Typography>
                     </Box>
