@@ -4,8 +4,7 @@
 # ========================================
 
 # Устанавливаем кодировку UTF-8 для корректного отображения русского текста
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001 | Out-Null
 
 Write-Host "🔧 Останавливаем все серверы..." -ForegroundColor Yellow
 
