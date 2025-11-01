@@ -3327,7 +3327,7 @@ export default function App() {
         flexDirection: 'column'   // Вертикальное направление
       }}>
         {/* Верхняя панель навигации */}
-        <AppBar position="static" className="header" sx={{ height: '56px', width: '100%', mx: 'auto', justifyContent: 'center', borderBottom: 'none' }}>
+        <AppBar position="static" className="header" sx={{ height: '56px', width: '100%', justifyContent: 'center', borderBottom: 'none' }}>
           <Toolbar sx={{
             height: '56px',
             minHeight: '0 !important',
@@ -3492,25 +3492,31 @@ export default function App() {
         </Box>
 
         {/* Полоска с днями */}
-        <Box sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e0e0e0'
-        }}>
+        <Box 
+          onWheel={(e) => {
+            const container = e.currentTarget;
+            container.scrollLeft += e.deltaY;
+          }}
+          sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #e0e0e0',
+            overflowX: 'auto',
+            width: '100%'
+          }}>
           {(() => {
             const days: Date[] = [];
             if (calendarView === 'month') {
-              // Добавляем дни предыдущего месяца
-              const currentMonth = calendarDate.getMonth();
-              const currentYear = calendarDate.getFullYear();
-              const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-              const lastDayOfPrevMonth = new Date(currentYear, currentMonth, 0);
-              const daysFromPrevMonth = firstDayOfMonth.getDay() || 7; // Количество дней для заполнения недели
-              for (let i = daysFromPrevMonth - 1; i >= 1; i--) {
-                const day = new Date(lastDayOfPrevMonth);
-                day.setDate(lastDayOfPrevMonth.getDate() - i + 1);
+              // Добавляем полный предыдущий месяц
+              const prevMonth = calendarDate.getMonth() === 0 ? 11 : calendarDate.getMonth() - 1;
+              const prevYear = calendarDate.getMonth() === 0 ? calendarDate.getFullYear() - 1 : calendarDate.getFullYear();
+              const firstDayOfPrevMonth = new Date(prevYear, prevMonth, 1);
+              const lastDayOfPrevMonth = new Date(prevYear, prevMonth + 1, 0);
+              const daysInPrevMonth = lastDayOfPrevMonth.getDate();
+              for (let i = 0; i < daysInPrevMonth; i++) {
+                const day = new Date(firstDayOfPrevMonth);
+                day.setDate(firstDayOfPrevMonth.getDate() + i);
                 days.push(day);
               }
               // Добавляем дни текущего месяца
@@ -3522,15 +3528,16 @@ export default function App() {
                 day.setDate(firstDay.getDate() + i);
                 days.push(day);
               }
-              // Добавляем дни следующего месяца для заполнения недели
-              const lastDayOfMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
-              const lastDayOfWeek = lastDayOfMonth.getDay() || 7; // Воскресенье = 7
-              const daysFromNextMonth = lastDayOfWeek === 7 ? 0 : 7 - lastDayOfWeek;
-              if (daysFromNextMonth > 0) {
-                for (let i = 1; i <= daysFromNextMonth; i++) {
-                  const day = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, i);
-                  days.push(day);
-                }
+              // Добавляем полный следующий месяц
+              const nextMonth = calendarDate.getMonth() === 11 ? 0 : calendarDate.getMonth() + 1;
+              const nextYear = calendarDate.getMonth() === 11 ? calendarDate.getFullYear() + 1 : calendarDate.getFullYear();
+              const firstDayOfNextMonth = new Date(nextYear, nextMonth, 1);
+              const lastDayOfNextMonth = new Date(nextYear, nextMonth + 1, 0);
+              const daysInNextMonth = lastDayOfNextMonth.getDate();
+              for (let i = 0; i < daysInNextMonth; i++) {
+                const day = new Date(firstDayOfNextMonth);
+                day.setDate(firstDayOfNextMonth.getDate() + i);
+                days.push(day);
               }
             } else if (calendarView === 'quarter') {
               const quarter = Math.floor(calendarDate.getMonth() / 3);
@@ -3593,16 +3600,17 @@ export default function App() {
             return (
               <>
                 {/* Строка с месяцами */}
-                <Box sx={{ display: 'flex', width: '100%' }}>
+                <Box sx={{ display: 'flex' }}>
                   {monthGroups.map((group, idx) => (
                     <Box
                       key={idx}
                       sx={{
-                        flex: group.count,
+                        width: `${group.count * 40}px`,
                         borderRight: idx < monthGroups.length - 1 ? '1px solid #e0e0e0' : 'none',
                         py: 0.5,
                         textAlign: 'center',
-                        backgroundColor: '#f5f5f5'
+                        backgroundColor: '#f5f5f5',
+                        boxSizing: 'border-box'
                       }}
                     >
                       <Typography variant="caption" sx={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>
@@ -3612,7 +3620,7 @@ export default function App() {
                   ))}
                 </Box>
                 {/* Строка с днями */}
-                <Box sx={{ display: 'flex', width: '100%' }}>
+                <Box sx={{ display: 'flex' }}>
                   {days.map((day, index) => {
                     const isToday = day.toDateString() === new Date().toDateString();
                     return (
@@ -3620,8 +3628,9 @@ export default function App() {
                         key={index}
                         onClick={() => setCalendarDate(day)}
                         sx={{
-                          flex: 1,
+                          width: '39px',
                           minHeight: '40px',
+                          flexShrink: 0,
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
