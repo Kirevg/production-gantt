@@ -12,9 +12,11 @@ echo Закрываем старые процессы...
 REM Закрываем все процессы Node.js
 taskkill /f /im node.exe 2>nul
 
-REM Закрываем все cmd окна с нашими заголовками через wmic
-for /f "tokens=2" %%i in ('wmic process where "name='cmd.exe'" get processid,commandline 2^>nul ^| findstr /i "PRODUCTION-GANTT"') do (
-    taskkill /f /pid %%i 2>nul
+REM Закрываем все cmd окна (кроме текущего)
+for /f "skip=1 tokens=1,2" %%a in ('wmic process where "name='cmd.exe'" get processid,commandline 2^>nul') do (
+    if not "%%b"=="" (
+        taskkill /f /pid %%b 2>nul
+    )
 )
 
 REM Ждем 2 секунды
