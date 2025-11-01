@@ -3494,6 +3494,7 @@ export default function App() {
         {/* Полоска с днями */}
         <Box sx={{ 
           display: 'flex',
+          flexDirection: 'column',
           width: '100%',
           backgroundColor: '#ffffff',
           borderBottom: '1px solid #e0e0e0'
@@ -3567,63 +3568,99 @@ export default function App() {
                 }
               }
             }
-            return days.map((day, index) => {
-              const isToday = day.toDateString() === new Date().toDateString();
-              const isSelected = day.toDateString() === calendarDate.toDateString();
-              return (
-                <Box
-                  key={index}
-                  onClick={() => setCalendarDate(day)}
-                  sx={{
-                    minWidth: '40px',
-                    width: '40px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    py: 1,
-                    cursor: 'pointer',
-                    backgroundColor: isSelected ? '#1976d2' : isToday ? '#e3f2fd' : 'transparent',
-                    borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none',
-                    '&:hover': {
-                      backgroundColor: isSelected ? '#1565c0' : '#f5f5f5'
-                    }
-                  }}
-                >
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      fontSize: '0.6rem', 
-                      color: isSelected ? '#fff' : '#999',
-                      fontWeight: 400
-                    }}
-                  >
-                    {day.toLocaleDateString('ru-RU', { month: 'short' })}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      fontSize: '0.65rem', 
-                      color: isSelected ? '#fff' : '#666',
-                      textTransform: 'uppercase',
-                      fontWeight: 500
-                    }}
-                  >
-                    {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
-                  </Typography>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      fontSize: '14px', 
-                      color: isSelected ? '#fff' : '#000',
-                      fontWeight: isToday ? 700 : 400
-                    }}
-                  >
-                    {day.getDate()}
-                  </Typography>
-                </Box>
-              );
+            // Создаем массив месяцев для группировки
+            const monthGroups: Array<{ month: string, startIndex: number, count: number }> = [];
+            let currentMonth = '';
+            let currentStart = 0;
+            
+            days.forEach((day, index) => {
+              const monthKey = day.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+              if (monthKey !== currentMonth) {
+                if (currentMonth) {
+                  monthGroups.push({ month: currentMonth, startIndex: currentStart, count: index - currentStart });
+                }
+                currentMonth = monthKey;
+                currentStart = index;
+              }
             });
+            if (currentMonth) {
+              monthGroups.push({ month: currentMonth, startIndex: currentStart, count: days.length - currentStart });
+            }
+            
+            return (
+              <>
+                {/* Строка с месяцами */}
+                <Box sx={{ display: 'flex', width: '100%' }}>
+                  {monthGroups.map((group, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        flex: group.count,
+                        borderRight: idx < monthGroups.length - 1 ? '1px solid #e0e0e0' : 'none',
+                        py: 0.5,
+                        textAlign: 'center',
+                        backgroundColor: '#f5f5f5'
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#666', fontWeight: 500 }}>
+                        {group.month}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+                {/* Строка с днями */}
+                <Box sx={{ display: 'flex', width: '100%' }}>
+                  {days.map((day, index) => {
+                    const isToday = day.toDateString() === new Date().toDateString();
+                    const isSelected = day.toDateString() === calendarDate.toDateString();
+                    return (
+                      <Box
+                        key={index}
+                        onClick={() => setCalendarDate(day)}
+                        sx={{
+                          minWidth: '40px',
+                          width: '40px',
+                          minHeight: '40px',
+                          height: '40px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          backgroundColor: isSelected ? '#1976d2' : isToday ? '#e3f2fd' : 'transparent',
+                          borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none',
+                          '&:hover': {
+                            backgroundColor: isSelected ? '#1565c0' : '#f5f5f5'
+                          }
+                        }}
+                      >
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            fontSize: '0.65rem', 
+                            color: isSelected ? '#fff' : '#666',
+                            textTransform: 'uppercase',
+                            fontWeight: 500
+                          }}
+                        >
+                          {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
+                        </Typography>
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            fontSize: '14px', 
+                            color: isSelected ? '#fff' : '#000',
+                            fontWeight: isToday ? 700 : 400
+                          }}
+                        >
+                          {day.getDate()}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </>
+            );
           })()}
         </Box>
 
