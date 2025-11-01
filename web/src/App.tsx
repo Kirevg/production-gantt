@@ -2549,6 +2549,7 @@ export default function App() {
   // Состояние для календаря
   const [calendarView, setCalendarView] = useState<'month' | 'quarter' | 'halfyear' | 'year'>('month'); // Вид календаря
   const [calendarDate, setCalendarDate] = useState<Date>(new Date()); // Текущая дата календаря
+  const [calendarProjects, setCalendarProjects] = useState<Project[]>([]); // Проекты для отображения в календаре
 
   // Состояние для показа/скрытия состава проекта
   const [showProjectComposition, setShowProjectComposition] = useState(false);
@@ -2690,6 +2691,44 @@ export default function App() {
     if (!user) return false;
     return user.role === 'admin';
   }, [user]);
+
+  // Функция для загрузки проектов для календаря
+  const fetchCalendarProjects = useCallback(async () => {
+    if (!user) {
+      setCalendarProjects([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Фильтруем проекты, у которых есть даты начала и окончания
+        const projectsWithDates = data.filter((project: Project) => 
+          project.startDate && project.endDate
+        );
+        setCalendarProjects(projectsWithDates);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки проектов для календаря:', error);
+      setCalendarProjects([]);
+    }
+  }, [user]);
+
+  // Загружаем проекты при изменении пользователя или календаря
+  useEffect(() => {
+    if (user) {
+      fetchCalendarProjects();
+    }
+  }, [user, fetchCalendarProjects]);
 
   // Функция для восстановления из резервной копии
   const handleRestoreBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -3221,12 +3260,495 @@ export default function App() {
     }
 
     switch (currentTab) {
-      case 0: // Главная страница — очищено по требованию (оставляем только шапку и вкладки)
-        return null;
+      case 0: // Главная страница с календарем
+        return (
+          <>
+            {/* Календарь под вкладками */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+              backgroundColor: 'transparent',
+              borderBottom: 0
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton 
+                  size="small" 
+                  sx={{ 
+                    color: 'white',
+                    border: 'none',
+                    '&:hover': {
+                      backgroundColor: 'transparent'
+                    }
+                  }} 
+                  onClick={() => {
+                    const newDate = new Date(calendarDate);
+                    if (calendarView === 'quarter') {
+                      newDate.setMonth(newDate.getMonth() - 3);
+                    } else if (calendarView === 'halfyear') {
+                      newDate.setMonth(newDate.getMonth() - 6);
+                    } else if (calendarView === 'year') {
+                      newDate.setFullYear(newDate.getFullYear() - 1);
+                    } else {
+                      newDate.setMonth(newDate.getMonth() - 1);
+                    }
+                    setCalendarDate(newDate);
+                  }}
+                >
+                  <ChevronLeftIcon />
+                </IconButton>
+                <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center', color: 'white' }}>
+                  {calendarView === 'month' && calendarDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+                  {calendarView === 'quarter' && (() => {
+                    const quarter = Math.floor(calendarDate.getMonth() / 3) + 1;
+                    return `${quarter} квартал ${calendarDate.getFullYear()}`;
+                  })()}
+                  {calendarView === 'halfyear' && (() => {
+                    const halfyear = Math.floor(calendarDate.getMonth() / 6) + 1;
+                    return `${halfyear} полугодие ${calendarDate.getFullYear()}`;
+                  })()}
+                  {calendarView === 'year' && calendarDate.getFullYear()}
+                </Typography>
+                <IconButton 
+                  size="small" 
+                  sx={{ 
+                    color: 'white',
+                    border: 'none',
+                    '&:hover': {
+                      backgroundColor: 'transparent'
+                    }
+                  }} 
+                  onClick={() => {
+                    const newDate = new Date(calendarDate);
+                    if (calendarView === 'quarter') {
+                      newDate.setMonth(newDate.getMonth() + 3);
+                    } else if (calendarView === 'halfyear') {
+                      newDate.setMonth(newDate.getMonth() + 6);
+                    } else if (calendarView === 'year') {
+                      newDate.setFullYear(newDate.getFullYear() + 1);
+                    } else {
+                      newDate.setMonth(newDate.getMonth() + 1);
+                    }
+                    setCalendarDate(newDate);
+                  }}
+                >
+                  <ChevronRightIcon />
+                </IconButton>
+              </Box>
+              <ToggleButtonGroup
+                value={calendarView}
+                exclusive
+                onChange={(_, value) => value && setCalendarView(value)}
+                size="small"
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    color: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.3)'
+                      }
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                    }
+                  }
+                }}
+              >
+                <ToggleButton value="month">
+                  <CalendarMonthIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Месяц
+                </ToggleButton>
+                <ToggleButton value="quarter">
+                  <ViewAgendaIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Квартал
+                </ToggleButton>
+                <ToggleButton value="halfyear">
+                  <CalendarTodayIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Полугодие
+                </ToggleButton>
+                <ToggleButton value="year">
+                  <EventIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Год
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            {/* Полоска с днями */}
+            <Box 
+              onWheel={(e) => {
+                const container = e.currentTarget;
+                container.scrollLeft += e.deltaY;
+              }}
+              sx={{ 
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#222946',
+                borderBottom: 0,
+                overflowX: 'auto',
+                width: 'calc(100% - 60px)',
+                marginLeft: '30px',
+                marginRight: '30px',
+                borderRadius: '4px',
+                // Стили горизонтального скроллбара
+                '&::-webkit-scrollbar': {
+                  height: '8px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: '#222946',
+                  borderRadius: '4px',
+                  border: '1px solid #4B4F50'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#4B4F50',
+                  borderRadius: '4px',
+                  border: '1px solid #4B4F50',
+                  '&:hover': {
+                    backgroundColor: '#5a5f60'
+                  }
+                }
+              }}>
+              {(() => {
+                const days: Date[] = [];
+                if (calendarView === 'month') {
+                  // Добавляем полный предыдущий месяц
+                  const prevMonth = calendarDate.getMonth() === 0 ? 11 : calendarDate.getMonth() - 1;
+                  const prevYear = calendarDate.getMonth() === 0 ? calendarDate.getFullYear() - 1 : calendarDate.getFullYear();
+                  const firstDayOfPrevMonth = new Date(prevYear, prevMonth, 1);
+                  const lastDayOfPrevMonth = new Date(prevYear, prevMonth + 1, 0);
+                  const daysInPrevMonth = lastDayOfPrevMonth.getDate();
+                  for (let i = 0; i < daysInPrevMonth; i++) {
+                    const day = new Date(firstDayOfPrevMonth);
+                    day.setDate(firstDayOfPrevMonth.getDate() + i);
+                    days.push(day);
+                  }
+                  // Добавляем дни текущего месяца
+                  const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+                  const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
+                  const daysInMonth = lastDay.getDate();
+                  for (let i = 0; i < daysInMonth; i++) {
+                    const day = new Date(firstDay);
+                    day.setDate(firstDay.getDate() + i);
+                    days.push(day);
+                  }
+                  // Добавляем полный следующий месяц
+                  const nextMonth = calendarDate.getMonth() === 11 ? 0 : calendarDate.getMonth() + 1;
+                  const nextYear = calendarDate.getMonth() === 11 ? calendarDate.getFullYear() + 1 : calendarDate.getFullYear();
+                  const firstDayOfNextMonth = new Date(nextYear, nextMonth, 1);
+                  const lastDayOfNextMonth = new Date(nextYear, nextMonth + 1, 0);
+                  const daysInNextMonth = lastDayOfNextMonth.getDate();
+                  for (let i = 0; i < daysInNextMonth; i++) {
+                    const day = new Date(firstDayOfNextMonth);
+                    day.setDate(firstDayOfNextMonth.getDate() + i);
+                    days.push(day);
+                  }
+                } else if (calendarView === 'quarter') {
+                  const quarter = Math.floor(calendarDate.getMonth() / 3);
+                  const startMonth = quarter * 3;
+                  for (let month = startMonth; month < startMonth + 3; month++) {
+                    const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                    const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                    const daysInMonth = lastDay.getDate();
+                    for (let i = 0; i < daysInMonth; i++) {
+                      const day = new Date(firstDay);
+                      day.setDate(firstDay.getDate() + i);
+                      days.push(day);
+                    }
+                  }
+                } else if (calendarView === 'halfyear') {
+                  const halfyear = Math.floor(calendarDate.getMonth() / 6);
+                  const startMonth = halfyear * 6;
+                  for (let month = startMonth; month < startMonth + 6; month++) {
+                    const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                    const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                    const daysInMonth = lastDay.getDate();
+                    for (let i = 0; i < daysInMonth; i++) {
+                      const day = new Date(firstDay);
+                      day.setDate(firstDay.getDate() + i);
+                      days.push(day);
+                    }
+                  }
+                } else {
+                  // Год
+                  for (let month = 0; month < 12; month++) {
+                    const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                    const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                    const daysInMonth = lastDay.getDate();
+                    for (let i = 0; i < daysInMonth; i++) {
+                      const day = new Date(firstDay);
+                      day.setDate(firstDay.getDate() + i);
+                      days.push(day);
+                    }
+                  }
+                }
+                // Создаем массив групп месяцев для строки с месяцами
+                const monthGroups: Array<{ month: string, startIndex: number, count: number }> = [];
+                let currentMonth = '';
+                let currentStart = 0;
+                
+                days.forEach((day, index) => {
+                  // Формируем формат "НОЯБРЬ 2025" вместо "нояб. 2025 г."
+                  const monthName = day.toLocaleDateString('ru-RU', { month: 'long' }).toUpperCase();
+                  const year = day.getFullYear();
+                  const monthKey = `${monthName} ${year}`;
+                  if (monthKey !== currentMonth) {
+                    if (currentMonth) {
+                      monthGroups.push({ month: currentMonth, startIndex: currentStart, count: index - currentStart });
+                    }
+                    currentMonth = monthKey;
+                    currentStart = index;
+                  }
+                });
+                if (currentMonth) {
+                  monthGroups.push({ month: currentMonth, startIndex: currentStart, count: days.length - currentStart });
+                }
+
+                return (
+                  <>
+                    {/* Строка с месяцами - первая */}
+                    <Box sx={{ display: 'flex', position: 'relative' }}>
+                      {days.map((_, index) => {
+                        // Находим группу месяца, к которой относится текущая ячейка
+                        const monthGroup = monthGroups.find(g => index >= g.startIndex && index < g.startIndex + g.count);
+                        // Проверяем, является ли это первой ячейкой месяца
+                        const isFirstDayOfMonth = monthGroup && monthGroup.startIndex === index;
+                        // Проверяем, является ли это последней ячейкой месяца или последней ячейкой строки
+                        const isLastDayOfMonth = monthGroup && (index === monthGroup.startIndex + monthGroup.count - 1 || index === days.length - 1);
+                        // Граница справа под цвет фона внутри месяца, цветная на границе между месяцами
+                        const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#4B4F50' : '#222946';
+                        
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              width: '39px',
+                              minHeight: '40px',
+                              flexShrink: 0,
+                              borderRight: index < days.length - 1 ? `1px solid ${borderRightColor}` : 'none',
+                              borderTop: '1px solid #4B4F50',
+                              borderBottom: '1px solid #4B4F50',
+                              position: 'relative'
+                            }}
+                          >
+                            {isFirstDayOfMonth && monthGroup && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  left: 0,
+                                  width: `${monthGroup.count * 39}px`,
+                                  top: 0,
+                                  bottom: 0,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  pointerEvents: 'none',
+                                  zIndex: 10
+                                }}
+                              >
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    fontSize: '14px', 
+                                    color: '#EDF3FA'
+                                  }}
+                                >
+                                  {monthGroup.month}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+
+                    {/* Строка с днями - вторая */}
+                    <Box sx={{ display: 'flex' }}>
+                      {days.map((day, index) => {
+                        const isToday = day.toDateString() === new Date().toDateString();
+                        // Определяем выходной день (суббота = 6, воскресенье = 0)
+                        const dayOfWeek = day.getDay();
+                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                        // Определяем праздничный день
+                        const isHolidayDay = isHoliday(day);
+                        // Красный цвет для выходных и праздничных дней
+                        const isRedDay = isWeekend || isHolidayDay;
+                        return (
+                          <Box
+                            key={index}
+                            onClick={() => setCalendarDate(day)}
+                            sx={{
+                              width: '39px',
+                              minHeight: '40px',
+                              flexShrink: 0,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              backgroundColor: 'transparent',
+                              borderRight: index < days.length - 1 ? '1px solid #4B4F50' : 'none',
+                              borderBottom: '1px solid #4B4F50'
+                            }}
+                          >
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                fontSize: '0.65rem', 
+                                color: isRedDay ? '#d32f2f' : '#EDF3FA',
+                                textTransform: 'uppercase',
+                                fontWeight: 500
+                              }}
+                            >
+                              {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
+                            </Typography>
+                            <Typography 
+                              variant="h6" 
+                              sx={{ 
+                                fontSize: '14px', 
+                                color: isRedDay ? '#d32f2f' : '#EDF3FA',
+                                fontWeight: isToday ? 700 : 400
+                              }}
+                            >
+                              {day.getDate()}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                    {/* Остальные строки с ячейками и карточками проектов */}
+                    {Array.from({ length: 15 }, (_, rowIndex) => {
+                      // Функция для вычисления позиции проекта в календаре
+                      const getProjectPosition = (project: Project) => {
+                        if (!project.startDate || !project.endDate) return null;
+                        
+                        const startDate = new Date(project.startDate);
+                        const endDate = new Date(project.endDate);
+                        
+                        // Находим индекс дня начала в массиве days
+                        const startIndex = days.findIndex(day => {
+                          const dayDate = new Date(day);
+                          dayDate.setHours(0, 0, 0, 0);
+                          const projectStart = new Date(startDate);
+                          projectStart.setHours(0, 0, 0, 0);
+                          return dayDate.getTime() === projectStart.getTime();
+                        });
+                        
+                        if (startIndex === -1) return null;
+                        
+                        // Вычисляем количество дней между началом и концом проекта
+                        const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                        
+                        return {
+                          left: startIndex * 39, // Позиция слева в пикселях
+                          width: daysDiff * 39,  // Ширина в пикселях
+                          startIndex,
+                          daysCount: daysDiff
+                        };
+                      };
+
+                      // Получаем проекты для первой строки (можно распределить по разным строкам в будущем)
+                      const projectsForRow = rowIndex === 0 ? calendarProjects : [];
+
+                      return (
+                        <Box key={rowIndex} sx={{ display: 'flex', position: 'relative' }}>
+                          {days.map((day, index) => {
+                            // Верхние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
+                            const borderTopColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
+                            // Нижние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
+                            const borderBottomColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
+                            
+                            // Проверяем, является ли это ячейкой 1 ноября в третьей строке
+                            const isNovemberFirst = rowIndex === 0 && (() => {
+                              const dayDate = new Date(day);
+                              return dayDate.getMonth() === 10 && dayDate.getDate() === 1; // Ноябрь = 10
+                            })();
+                            
+                            return (
+                              <Box
+                                key={index}
+                                sx={{
+                                  width: '39px',
+                                  minHeight: '40px',
+                                  flexShrink: 0,
+                                  borderRight: index < days.length - 1 ? '1px solid #4B4F50' : 'none',
+                                  borderTop: `1px solid ${borderTopColor}`,
+                                  borderBottom: `1px solid ${borderBottomColor}`,
+                                  position: 'relative',
+                                }}
+                              >
+                                {/* Чип в ячейке 1 ноября в третьей строке */}
+                                {isNovemberFirst && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      left: 0,
+                                      top: 0,
+                                      width: '120px',
+                                      height: '40px',
+                                      backgroundColor: '#1976d2',
+                                      borderRadius: '4px',
+                                      zIndex: 5,
+                                      boxSizing: 'border-box'
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            );
+                          })}
+                          {/* Карточки проектов для этой строки */}
+                          {projectsForRow.map((project) => {
+                            const position = getProjectPosition(project);
+                            if (!position) return null;
+
+                            return (
+                              <Box
+                                key={project.id}
+                                sx={{
+                                  position: 'absolute',
+                                  left: `${position.left}px`,
+                                  width: `${position.width}px`,
+                                  height: '40px',
+                                  backgroundColor: '#1976d2',
+                                  color: 'white',
+                                  borderRadius: '4px',
+                                  padding: '4px 8px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  cursor: 'pointer',
+                                  zIndex: 5,
+                                  fontSize: '12px',
+                                  fontWeight: 500,
+                                  boxSizing: 'border-box'
+                                }}
+                                onClick={() => {
+                                  // Можно добавить обработчик клика по карточке проекта
+                                  console.log('Клик по проекту:', project.name);
+                                }}
+                              >
+                                {project.name}
+                              </Box>
+                            );
+                          })}
+                        </Box>
+                      );
+                    })}
+                  </>
+                );
+              })()}
+            </Box>
+          </>
+        );
       case 1: // Канбан-доска
         return (
           <Box className="page-content-container">
-            <Box sx={{ mt: 2, mb: 1, width: '100%' }}>
+            <Box sx={{ mt: 2, mb: 1, width: 'calc(100% - 60px)', marginLeft: '30px', marginRight: '30px' }}>
               <KanbanBoard onOpenStage={handleOpenStageFromKanban} />
             </Box>
           </Box>
@@ -3426,372 +3948,6 @@ export default function App() {
             />
           ))}
         </Tabs>
-
-        {/* Календарь под вкладками */}
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          px: 2,
-          py: 1,
-          backgroundColor: 'transparent',
-          borderBottom: 0
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton 
-              size="small" 
-              sx={{ 
-                color: 'white',
-                border: 'none',
-                '&:hover': {
-                  backgroundColor: 'transparent'
-                }
-              }} 
-              onClick={() => {
-                const newDate = new Date(calendarDate);
-                if (calendarView === 'quarter') {
-                  newDate.setMonth(newDate.getMonth() - 3);
-                } else if (calendarView === 'halfyear') {
-                  newDate.setMonth(newDate.getMonth() - 6);
-                } else if (calendarView === 'year') {
-                  newDate.setFullYear(newDate.getFullYear() - 1);
-                } else {
-                  newDate.setMonth(newDate.getMonth() - 1);
-                }
-                setCalendarDate(newDate);
-              }}
-            >
-              <ChevronLeftIcon />
-            </IconButton>
-            <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center', color: 'white' }}>
-              {calendarView === 'month' && calendarDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
-              {calendarView === 'quarter' && (() => {
-                const quarter = Math.floor(calendarDate.getMonth() / 3) + 1;
-                return `${quarter} квартал ${calendarDate.getFullYear()}`;
-              })()}
-              {calendarView === 'halfyear' && (() => {
-                const halfyear = Math.floor(calendarDate.getMonth() / 6) + 1;
-                return `${halfyear} полугодие ${calendarDate.getFullYear()}`;
-              })()}
-              {calendarView === 'year' && calendarDate.getFullYear()}
-            </Typography>
-            <IconButton 
-              size="small" 
-              sx={{ 
-                color: 'white',
-                border: 'none',
-                '&:hover': {
-                  backgroundColor: 'transparent'
-                }
-              }} 
-              onClick={() => {
-                const newDate = new Date(calendarDate);
-                if (calendarView === 'quarter') {
-                  newDate.setMonth(newDate.getMonth() + 3);
-                } else if (calendarView === 'halfyear') {
-                  newDate.setMonth(newDate.getMonth() + 6);
-                } else if (calendarView === 'year') {
-                  newDate.setFullYear(newDate.getFullYear() + 1);
-                } else {
-                  newDate.setMonth(newDate.getMonth() + 1);
-                }
-                setCalendarDate(newDate);
-              }}
-            >
-              <ChevronRightIcon />
-            </IconButton>
-          </Box>
-          <ToggleButtonGroup
-            value={calendarView}
-            exclusive
-            onChange={(_, value) => value && setCalendarView(value)}
-            size="small"
-            sx={{
-              '& .MuiToggleButton-root': {
-                color: 'white',
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-                '&.Mui-selected': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)'
-                  }
-                },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                }
-              }
-            }}
-          >
-            <ToggleButton value="month">
-              <CalendarMonthIcon fontSize="small" sx={{ mr: 0.5 }} />
-              Месяц
-            </ToggleButton>
-            <ToggleButton value="quarter">
-              <ViewAgendaIcon fontSize="small" sx={{ mr: 0.5 }} />
-              Квартал
-            </ToggleButton>
-            <ToggleButton value="halfyear">
-              <CalendarTodayIcon fontSize="small" sx={{ mr: 0.5 }} />
-              Полугодие
-            </ToggleButton>
-            <ToggleButton value="year">
-              <EventIcon fontSize="small" sx={{ mr: 0.5 }} />
-              Год
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-
-        {/* Полоска с днями */}
-        <Box 
-          onWheel={(e) => {
-            const container = e.currentTarget;
-            container.scrollLeft += e.deltaY;
-          }}
-          sx={{ 
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: '#ffffff',
-            borderBottom: 0,
-            overflowX: 'auto',
-            width: 'calc(100% - 60px)',
-            marginLeft: '30px',
-            marginRight: '30px',
-            borderRadius: '4px',
-          }}>
-          {(() => {
-            const days: Date[] = [];
-            if (calendarView === 'month') {
-              // Добавляем полный предыдущий месяц
-              const prevMonth = calendarDate.getMonth() === 0 ? 11 : calendarDate.getMonth() - 1;
-              const prevYear = calendarDate.getMonth() === 0 ? calendarDate.getFullYear() - 1 : calendarDate.getFullYear();
-              const firstDayOfPrevMonth = new Date(prevYear, prevMonth, 1);
-              const lastDayOfPrevMonth = new Date(prevYear, prevMonth + 1, 0);
-              const daysInPrevMonth = lastDayOfPrevMonth.getDate();
-              for (let i = 0; i < daysInPrevMonth; i++) {
-                const day = new Date(firstDayOfPrevMonth);
-                day.setDate(firstDayOfPrevMonth.getDate() + i);
-                days.push(day);
-              }
-              // Добавляем дни текущего месяца
-              const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
-              const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
-              const daysInMonth = lastDay.getDate();
-              for (let i = 0; i < daysInMonth; i++) {
-                const day = new Date(firstDay);
-                day.setDate(firstDay.getDate() + i);
-                days.push(day);
-              }
-              // Добавляем полный следующий месяц
-              const nextMonth = calendarDate.getMonth() === 11 ? 0 : calendarDate.getMonth() + 1;
-              const nextYear = calendarDate.getMonth() === 11 ? calendarDate.getFullYear() + 1 : calendarDate.getFullYear();
-              const firstDayOfNextMonth = new Date(nextYear, nextMonth, 1);
-              const lastDayOfNextMonth = new Date(nextYear, nextMonth + 1, 0);
-              const daysInNextMonth = lastDayOfNextMonth.getDate();
-              for (let i = 0; i < daysInNextMonth; i++) {
-                const day = new Date(firstDayOfNextMonth);
-                day.setDate(firstDayOfNextMonth.getDate() + i);
-                days.push(day);
-              }
-            } else if (calendarView === 'quarter') {
-              const quarter = Math.floor(calendarDate.getMonth() / 3);
-              const startMonth = quarter * 3;
-              for (let month = startMonth; month < startMonth + 3; month++) {
-                const firstDay = new Date(calendarDate.getFullYear(), month, 1);
-                const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
-                const daysInMonth = lastDay.getDate();
-                for (let i = 0; i < daysInMonth; i++) {
-                  const day = new Date(firstDay);
-                  day.setDate(firstDay.getDate() + i);
-                  days.push(day);
-                }
-              }
-            } else if (calendarView === 'halfyear') {
-              const halfyear = Math.floor(calendarDate.getMonth() / 6);
-              const startMonth = halfyear * 6;
-              for (let month = startMonth; month < startMonth + 6; month++) {
-                const firstDay = new Date(calendarDate.getFullYear(), month, 1);
-                const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
-                const daysInMonth = lastDay.getDate();
-                for (let i = 0; i < daysInMonth; i++) {
-                  const day = new Date(firstDay);
-                  day.setDate(firstDay.getDate() + i);
-                  days.push(day);
-                }
-              }
-            } else {
-              // Год
-              for (let month = 0; month < 12; month++) {
-                const firstDay = new Date(calendarDate.getFullYear(), month, 1);
-                const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
-                const daysInMonth = lastDay.getDate();
-                for (let i = 0; i < daysInMonth; i++) {
-                  const day = new Date(firstDay);
-                  day.setDate(firstDay.getDate() + i);
-                  days.push(day);
-                }
-              }
-            }
-            // Создаем массив групп месяцев для строки с месяцами
-            const monthGroups: Array<{ month: string, startIndex: number, count: number }> = [];
-            let currentMonth = '';
-            let currentStart = 0;
-            
-            days.forEach((day, index) => {
-              // Формируем формат "НОЯБРЬ 2025" вместо "нояб. 2025 г."
-              const monthName = day.toLocaleDateString('ru-RU', { month: 'long' }).toUpperCase();
-              const year = day.getFullYear();
-              const monthKey = `${monthName} ${year}`;
-              if (monthKey !== currentMonth) {
-                if (currentMonth) {
-                  monthGroups.push({ month: currentMonth, startIndex: currentStart, count: index - currentStart });
-                }
-                currentMonth = monthKey;
-                currentStart = index;
-              }
-            });
-            if (currentMonth) {
-              monthGroups.push({ month: currentMonth, startIndex: currentStart, count: days.length - currentStart });
-            }
-
-            return (
-              <>
-                {/* Строка с месяцами - первая */}
-                <Box sx={{ display: 'flex', position: 'relative' }}>
-                  {days.map((_, index) => {
-                    // Находим группу месяца, к которой относится текущая ячейка
-                    const monthGroup = monthGroups.find(g => index >= g.startIndex && index < g.startIndex + g.count);
-                    // Проверяем, является ли это первой ячейкой месяца
-                    const isFirstDayOfMonth = monthGroup && monthGroup.startIndex === index;
-                    // Проверяем, является ли это последней ячейкой месяца или последней ячейкой строки
-                    const isLastDayOfMonth = monthGroup && (index === monthGroup.startIndex + monthGroup.count - 1 || index === days.length - 1);
-                    // Граница справа белая внутри месяца, цветная на границе между месяцами
-                    const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#e0e0e0' : '#ffffff';
-                    
-                    return (
-                      <Box
-                        key={index}
-                        sx={{
-                          width: '39px',
-                          minHeight: '40px',
-                          flexShrink: 0,
-                          borderRight: index < days.length - 1 ? `1px solid ${borderRightColor}` : 'none',
-                          borderTop: '1px solid #e0e0e0',
-                          borderBottom: '1px solid #e0e0e0',
-                          position: 'relative'
-                        }}
-                      >
-                        {isFirstDayOfMonth && monthGroup && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              left: 0,
-                              width: `${monthGroup.count * 39}px`,
-                              top: 0,
-                              bottom: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              pointerEvents: 'none',
-                              zIndex: 10
-                            }}
-                          >
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                fontSize: '14px', 
-                                color: '#000'
-                              }}
-                            >
-                              {monthGroup.month}
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
-                    );
-                  })}
-                </Box>
-
-                {/* Строка с днями - вторая */}
-                <Box sx={{ display: 'flex' }}>
-                  {days.map((day, index) => {
-                    const isToday = day.toDateString() === new Date().toDateString();
-                    // Определяем выходной день (суббота = 6, воскресенье = 0)
-                    const dayOfWeek = day.getDay();
-                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                    // Определяем праздничный день
-                    const isHolidayDay = isHoliday(day);
-                    // Красный цвет для выходных и праздничных дней
-                    const isRedDay = isWeekend || isHolidayDay;
-                    return (
-                      <Box
-                        key={index}
-                        onClick={() => setCalendarDate(day)}
-                        sx={{
-                          width: '39px',
-                          minHeight: '40px',
-                          flexShrink: 0,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          backgroundColor: 'transparent',
-                          borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none'
-                        }}
-                      >
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            fontSize: '0.65rem', 
-                            color: isRedDay ? '#d32f2f' : '#666',
-                            textTransform: 'uppercase',
-                            fontWeight: 500
-                          }}
-                        >
-                          {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
-                        </Typography>
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            fontSize: '14px', 
-                            color: isRedDay ? '#d32f2f' : '#000',
-                            fontWeight: isToday ? 700 : 400
-                          }}
-                        >
-                          {day.getDate()}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Box>
-                {/* Остальные строки с ячейками */}
-                {Array.from({ length: 15 }, (_, rowIndex) => {
-                  return (
-                    <Box key={rowIndex} sx={{ display: 'flex' }}>
-                      {days.map((_, index) => {
-                        return (
-                          <Box
-                            key={index}
-                            sx={{
-                              width: '39px',
-                              minHeight: '40px',
-                              flexShrink: 0,
-                              borderRight: index < days.length - 1 ? '1px solid #e0e0e0' : 'none',
-                              borderTop: '1px solid #e0e0e0',
-                              borderBottom: '1px solid #e0e0e0'
-                            }}
-                          >
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                  );
-                })}
-              </>
-            );
-          })()}
-        </Box>
 
         {/* Основной контент */}
         {renderTabContent()

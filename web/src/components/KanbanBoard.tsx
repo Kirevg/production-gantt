@@ -871,7 +871,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             </Typography>
                         </Box>
                     ) : kanbanTasks.length > 0 ? (
-                        <Box sx={{ p: 2 }}>
+                        <Box sx={{ pt: 2, pb: 2, paddingLeft: '30px', paddingRight: '30px' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                 <Typography variant="h6">
                                     Проекты, изделия и этапы работ
