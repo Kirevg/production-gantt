@@ -2838,7 +2838,7 @@ export default function App() {
   const fetchHolidaysCalendar = useCallback(async () => {
     try {
       const year = calendarDate.getFullYear();
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/calendar/${year}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/calendar/${year}/holidays`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -2854,12 +2854,18 @@ export default function App() {
       const holidaysMap = new Map<string, boolean>();
 
       // Преобразуем данные в Map с ключом в формате YYYY-MM-DD
-      if (data.calendar && Array.isArray(data.calendar)) {
-        data.calendar.forEach((day: any) => {
-          if (day.isHoliday || day.isDayOff || day.isShort) {
-            const dateStr = day.date; // Формат: YYYY-MM-DD
-            holidaysMap.set(dateStr, true);
-          }
+      // holidays - праздничные дни, shortDays - сокращенные дни
+      if (data.holidays && Array.isArray(data.holidays)) {
+        data.holidays.forEach((day: any) => {
+          const dateStr = day.date ? day.date.split('T')[0] : day.date; // Формат: YYYY-MM-DD
+          holidaysMap.set(dateStr, true);
+        });
+      }
+      
+      if (data.shortDays && Array.isArray(data.shortDays)) {
+        data.shortDays.forEach((day: any) => {
+          const dateStr = day.date ? day.date.split('T')[0] : day.date; // Формат: YYYY-MM-DD
+          holidaysMap.set(dateStr, true);
         });
       }
 
