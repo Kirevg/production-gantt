@@ -3609,37 +3609,73 @@ export default function App() {
 
                   const startDate = new Date(product.startDate);
                   const endDate = new Date(product.endDate);
+                  
+                  // Нормализуем даты (убираем время)
+                  startDate.setHours(0, 0, 0, 0);
+                  endDate.setHours(0, 0, 0, 0);
 
-                  // Находим индекс дня начала в массиве days
-                  const startIndex = days.findIndex(day => {
-                    const dayDate = new Date(day);
-                    dayDate.setHours(0, 0, 0, 0);
-                    const productStart = new Date(startDate);
-                    productStart.setHours(0, 0, 0, 0);
-                    return dayDate.getTime() === productStart.getTime();
-                  });
+                  // Получаем границы периода
+                  const periodStart = new Date(days[0]);
+                  periodStart.setHours(0, 0, 0, 0);
+                  const periodEnd = new Date(days[days.length - 1]);
+                  periodEnd.setHours(0, 0, 0, 0);
 
-                  if (startIndex === -1) return null;
+                  // Проверяем, есть ли пересечение изделия с периодом
+                  // Если изделие полностью до или после периода - не показываем
+                  if (endDate < periodStart || startDate > periodEnd) {
+                    return null;
+                  }
 
-                  // Находим индекс дня окончания в массиве days
-                  const endIndex = days.findIndex(day => {
-                    const dayDate = new Date(day);
-                    dayDate.setHours(0, 0, 0, 0);
-                    const productEnd = new Date(endDate);
-                    productEnd.setHours(0, 0, 0, 0);
-                    return dayDate.getTime() === productEnd.getTime();
-                  });
+                  // Определяем, нужно ли обрезать слева
+                  const isCutLeft = startDate < periodStart;
+                  
+                  // Определяем, нужно ли обрезать справа
+                  const isCutRight = endDate > periodEnd;
 
-                  if (endIndex === -1) return null;
+                  // Находим индекс дня начала (обрезаем слева, если нужно)
+                  let startIndex = 0;
+                  if (!isCutLeft) {
+                    // Если начало в пределах периода - ищем точный индекс
+                    const foundIndex = days.findIndex(day => {
+                      const dayDate = new Date(day);
+                      dayDate.setHours(0, 0, 0, 0);
+                      return dayDate.getTime() === startDate.getTime();
+                    });
+                    if (foundIndex !== -1) {
+                      startIndex = foundIndex;
+                    } else {
+                      // Если не найдено, но есть пересечение - начинаем с 0
+                      startIndex = 0;
+                    }
+                  }
 
-                  // Вычисляем количество дней между началом и концом изделия
+                  // Находим индекс дня окончания (обрезаем справа, если нужно)
+                  let endIndex = days.length - 1;
+                  if (!isCutRight) {
+                    // Если конец в пределах периода - ищем точный индекс
+                    const foundIndex = days.findIndex(day => {
+                      const dayDate = new Date(day);
+                      dayDate.setHours(0, 0, 0, 0);
+                      return dayDate.getTime() === endDate.getTime();
+                    });
+                    if (foundIndex !== -1) {
+                      endIndex = foundIndex;
+                    } else {
+                      // Если не найдено, но есть пересечение - заканчиваем на последнем дне
+                      endIndex = days.length - 1;
+                    }
+                  }
+
+                  // Вычисляем количество дней между началом и концом изделия в отображаемом периоде
                   const daysDiff = endIndex - startIndex + 1;
 
                   return {
                     left: startIndex * 39, // Позиция слева в пикселях
                     width: daysDiff * 39,  // Ширина в пикселях (39px на день - ширина ячейки)
                     startIndex,
-                    daysCount: daysDiff
+                    daysCount: daysDiff,
+                    isCutLeft,  // Флаг обрезки слева
+                    isCutRight  // Флаг обрезки справа
                   };
                 };
 
@@ -3652,7 +3688,7 @@ export default function App() {
                   .filter(item => item.position !== null);
 
                 // Распределяем изделия по строкам
-                const rows: Array<Array<{ product: ProductChip; position: { left: number; width: number; startIndex: number; daysCount: number } }>> = [];
+                const rows: Array<Array<{ product: ProductChip; position: { left: number; width: number; startIndex: number; daysCount: number; isCutLeft: boolean; isCutRight: boolean } }>> = [];
 
                 productsWithPositions.forEach(({ product, position }) => {
                   if (!position) return;
@@ -3845,7 +3881,6 @@ export default function App() {
                                   left: `${position.left}px`,
                                   width: `${position.width}px`,
                                   height: '38px',
-                                  backgroundColor: '#0B2037',
                                   color: '#B6BEC9',
                                   borderRadius: '4px',
                                   border: '1px solid #0254A5',
@@ -3858,13 +3893,77 @@ export default function App() {
                                   zIndex: 5,
                                   fontSize: '12px',
                                   fontWeight: 500,
-                                  boxSizing: 'border-box'
+                                  boxSizing: 'border-box',
+                                  // Градиент для обрезки с фоном
+                                  background: position.isCutLeft && position.isCutRight
+                                    ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px, #0B2037 calc(100% - 20px), rgba(11, 32, 55, 0.3))'
+                                    : position.isCutLeft
+                                    ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px)'
+                                    : position.isCutRight
+                                    ? 'linear-gradient(to left, rgba(11, 32, 55, 0.3), #0B2037 20px)'
+                                    : '#0B2037'
                                 }}
                                 onClick={() => {
                                   // Можно добавить обработчик клика по карточке изделия
                                   console.log('Клик по изделию:', product.productName, 'проект:', product.projectName);
                                 }}
                               >
+                                {/* Иконка обрезки слева */}
+                                {position.isCutLeft && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      left: '2px',
+                                      top: '50%',
+                                      transform: 'translateY(-50%)',
+                                      width: '12px',
+                                      height: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      zIndex: 6
+                                    }}
+                                    title="Изделие начинается раньше видимого периода"
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 0,
+                                        height: 0,
+                                        borderTop: '6px solid transparent',
+                                        borderBottom: '6px solid transparent',
+                                        borderRight: '8px solid #0254A5'
+                                      }}
+                                    />
+                                  </Box>
+                                )}
+                                {/* Иконка обрезки справа */}
+                                {position.isCutRight && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      right: '2px',
+                                      top: '50%',
+                                      transform: 'translateY(-50%)',
+                                      width: '12px',
+                                      height: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      zIndex: 6
+                                    }}
+                                    title="Изделие продолжается после видимого периода"
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 0,
+                                        height: 0,
+                                        borderTop: '6px solid transparent',
+                                        borderBottom: '6px solid transparent',
+                                        borderLeft: '8px solid #0254A5'
+                                      }}
+                                    />
+                                  </Box>
+                                )}
                                 <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
                                   {product.projectName}
                                 </Box>
