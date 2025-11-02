@@ -28,10 +28,29 @@ import {
 import {
     Delete as DeleteIcon,
     CalendarToday as CalendarIcon,
-    Balance as BalanceIcon
+    Balance as BalanceIcon,
+    DragIndicator
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
+
+// Импорт библиотек для drag-and-drop функциональности
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Интерфейсы для спецификаций
 interface ProjectSpecification {
@@ -180,6 +199,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [comparingSpecification, setComparingSpecification] = useState<ProjectSpecification | null>(null);
     const [versionCompareData, setVersionCompareData] = useState<any>(null);
     const [versionCompareLoading, setVersionCompareLoading] = useState(false);
+
+    // Настройка сенсоров для drag-and-drop этапов
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // Минимальное расстояние для начала перетаскивания
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     // Функция форматирования даты
     const formatDate = (dateString: string) => {
@@ -1062,6 +1093,168 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
+    // Обработчик завершения перетаскивания для этапов
+    const handleDragEnd = async (event: any) => {
+        const { active, over } = event;
+
+        if (!active || !over || active.id === over.id) {
+            return;
+        }
+
+        const oldIndex = stages.findIndex((stage) => stage.id === active.id);
+        const newIndex = stages.findIndex((stage) => stage.id === over.id);
+
+        if (oldIndex === -1 || newIndex === -1) {
+            return;
+        }
+
+        // Перемещаем этапы в UI
+        const newStages = arrayMove(stages, oldIndex, newIndex);
+        setStages(newStages);
+
+        // Сохраняем порядок на сервере
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const stagesWithOrder = newStages.map((stage, index) => ({
+                id: stage.id,
+                order: index
+            }));
+
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ stages: stagesWithOrder })
+                }
+            );
+
+            if (!response.ok) {
+                console.error('Ошибка сохранения порядка этапов');
+                // Откатываем изменения в UI
+                await fetchStages();
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения порядка этапов:', error);
+            // Откатываем изменения в UI
+            await fetchStages();
+        }
+    };
+
+    // Компонент для перетаскиваемой строки таблицы этапов
+    function SortableStageRow({ stage, index }: { stage: Stage; index: number }) {
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({ id: stage.id });
+
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            opacity: isDragging ? 0.5 : 1,
+        };
+
+        return (
+            <TableRow
+                ref={setNodeRef}
+                style={style}
+                sx={{ height: '35px', cursor: 'pointer' }}
+                onDoubleClick={() => handleOpenStageDialog(stage)}
+            >
+                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>
+                    <DragIndicator
+                        {...attributes}
+                        {...listeners}
+                        sx={{ cursor: 'grab', color: 'action.main' }}
+                    />
+                </TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
+                    {stage.nomenclatureItem ? (
+                        <Chip
+                            label={stage.nomenclatureItem.name}
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            sx={{ width: '100%', minWidth: '120px', borderRadius: '6px' }}
+                        />
+                    ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ width: '100%', minWidth: '120px' }}>
+                            Не указан
+                        </Typography>
+                    )}
+                </TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
+                    {stage.assignee ? (
+                        <Chip
+                            label={stage.assignee.name}
+                            size="small"
+                            variant="outlined"
+                            color="secondary"
+                            sx={{ width: '100%', minWidth: '120px', borderRadius: '6px' }}
+                        />
+                    ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ width: '100%', minWidth: '120px' }}>
+                            Не назначен
+                        </Typography>
+                    )}
+                </TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
+                    <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                            {formatSum(stage.sum)}
+                        </Typography>
+                    </Box>
+                </TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                    <Typography variant="body2">
+                        {stage.hours || '0'}
+                    </Typography>
+                </TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                    <Typography variant="body2">
+                        {(() => {
+                            if (!stage.sum || !stage.hours) return '0.00';
+                            const sumValue = parseFloat(String(stage.sum).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+                            const hoursValue = parseFloat(stage.hours || '0');
+                            return hoursValue > 0 ? (sumValue / hoursValue).toFixed(2) : '0.00';
+                        })()}
+                    </Typography>
+                </TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{formatDate(stage.startDate)}</TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                    <Typography variant="body2">
+                        {stage.duration} дн.
+                    </Typography>
+                </TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{formatDate(stage.endDate)}</TableCell>
+                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '60px' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <IconButton
+                            size="small"
+                            onClick={() => handleDeleteStage(stage.id)}
+                            color="error"
+                            title="Удалить этап"
+                            sx={{ minWidth: 'auto', padding: '4px' }}
+                        >
+                            <DeleteIcon fontSize="small" />
+                        </IconButton>
+                    </Box>
+                </TableCell>
+            </TableRow>
+        );
+    }
 
     return (
         <Box className="page-container">
@@ -1339,107 +1532,37 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 ) : (
                     <>
                         {/* Таблица этапов */}
-                        <TableContainer component={Paper}>
-                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
-                                <TableHead>
-                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Вид работ</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Исполнитель</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Часов</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Руб/час</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Срок</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
-                                            <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
-                                        </TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {stages.map((stage) => (
-                                        <TableRow
-                                            key={stage.id}
-                                            sx={{ height: '35px', cursor: 'pointer' }}
-                                            onDoubleClick={() => handleOpenStageDialog(stage)}
-                                        >
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
-                                                {stage.nomenclatureItem ? (
-                                                    <Chip
-                                                        label={stage.nomenclatureItem.name}
-                                                        size="small"
-                                                        variant="outlined"
-                                                        color="primary"
-                                                        sx={{ width: '100%', minWidth: '120px', borderRadius: '6px' }}
-                                                    />
-                                                ) : (
-                                                    <Typography variant="body2" color="text.secondary" sx={{ width: '100%', minWidth: '120px' }}>
-                                                        Не указан
-                                                    </Typography>
-                                                )}
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <TableContainer component={Paper}>
+                                <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                                    <TableHead>
+                                        <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px' }}>
+                                                <DragIndicator sx={{ color: 'action.main' }} />
                                             </TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
-                                                {stage.assignee ? (
-                                                    <Chip
-                                                        label={stage.assignee.name}
-                                                        size="small"
-                                                        variant="outlined"
-                                                        color="secondary"
-                                                        sx={{ width: '100%', minWidth: '120px', borderRadius: '6px' }}
-                                                    />
-                                                ) : (
-                                                    <Typography variant="body2" color="text.secondary" sx={{ width: '100%', minWidth: '120px' }}>
-                                                        Не назначен
-                                                    </Typography>
-                                                )}
-                                            </TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'right' }}>
-                                                <Box sx={{ textAlign: 'right' }}>
-                                                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                                        {formatSum(stage.sum)}
-                                                    </Typography>
-                                                </Box>
-                                            </TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-                                                <Typography variant="body2">
-                                                    {stage.hours || '0'}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-                                                <Typography variant="body2">
-                                                    {(() => {
-                                                        if (!stage.sum || !stage.hours) return '0.00';
-                                                        const sumValue = parseFloat(String(stage.sum).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
-                                                        const hoursValue = parseFloat(stage.hours || '0');
-                                                        return hoursValue > 0 ? (sumValue / hoursValue).toFixed(2) : '0.00';
-                                                    })()}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{formatDate(stage.startDate)}</TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-                                                <Typography variant="body2">
-                                                    {stage.duration} дн.
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{formatDate(stage.endDate)}</TableCell>
-                                            <TableCell sx={{ py: 0.5, textAlign: 'center', width: '60px' }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleDeleteStage(stage.id)}
-                                                        color="error"
-                                                        title="Удалить этап"
-                                                        sx={{ minWidth: 'auto', padding: '4px' }}
-                                                    >
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Box>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Вид работ</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Исполнитель</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Часов</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Руб/час</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Срок</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
+                                                <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
                                             </TableCell>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                    </TableHead>
+                                    <SortableContext items={stages.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                                        <TableBody>
+                                            {stages.map((stage, index) => (
+                                                <SortableStageRow key={stage.id} stage={stage} index={index} />
+                                            ))}
+                                        </TableBody>
+                                    </SortableContext>
+                                </Table>
+                            </TableContainer>
+                        </DndContext>
 
                     </>
                 )}
