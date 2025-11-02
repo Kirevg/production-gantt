@@ -2861,7 +2861,7 @@ export default function App() {
           holidaysMap.set(dateStr, true);
         });
       }
-      
+
       if (data.shortDays && Array.isArray(data.shortDays)) {
         data.shortDays.forEach((day: any) => {
           const dateStr = day.date ? day.date.split('T')[0] : day.date; // Формат: YYYY-MM-DD
