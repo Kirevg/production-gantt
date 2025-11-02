@@ -3964,11 +3964,16 @@ export default function App() {
                                     />
                                   </Box>
                                 )}
-                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px', color: '#DDBB88' }}>
-                                  {product.projectName}
-                                </Box>
-                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px', color: '#9966B8' }}>
-                                  {product.productName}
+                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
+                                  <Box component="span" sx={{ color: '#DDBB88' }}>
+                                    {product.projectName}
+                                  </Box>
+                                  <Box component="span" sx={{ mx: '4px', color: '#B6BEC9' }}>
+                                    •
+                                  </Box>
+                                  <Box component="span" sx={{ color: '#9966B8' }}>
+                                    {product.productName}
+                                  </Box>
                                 </Box>
                               </Box>
                             );
