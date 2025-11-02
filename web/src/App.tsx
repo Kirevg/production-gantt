@@ -3927,13 +3927,10 @@ export default function App() {
                     <Box sx={{ display: 'flex' }}>
                       {days.map((day, index) => {
                         const isToday = day.toDateString() === new Date().toDateString();
-                        // Определяем выходной день (суббота = 6, воскресенье = 0)
-                        const dayOfWeek = day.getDay();
-                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
                         // Определяем праздничный день
                         const isHolidayDay = isHoliday(day);
-                        // Красный цвет для выходных и праздничных дней
-                        const isRedDay = isWeekend || isHolidayDay;
+                        // Красный цвет только для праздничных дней (производственный календарь)
+                        const isRedDay = isHolidayDay;
                         return (
                           <Box
                             key={index}
