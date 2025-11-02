@@ -3615,13 +3615,33 @@ export default function App() {
                   monthGroups.push({ month: currentMonth, startIndex: currentStart, count: days.length - currentStart });
                 }
 
-                // Вычисляем позиции изделий и распределяем по строкам (один раз, не в map)
-                const getProductPosition = (product: ProductChip) => {
-                  if (!product.startDate || !product.endDate) return null;
+                // НОВАЯ ЛОГИКА: Основными чипами для расположения являются этапы работ
+                // Сначала вычисляем позиции этапов работ, затем натягиваем чипы изделий на крайние даты этапов
+                
+                interface StageChip {
+                  id: string;
+                  productId: string;
+                  product: ProductChip;
+                  startDate: string | null;
+                  endDate: string | null;
+                  nomenclatureItem?: { name: string } | null;
+                  position: {
+                    left: number;
+                    width: number;
+                    startIndex: number;
+                    daysCount: number;
+                    isCutLeft: boolean;
+                    isCutRight: boolean;
+                  } | null;
+                }
 
-                  const startDate = new Date(product.startDate);
-                  const endDate = new Date(product.endDate);
+                // Функция вычисления позиции этапа работ
+                const getStagePosition = (stage: { startDate: string | null; endDate: string | null }) => {
+                  if (!stage.startDate || !stage.endDate) return null;
 
+                  const startDate = new Date(stage.startDate);
+                  const endDate = new Date(stage.endDate);
+                  
                   // Нормализуем даты (убираем время)
                   startDate.setHours(0, 0, 0, 0);
                   endDate.setHours(0, 0, 0, 0);
@@ -3632,22 +3652,20 @@ export default function App() {
                   const periodEnd = new Date(days[days.length - 1]);
                   periodEnd.setHours(0, 0, 0, 0);
 
-                  // Проверяем, есть ли пересечение изделия с периодом
-                  // Если изделие полностью до или после периода - не показываем
+                  // Проверяем, есть ли пересечение этапа с периодом
                   if (endDate < periodStart || startDate > periodEnd) {
                     return null;
                   }
 
                   // Определяем, нужно ли обрезать слева
                   const isCutLeft = startDate < periodStart;
-
+                  
                   // Определяем, нужно ли обрезать справа
                   const isCutRight = endDate > periodEnd;
 
                   // Находим индекс дня начала (обрезаем слева, если нужно)
                   let startIndex = 0;
                   if (!isCutLeft) {
-                    // Если начало в пределах периода - ищем точный индекс
                     const foundIndex = days.findIndex(day => {
                       const dayDate = new Date(day);
                       dayDate.setHours(0, 0, 0, 0);
@@ -3656,7 +3674,6 @@ export default function App() {
                     if (foundIndex !== -1) {
                       startIndex = foundIndex;
                     } else {
-                      // Если не найдено, но есть пересечение - начинаем с 0
                       startIndex = 0;
                     }
                   }
@@ -3664,7 +3681,6 @@ export default function App() {
                   // Находим индекс дня окончания (обрезаем справа, если нужно)
                   let endIndex = days.length - 1;
                   if (!isCutRight) {
-                    // Если конец в пределах периода - ищем точный индекс
                     const foundIndex = days.findIndex(day => {
                       const dayDate = new Date(day);
                       dayDate.setHours(0, 0, 0, 0);
@@ -3673,62 +3689,75 @@ export default function App() {
                     if (foundIndex !== -1) {
                       endIndex = foundIndex;
                     } else {
-                      // Если не найдено, но есть пересечение - заканчиваем на последнем дне
                       endIndex = days.length - 1;
                     }
                   }
 
-                  // Вычисляем количество дней между началом и концом изделия в отображаемом периоде
+                  // Вычисляем количество дней между началом и концом этапа в отображаемом периоде
                   const daysDiff = endIndex - startIndex + 1;
-
+                  
                   return {
-                    left: startIndex * 39, // Позиция слева в пикселях
-                    width: daysDiff * 39,  // Ширина в пикселях (39px на день - ширина ячейки)
+                    left: startIndex * 39, // Позиция слева точно по границе дня (без учета бордюра)
+                    width: daysDiff * 39, // Ширина в пикселях (39px на день)
                     startIndex,
                     daysCount: daysDiff,
-                    isCutLeft,  // Флаг обрезки слева
-                    isCutRight  // Флаг обрезки справа
+                    isCutLeft,
+                    isCutRight
                   };
                 };
 
-                // Алгоритм распределения изделий по строкам
-                const productsWithPositions = calendarProducts
-                  .map(product => ({
-                    product,
-                    position: getProductPosition(product)
-                  }))
-                  .filter(item => item.position !== null);
+                // Собираем все этапы работ со всех изделий
+                const allStages: StageChip[] = [];
+                calendarProducts.forEach(product => {
+                  if (product.workStages && product.workStages.length > 0) {
+                    product.workStages.forEach(stage => {
+                      const position = getStagePosition(stage);
+                      if (position) {
+                        allStages.push({
+                          id: stage.id,
+                          productId: product.id,
+                          product,
+                          startDate: stage.startDate,
+                          endDate: stage.endDate,
+                          nomenclatureItem: stage.nomenclatureItem,
+                          position
+                        });
+                      }
+                    });
+                  }
+                });
 
-                // Распределяем изделия по строкам
-                const rows: Array<Array<{ product: ProductChip; position: { left: number; width: number; startIndex: number; daysCount: number; isCutLeft: boolean; isCutRight: boolean } }>> = [];
+                // Распределяем этапы работ по строкам (основная логика)
+                const rows: Array<Array<StageChip>> = [];
 
-                productsWithPositions.forEach(({ product, position }) => {
-                  if (!position) return;
+                allStages.forEach(stage => {
+                  if (!stage.position) return;
 
-                  // Ищем строку, где изделие помещается
+                  // Ищем строку, где этап помещается
                   let placed = false;
                   for (let i = 0; i < rows.length; i++) {
-                    // Проверяем, что в строке все изделия с таким же названием проекта
-                    const sameProjectName = rows[i].every(({ product: otherProduct }) =>
-                      otherProduct.projectName === product.projectName
+                    // Проверяем, что в строке все этапы с таким же названием проекта
+                    const sameProjectName = rows[i].every(otherStage =>
+                      otherStage.product.projectName === stage.product.projectName
                     );
 
                     if (!sameProjectName) {
-                      // В строке есть изделия с другим названием проекта - пропускаем эту строку
                       continue;
                     }
 
-                    // Проверяем, не пересекается ли с другими изделиями в строке
-                    const overlaps = rows[i].some(({ position: otherPos }) => {
-                      if (!otherPos) return false;
-                      // Проверяем пересечение интервалов
-                      const end1 = position.startIndex + position.daysCount;
-                      const end2 = otherPos.startIndex + otherPos.daysCount;
-                      return !(position.startIndex >= end2 || otherPos.startIndex >= end1);
+                    // Проверяем, не пересекается ли с другими этапами в строке (с учетом бордюров этапов)
+                    const overlaps = rows[i].some(otherStage => {
+                      if (!otherStage.position || !stage.position) return false;
+                      // Проверяем пересечение интервалов (этапы с бордюрами могут касаться друг друга)
+                      // Бордюры этапов учитываются при проверке пересечений (1px с каждой стороны)
+                      const stageEnd = stage.position.startIndex + stage.position.daysCount;
+                      const otherStageEnd = otherStage.position.startIndex + otherStage.position.daysCount;
+                      // Этапы пересекаются, если их интервалы дней перекрываются
+                      return !(stage.position.startIndex >= otherStageEnd || otherStage.position.startIndex >= stageEnd);
                     });
 
                     if (!overlaps) {
-                      rows[i].push({ product, position });
+                      rows[i].push(stage);
                       placed = true;
                       break;
                     }
@@ -3736,8 +3765,54 @@ export default function App() {
 
                   // Если не поместилось, создаем новую строку
                   if (!placed) {
-                    rows.push([{ product, position }]);
+                    rows.push([stage]);
                   }
+                });
+
+                // Группируем этапы по изделиям для вычисления позиций чипов изделий
+                const productGroups = new Map<string, { product: ProductChip; stages: StageChip[] }>();
+                allStages.forEach(stage => {
+                  if (!productGroups.has(stage.productId)) {
+                    productGroups.set(stage.productId, {
+                      product: stage.product,
+                      stages: []
+                    });
+                  }
+                  productGroups.get(stage.productId)!.stages.push(stage);
+                });
+
+                // Вычисляем позиции чипов изделий на основе крайних дат этапов
+                const productPositions = new Map<string, {
+                  left: number;
+                  width: number;
+                  startIndex: number;
+                  daysCount: number;
+                  isCutLeft: boolean;
+                  isCutRight: boolean;
+                }>();
+
+                productGroups.forEach(({ product, stages }) => {
+                  if (stages.length === 0) return;
+
+                  // Находим самый ранний startIndex и самый поздний endIndex среди этапов
+                  const minStartIndex = Math.min(...stages.map(s => s.position?.startIndex ?? Infinity));
+                  const maxEndIndex = Math.max(...stages.map(s => s.position ? s.position.startIndex + s.position.daysCount - 1 : -Infinity));
+
+                  if (minStartIndex === Infinity || maxEndIndex === -Infinity) return;
+
+                  // Вычисляем позицию чипа изделия на основе крайних дат этапов
+                  // Чип изделия может выпирать влево и вправо на величину своего бордюра (1px)
+                  const borderWidth = 1;
+                  const productDaysCount = maxEndIndex - minStartIndex + 1;
+
+                  productPositions.set(product.id, {
+                    left: minStartIndex * 39 - borderWidth, // Выпирает на 1px влево
+                    width: productDaysCount * 39 + borderWidth * 2, // Выпирает на 1px вправо
+                    startIndex: minStartIndex,
+                    daysCount: productDaysCount,
+                    isCutLeft: minStartIndex === 0,
+                    isCutRight: maxEndIndex === days.length - 1
+                  });
                 });
 
                 return (
@@ -3856,8 +3931,17 @@ export default function App() {
                     </Box>
                     {/* Остальные строки с ячейками и карточками изделий */}
                     {Array.from({ length: Math.max(rows.length, 15) }, (_, rowIndex) => {
-                      // Получаем изделия для текущей строки
-                      const productsForRow = rows[rowIndex] || [];
+                      // Получаем этапы работ для текущей строки
+                      const stagesForRow = rows[rowIndex] || [];
+                      
+                      // Группируем этапы по изделиям для рендеринга чипов изделий
+                      const productGroupsForRow = new Map<string, StageChip[]>();
+                      stagesForRow.forEach(stage => {
+                        if (!productGroupsForRow.has(stage.productId)) {
+                          productGroupsForRow.set(stage.productId, []);
+                        }
+                        productGroupsForRow.get(stage.productId)!.push(stage);
+                      });
 
                       return (
                         <Box key={rowIndex} sx={{ display: 'flex', position: 'relative' }}>
@@ -3883,8 +3967,12 @@ export default function App() {
                               />
                             );
                           })}
-                          {/* Карточки изделий для этой строки */}
-                          {productsForRow.map(({ product, position }) => {
+                          {/* Чипы изделий (фоновые элементы) для этой строки */}
+                          {Array.from(productGroupsForRow.entries()).map(([productId, stages]) => {
+                            const product = stages[0].product;
+                            const position = productPositions.get(productId);
+                            if (!position) return null;
+                            
                             return (
                               <Box
                                 key={product.id}
@@ -3900,9 +3988,9 @@ export default function App() {
                                   display: 'flex',
                                   flexDirection: 'column',
                                   justifyContent: 'flex-start',
-                                  overflow: 'visible', // Изменено с 'hidden' на 'visible', чтобы чипы этапов были видны
+                                  overflow: 'hidden',
                                   cursor: 'pointer',
-                                  zIndex: 5,
+                                  zIndex: 3, // Фоновый элемент, ниже чипов этапов
                                   fontSize: '12px',
                                   fontWeight: 500,
                                   boxSizing: 'border-box',
@@ -3988,88 +4076,47 @@ export default function App() {
                                     {product.productName}
                                   </Box>
                                 </Box>
-                                {/* Вторая строка: чипы этапов работ */}
-                                {product.workStages && product.workStages.length > 0 && (
-                                  <Box sx={{ position: 'relative', height: '14px', mt: '2px', ml: '-8px', mr: '-8px' }}>
-                                    {product.workStages
-                                      .filter((stage) => stage.startDate && stage.endDate)
-                                      .map((stage) => {
-                                        // Вычисляем позицию этапа относительно начала чипа изделия
-                                        const stageStartDate = new Date(stage.startDate!);
-                                        stageStartDate.setHours(0, 0, 0, 0);
-                                        const stageEndDate = new Date(stage.endDate!);
-                                        stageEndDate.setHours(0, 0, 0, 0);
-
-                                        // Находим индексы начала и конца этапа в массиве days
-                                        const stageStartIndex = days.findIndex(day => {
-                                          const dayDate = new Date(day);
-                                          dayDate.setHours(0, 0, 0, 0);
-                                          return dayDate.getTime() === stageStartDate.getTime();
-                                        });
-
-                                        const stageEndIndex = days.findIndex(day => {
-                                          const dayDate = new Date(day);
-                                          dayDate.setHours(0, 0, 0, 0);
-                                          return dayDate.getTime() === stageEndDate.getTime();
-                                        });
-
-                                        // Пропускаем этапы, которые полностью вне видимого периода
-                                        if (stageStartIndex === -1 && stageEndIndex === -1) return null;
-
-                                        // Вычисляем относительную позицию этапа внутри чипа изделия
-                                        // Если этап начинается до начала чипа изделия - начинаем с 0
-                                        const relativeStartIndex = Math.max(0, stageStartIndex - position.startIndex);
-                                        // Если этап заканчивается после конца чипа изделия - заканчиваем на ширине чипа
-                                        const relativeEndIndex = Math.min(
-                                          position.daysCount - 1,
-                                          stageEndIndex !== -1 ? stageEndIndex - position.startIndex : position.daysCount - 1
-                                        );
-
-                                        // Если относительный индекс начала больше чем индекс конца - пропускаем
-                                        if (relativeStartIndex > relativeEndIndex || relativeStartIndex < 0 || relativeEndIndex < 0) return null;
-
-                                        const stageWidth = (relativeEndIndex - relativeStartIndex + 1) * 39;
-                                        const stageLeft = relativeStartIndex * 39;
-
-                                        return (
-                                          <Box
-                                            key={stage.id}
-                                            sx={{
-                                              position: 'absolute',
-                                              left: `${stageLeft}px`,
-                                              width: `${stageWidth}px`,
-                                              height: '12px',
-                                              backgroundColor: '#1A3A5A',
-                                              color: '#B6BEC9',
-                                              borderRadius: '2px',
-                                              border: '1px solid #0254A5',
-                                              padding: '0',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              overflow: 'hidden',
-                                              fontSize: '9px',
-                                              fontWeight: 400,
-                                              zIndex: 6,
-                                              textAlign: 'center'
-                                            }}
-                                            title={stage.nomenclatureItem?.name || 'Этап работ'}
-                                          >
-                                            <Box
-                                              sx={{
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                              }}
-                                            >
-                                              {stage.nomenclatureItem?.name || 'Этап'}
-                                            </Box>
-                                          </Box>
-                                        );
-                                      })
-                                      .filter(Boolean)}
-                                  </Box>
-                                )}
+                              </Box>
+                            );
+                          })}
+                          {/* Чипы этапов работ (основные элементы) для этой строки */}
+                          {stagesForRow.map((stage) => {
+                            if (!stage.position) return null;
+                            
+                            return (
+                              <Box
+                                key={stage.id}
+                                sx={{
+                                  position: 'absolute',
+                                  left: `${stage.position.left}px`,
+                                  width: `${stage.position.width}px`,
+                                  bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
+                                  height: '12px',
+                                  backgroundColor: '#1A3A5A',
+                                  color: '#B6BEC9',
+                                  borderRadius: '2px',
+                                  border: '1px solid #0254A5',
+                                  padding: '0',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  overflow: 'hidden',
+                                  fontSize: '9px',
+                                  fontWeight: 400,
+                                  zIndex: 7, // Поверх чипа изделия
+                                  textAlign: 'center'
+                                }}
+                                title={stage.nomenclatureItem?.name || 'Этап работ'}
+                              >
+                                <Box
+                                  sx={{
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                >
+                                  {stage.nomenclatureItem?.name || 'Этап'}
+                                </Box>
                               </Box>
                             );
                           })}
