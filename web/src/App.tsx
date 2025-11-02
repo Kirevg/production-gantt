@@ -3620,7 +3620,8 @@ export default function App() {
                               borderRight: index < days.length - 1 ? `thin solid ${borderRightColor}` : 'none',
                               borderTop: 'thin solid #4B4F50',
                               borderBottom: 'thin solid #4B4F50',
-                              position: 'relative'
+                              position: 'relative',
+                              boxSizing: 'border-box'
                             }}
                           >
                             {isFirstDayOfMonth && monthGroup && (
@@ -3680,7 +3681,8 @@ export default function App() {
                               cursor: 'pointer',
                               backgroundColor: 'transparent',
                               borderRight: index < days.length - 1 ? 'thin solid #4B4F50' : 'none',
-                              borderBottom: 'thin solid #4B4F50'
+                              borderBottom: 'thin solid #4B4F50',
+                              boxSizing: 'border-box'
                             }}
                           >
                             <Typography
@@ -3713,10 +3715,10 @@ export default function App() {
                       // Функция для вычисления позиции изделия в календаре
                       const getProductPosition = (product: ProductChip) => {
                         if (!product.startDate || !product.endDate) return null;
-
+                        
                         const startDate = new Date(product.startDate);
                         const endDate = new Date(product.endDate);
-
+                        
                         // Находим индекс дня начала в массиве days
                         const startIndex = days.findIndex(day => {
                           const dayDate = new Date(day);
@@ -3725,12 +3727,23 @@ export default function App() {
                           productStart.setHours(0, 0, 0, 0);
                           return dayDate.getTime() === productStart.getTime();
                         });
-
+                        
                         if (startIndex === -1) return null;
-
+                        
+                        // Находим индекс дня окончания в массиве days
+                        const endIndex = days.findIndex(day => {
+                          const dayDate = new Date(day);
+                          dayDate.setHours(0, 0, 0, 0);
+                          const productEnd = new Date(endDate);
+                          productEnd.setHours(0, 0, 0, 0);
+                          return dayDate.getTime() === productEnd.getTime();
+                        });
+                        
+                        if (endIndex === -1) return null;
+                        
                         // Вычисляем количество дней между началом и концом изделия
-                        const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
+                        const daysDiff = endIndex - startIndex + 1;
+                        
                         return {
                           left: startIndex * 39, // Позиция слева в пикселях
                           width: daysDiff * 39,  // Ширина в пикселях (39px на день - ширина ячейки)
@@ -3801,6 +3814,7 @@ export default function App() {
                                   borderTop: `thin solid ${borderTopColor}`,
                                   borderBottom: `thin solid ${borderBottomColor}`,
                                   position: 'relative',
+                                  boxSizing: 'border-box'
                                 }}
                               />
                             );
