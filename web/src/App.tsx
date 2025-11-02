@@ -4093,28 +4093,12 @@ export default function App() {
                                 )}
                                 {/* Первая строка: название проекта и изделия */}
                                 {(() => {
-                                  // Компонент для названия изделия с проверкой обрезки текста
+                                  // Компонент для названия изделия с подсказкой в 2 строки
                                   const ProductNameComponent = React.memo(() => {
                                     const textRef = React.useRef<HTMLDivElement>(null);
-                                    const [isTextOverflowing, setIsTextOverflowing] = React.useState(false);
-                                    const fullText = `${product.projectName} • ${product.productName}`;
-
-                                    React.useEffect(() => {
-                                      // Проверяем, обрезан ли текст
-                                      const checkOverflow = () => {
-                                        if (textRef.current) {
-                                          const isOverflowing = textRef.current.scrollWidth > textRef.current.clientWidth;
-                                          setIsTextOverflowing(isOverflowing);
-                                        }
-                                      };
-
-                                      checkOverflow();
-
-                                      // Перепроверяем при изменении размера
-                                      const timeoutId = setTimeout(checkOverflow, 100);
-
-                                      return () => clearTimeout(timeoutId);
-                                    }, [fullText]);
+                                    
+                                    // Формируем текст подсказки в 2 строки: первая - проект, вторая - изделие
+                                    const tooltipTitle = `${product.projectName}\n${product.productName}`;
 
                                     const nameBox = (
                                       <Box
@@ -4133,20 +4117,23 @@ export default function App() {
                                       </Box>
                                     );
 
-                                    // Показываем Tooltip только если текст обрезан
-                                    if (isTextOverflowing) {
-                                      return (
-                                        <Tooltip
-                                          title={fullText}
-                                          enterDelay={1000}
-                                          arrow
-                                        >
-                                          {nameBox}
-                                        </Tooltip>
-                                      );
-                                    }
-
-                                    return nameBox;
+                                    // Tooltip показывается всегда с полной информацией в 2 строки
+                                    return (
+                                      <Tooltip
+                                        title={tooltipTitle}
+                                        enterDelay={1000}
+                                        arrow
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              whiteSpace: 'pre-line' // Позволяет отображать переносы строк
+                                            }
+                                          }
+                                        }}
+                                      >
+                                        {nameBox}
+                                      </Tooltip>
+                                    );
                                   });
 
                                   return <ProductNameComponent key={`${product.id}-name`} />;
