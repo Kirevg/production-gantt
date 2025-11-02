@@ -3770,14 +3770,21 @@ export default function App() {
                       continue;
                     }
 
-                    // Проверяем, не пересекается ли с другими этапами в строке (с учетом бордюров этапов)
+                    // Проверяем, не пересекается ли с другими этапами в строке
+                    // Этапы одного изделия (productId) могут перекрываться друг с другом
+                    // Этапы разных изделий не должны пересекаться
                     const overlaps = rows[i].some(otherStage => {
                       if (!otherStage.position || !stage.position) return false;
-                      // Проверяем пересечение интервалов (этапы с бордюрами могут касаться друг друга)
-                      // Бордюры этапов учитываются при проверке пересечений (1px с каждой стороны)
+                      
+                      // Если этапы одного изделия - разрешаем перекрытие
+                      if (stage.productId === otherStage.productId) {
+                        return false; // Этапы одного изделия могут перекрываться
+                      }
+                      
+                      // Для этапов разных изделий проверяем пересечение интервалов
                       const stageEnd = stage.position.startIndex + stage.position.daysCount;
                       const otherStageEnd = otherStage.position.startIndex + otherStage.position.daysCount;
-                      // Этапы пересекаются, если их интервалы дней перекрываются
+                      // Этапы разных изделий пересекаются, если их интервалы дней перекрываются
                       return !(stage.position.startIndex >= otherStageEnd || otherStage.position.startIndex >= stageEnd);
                     });
 
@@ -4096,7 +4103,7 @@ export default function App() {
                                   // Компонент для названия изделия с подсказкой в 2 строки
                                   const ProductNameComponent = React.memo(() => {
                                     const textRef = React.useRef<HTMLDivElement>(null);
-                                    
+
                                     // Формируем текст подсказки в 2 строки: первая - проект, вторая - изделие
                                     const tooltipTitle = `${product.projectName}\n${product.productName}`;
 
