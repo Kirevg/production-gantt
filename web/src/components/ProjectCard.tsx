@@ -52,6 +52,7 @@ interface Product {
     description?: string;
     quantity?: number;
     productSum?: number;
+    status?: string; // Статус изделия
     version?: number;
     orderIndex?: number;
     createdAt: string;
@@ -747,9 +748,36 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                 <TableCell sx={{ py: 0.5, minWidth: '250px' }}>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                        {product.product?.name || 'Без названия'}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {/* Лампочка статуса изделия */}
+                        {(() => {
+                            const productStatus = product.status || 'InProject';
+                            let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
+                            if (productStatus === 'Done') {
+                                statusColor = '#81C784'; // Зеленый - готово
+                            } else if (productStatus === 'HasProblems') {
+                                statusColor = '#E57373'; // Красный - проблема
+                            } else if (productStatus === 'InProgress') {
+                                statusColor = '#64B5F6'; // Синий - в работе
+                            }
+
+                            return (
+                                <Box
+                                    sx={{
+                                        width: '12px',
+                                        height: '12px',
+                                        borderRadius: '50%',
+                                        backgroundColor: statusColor,
+                                        border: '1px solid rgba(0,0,0,0.2)',
+                                        flexShrink: 0
+                                    }}
+                                />
+                            );
+                        })()}
+                        <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                            {product.product?.name || 'Без названия'}
+                        </Typography>
+                    </Box>
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
                     <Typography variant="body1">
