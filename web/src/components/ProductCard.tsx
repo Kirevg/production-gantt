@@ -31,6 +31,7 @@ import {
     Balance as BalanceIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
+import EditStageDialog from './EditStageDialog';
 
 // Интерфейсы для спецификаций
 interface ProjectSpecification {
@@ -1459,108 +1460,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </Dialog>
 
             {/* Диалог создания/редактирования этапа */}
-            <Dialog open={openStageDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
-                <DialogTitle>
-                    {editingStage ? 'Редактировать этап' : 'Создать этап'}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                        <FormControl fullWidth required>
-                            <InputLabel>Вид работ</InputLabel>
-                            <Select
-                                value={stageForm.workTypeId}
-                                onChange={(e) => setStageForm({ ...stageForm, workTypeId: e.target.value })}
-                                label="Вид работ"
-                                required
-                            >
-                                <MenuItem value="">
-                                    <em>Не выбран</em>
-                                </MenuItem>
-                                {workTypes.map((workType) => (
-                                    <MenuItem key={workType.id} value={workType.id}>
-                                        {workType.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth>
-                            <InputLabel>Исполнитель</InputLabel>
-                            <Select
-                                value={stageForm.assigneeId}
-                                onChange={(e) => setStageForm({ ...stageForm, assigneeId: e.target.value })}
-                                label="Исполнитель"
-                            >
-                                <MenuItem value="">
-                                    <em>Не выбран</em>
-                                </MenuItem>
-                                {contractors.map((contractor) => (
-                                    <MenuItem key={contractor.id} value={contractor.id}>
-                                        {contractor.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <TextField
-                                label="Сумма"
-                                value={stageForm.sum}
-                                onChange={(e) => setStageForm({ ...stageForm, sum: e.target.value })}
-                                sx={{ flex: 1 }}
-                            />
-                            <TextField
-                                label="Часов"
-                                value={stageForm.hours}
-                                onChange={(e) => setStageForm({ ...stageForm, hours: e.target.value })}
-                                sx={{ flex: 1 }}
-                            />
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <TextField
-                                label="Дата начала"
-                                type="date"
-                                value={stageForm.startDate}
-                                onChange={(e) => setStageForm({ ...stageForm, startDate: e.target.value })}
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ flex: 1 }}
-                                InputProps={{
-                                    inputProps: {
-                                        lang: 'ru-RU'
-                                    },
-                                    endAdornment: (
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => {
-                                                const input = document.querySelector('input[type="date"]') as HTMLInputElement;
-                                                if (input) {
-                                                    input.showPicker();
-                                                }
-                                            }}
-                                            sx={{ mr: 1 }}
-                                        >
-                                            <CalendarIcon fontSize="small" />
-                                        </IconButton>
-                                    )
-                                }}
-                            />
-                            <TextField
-                                label="Срок (дни)"
-                                type="number"
-                                value={stageForm.duration}
-                                onChange={(e) => setStageForm({ ...stageForm, duration: parseInt(e.target.value) || 1 })}
-                                sx={{ flex: 1 }}
-                            />
-                        </Box>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <VolumeButton onClick={handleSaveStage} color="blue">
-                        {editingStage ? 'Сохранить' : 'Создать'}
-                    </VolumeButton>
-                    <VolumeButton onClick={handleCloseStageDialog} color="orange">
-                        Отмена
-                    </VolumeButton>
-                </DialogActions>
-            </Dialog>
+            <EditStageDialog
+                open={openStageDialog}
+                editing={!!editingStage}
+                stageForm={stageForm}
+                workTypes={workTypes}
+                contractors={contractors}
+                onClose={handleCloseStageDialog}
+                onSave={handleSaveStage}
+                onChange={setStageForm}
+            />
 
             {/* Диалог редактирования/создания изделия */}
             <Dialog

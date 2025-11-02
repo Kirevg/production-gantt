@@ -50,6 +50,7 @@ import {
     Delete as DeleteIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
+import EditStageDialog from './EditStageDialog';
 
 
 interface Stage {
@@ -99,8 +100,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         startDate: '',
         duration: 1,
         workTypeId: '',
-        assigneeId: '',
-        progress: 0
+        assigneeId: ''
     });
 
     const formatDate = (dateString: string) => {
@@ -267,8 +267,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 startDate: formattedDate,
                 duration: stage.duration || 1,
                 workTypeId: stage.nomenclatureItem?.id || stage.nomenclatureItemId || '',
-                assigneeId: stage.assignee?.id || stage.assigneeId || '',
-                progress: stage.progress
+                assigneeId: stage.assignee?.id || stage.assigneeId || ''
             });
         } else {
             setEditingStage(null);
@@ -278,8 +277,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 startDate: '',
                 duration: 1,
                 workTypeId: '',
-                assigneeId: '',
-                progress: 0
+                assigneeId: ''
             });
         }
         setOpenStageDialog(true);
@@ -294,8 +292,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             startDate: '',
             duration: 1,
             workTypeId: '',
-            assigneeId: '',
-            progress: 0
+            assigneeId: ''
         });
     };
 
@@ -332,7 +329,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 duration: stageForm.duration,
                 nomenclatureItemId: stageForm.workTypeId || undefined,
                 assigneeId: stageForm.assigneeId || undefined,
-                progress: stageForm.progress,
+                progress: editingStage?.progress || 0,
                 productId: productId
             };
 
@@ -565,120 +562,16 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             )}
 
             {/* Диалог создания/редактирования этапа */}
-            <Dialog open={openStageDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
-                <DialogTitle>
-                    {editingStage ? 'Редактировать этап' : 'Создать этап'}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                        <FormControl fullWidth required>
-                            <InputLabel shrink>Вид работ</InputLabel>
-                            <Select
-                                value={stageForm.workTypeId}
-                                onChange={(e) => setStageForm({ ...stageForm, workTypeId: e.target.value })}
-                                label="Вид работ"
-                                required
-                                notched
-                            >
-                                <MenuItem value="">
-                                    <em>Не выбран</em>
-                                </MenuItem>
-                                {workTypes.map((workType) => (
-                                    <MenuItem key={workType.id} value={workType.id}>
-                                        {workType.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth>
-                            <InputLabel shrink>Исполнитель</InputLabel>
-                            <Select
-                                value={stageForm.assigneeId}
-                                onChange={(e) => setStageForm({ ...stageForm, assigneeId: e.target.value })}
-                                label="Исполнитель"
-                                notched
-                            >
-                                <MenuItem value="">
-                                    <em>Не выбран</em>
-                                </MenuItem>
-                                {contractors.map((contractor) => (
-                                    <MenuItem key={contractor.id} value={contractor.id}>
-                                        {contractor.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <TextField
-                                label="Сумма"
-                                value={stageForm.sum}
-                                onChange={(e) => setStageForm({ ...stageForm, sum: e.target.value })}
-                                sx={{ flex: 1 }}
-                            />
-                            <TextField
-                                label="Часов"
-                                value={stageForm.hours}
-                                onChange={(e) => setStageForm({ ...stageForm, hours: e.target.value })}
-                                sx={{ flex: 1 }}
-                            />
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <Box sx={{ flex: 1, position: 'relative' }}>
-                                <TextField
-                                    label="Дата начала"
-                                    type="date"
-                                    value={stageForm.startDate ? (typeof stageForm.startDate === 'string' ? stageForm.startDate.split('T')[0] : new Date(stageForm.startDate).toISOString().split('T')[0]) : ''}
-                                    onChange={(e) => {
-                                        setStageForm({ ...stageForm, startDate: e.target.value });
-                                    }}
-                                    InputLabelProps={{ shrink: true }}
-                                    sx={{ width: '100%' }}
-                                    InputProps={{
-                                        endAdornment: (
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    const input = e.currentTarget.parentElement?.querySelector('input[type="date"]') as HTMLInputElement;
-                                                    if (input) {
-                                                        input.focus();
-                                                        // Используем setTimeout для корректного вызова showPicker
-                                                        setTimeout(() => {
-                                                            try {
-                                                                input.showPicker?.();
-                                                            } catch (error) {
-                                                                // Если showPicker не работает, просто фокусируемся
-                                                                input.click();
-                                                            }
-                                                        }, 0);
-                                                    }
-                                                }}
-                                                sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}
-                                            >
-                                                📅
-                                            </IconButton>
-                                        )
-                                    }}
-                                />
-                            </Box>
-                            <TextField
-                                label="Срок"
-                                type="number"
-                                value={stageForm.duration}
-                                onChange={(e) => setStageForm({ ...stageForm, duration: parseInt(e.target.value) || 1 })}
-                                inputProps={{ min: 1 }}
-                                sx={{ flex: 1 }}
-                            />
-                        </Box>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseStageDialog}>Отмена</Button>
-                    <Button onClick={handleSaveStage} variant="contained" sx={{ fontSize: '14px' }}>
-                        {editingStage ? 'Сохранить' : 'Создать'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <EditStageDialog
+                open={openStageDialog}
+                editing={!!editingStage}
+                stageForm={stageForm}
+                workTypes={workTypes}
+                contractors={contractors}
+                onClose={handleCloseStageDialog}
+                onSave={handleSaveStage}
+                onChange={setStageForm}
+            />
         </Box>
     );
 };
