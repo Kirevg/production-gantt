@@ -4135,7 +4135,7 @@ export default function App() {
                                     const nameBox = (
                                       <Box
                                         ref={textRef}
-                                        sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}
+                                        sx={{ display: 'flex', alignItems: 'center', lineHeight: '14px', overflow: 'hidden' }}
                                       >
                                         {/* Лампочка статуса изделия */}
                                         <Box
@@ -4148,13 +4148,13 @@ export default function App() {
                                             flexShrink: 0
                                           }}
                                         />
-                                        <Box component="span" sx={{ color: '#DDBB88' }}>
+                                        <Box component="span" sx={{ color: '#DDBB88', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                           {product.projectName}
                                         </Box>
-                                        <Box component="span" sx={{ mx: '4px', color: '#B6BEC9' }}>
+                                        <Box component="span" sx={{ mx: '4px', color: '#B6BEC9', flexShrink: 0 }}>
                                           •
                                         </Box>
-                                        <Box component="span" sx={{ color: '#9966B8' }}>
+                                        <Box component="span" sx={{ color: '#9966B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                           {product.productName}
                                         </Box>
                                       </Box>
