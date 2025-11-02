@@ -274,7 +274,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             setStageForm({
                 sum: '',
                 hours: '',
-                startDate: '',
+                startDate: new Date().toISOString().split('T')[0], // Сегодняшняя дата
                 duration: 1,
                 workTypeId: '',
                 assigneeId: ''
