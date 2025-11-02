@@ -4119,8 +4119,19 @@ export default function App() {
                                   const ProductNameComponent = React.memo(() => {
                                     const textRef = React.useRef<HTMLDivElement>(null);
 
-                                    // Формируем текст подсказки в 2 строки: первая - проект, вторая - изделие
-                                    const tooltipTitle = `${product.projectName}\n${product.productName}`;
+                                    // Определяем статус текстом на русском
+                                    const getStatusText = (status: string) => {
+                                      switch (status) {
+                                        case 'InProject': return 'В проекте';
+                                        case 'InProgress': return 'В работе';
+                                        case 'Done': return 'Готово';
+                                        case 'HasProblems': return 'Проблема';
+                                        default: return 'В проекте';
+                                      }
+                                    };
+
+                                    // Формируем текст подсказки: первая строка - статус, вторая - проект, третья - изделие
+                                    const tooltipTitle = `Статус: ${getStatusText(product.productStatus || 'InProject')}\n${product.projectName}\n${product.productName}`;
 
                                     // Определяем цвет лампочки в зависимости от статуса изделия
                                     let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
