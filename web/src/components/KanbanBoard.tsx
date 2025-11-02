@@ -483,11 +483,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 return;
             }
 
-            // Вычисляем дату окончания
-            // duration уже включает даты начала и окончания, поэтому вычитаем 1 день
+            // Вычисляем дату окончания: дата начала + срок (дней)
             const startDate = new Date(stageForm.startDate);
             const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + stageForm.duration - 1);
+            endDate.setDate(startDate.getDate() + stageForm.duration);
 
             const requestData = {
                 sum: stageForm.sum,

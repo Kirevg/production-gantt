@@ -53,6 +53,16 @@ const EditStageDialog: React.FC<EditStageDialogProps> = ({
     formatSum,
     sumFieldProps
 }) => {
+    // Вычисляем дату окончания: дата начала + срок (дней)
+    const calculateEndDate = (): string => {
+        if (!stageForm.startDate) return '';
+        const startDate = new Date(stageForm.startDate);
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + stageForm.duration);
+        return endDate.toISOString().split('T')[0];
+    };
+
+    const calculatedEndDate = calculateEndDate();
     return (
         <Dialog open={open} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
             <DialogTitle>
@@ -164,6 +174,23 @@ const EditStageDialog: React.FC<EditStageDialogProps> = ({
                             sx={{ flex: 1 }}
                         />
                     </Box>
+
+                    {/* Дата окончания (вычисляемое поле) */}
+                    {calculatedEndDate && (
+                        <TextField
+                            label="Дата окончания"
+                            type="date"
+                            value={calculatedEndDate}
+                            InputLabelProps={{ shrink: true }}
+                            disabled
+                            fullWidth
+                            sx={{
+                                '& .MuiInputBase-input.Mui-disabled': {
+                                    WebkitTextFillColor: 'rgba(0, 0, 0, 0.6)'
+                                }
+                            }}
+                        />
+                    )}
                 </Box>
             </DialogContent>
             <DialogActions>
