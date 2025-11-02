@@ -372,7 +372,8 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             if (stageForm.startDate && stageForm.startDate.trim() !== '') {
                 startDate = new Date(stageForm.startDate);
                 endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + stageForm.duration);
+                // endDate = startDate + (duration - 1) дней, т.к. дата начала считается как 1 день
+                endDate.setDate(startDate.getDate() + stageForm.duration - 1);
             }
 
             const requestData: any = {

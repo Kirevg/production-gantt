@@ -53,12 +53,13 @@ const EditStageDialog: React.FC<EditStageDialogProps> = ({
     formatSum,
     sumFieldProps
 }) => {
-    // Вычисляем дату окончания: дата начала + срок (дней)
+    // Вычисляем дату окончания: дата начала + (срок - 1) дней
+    // Например: startDate=01.11, duration=1 -> endDate=01.11 (1 день включает дату начала)
     const calculateEndDate = (): string => {
         if (!stageForm.startDate) return '';
         const startDate = new Date(stageForm.startDate);
         const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + stageForm.duration);
+        endDate.setDate(startDate.getDate() + stageForm.duration - 1);
         return endDate.toISOString().split('T')[0];
     };
 
