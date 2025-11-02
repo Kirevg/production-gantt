@@ -3715,10 +3715,10 @@ export default function App() {
                       // Функция для вычисления позиции изделия в календаре
                       const getProductPosition = (product: ProductChip) => {
                         if (!product.startDate || !product.endDate) return null;
-                        
+
                         const startDate = new Date(product.startDate);
                         const endDate = new Date(product.endDate);
-                        
+
                         // Находим индекс дня начала в массиве days
                         const startIndex = days.findIndex(day => {
                           const dayDate = new Date(day);
@@ -3727,9 +3727,9 @@ export default function App() {
                           productStart.setHours(0, 0, 0, 0);
                           return dayDate.getTime() === productStart.getTime();
                         });
-                        
+
                         if (startIndex === -1) return null;
-                        
+
                         // Находим индекс дня окончания в массиве days
                         const endIndex = days.findIndex(day => {
                           const dayDate = new Date(day);
@@ -3738,12 +3738,12 @@ export default function App() {
                           productEnd.setHours(0, 0, 0, 0);
                           return dayDate.getTime() === productEnd.getTime();
                         });
-                        
+
                         if (endIndex === -1) return null;
-                        
+
                         // Вычисляем количество дней между началом и концом изделия
                         const daysDiff = endIndex - startIndex + 1;
-                        
+
                         return {
                           left: startIndex * 39, // Позиция слева в пикселях
                           width: daysDiff * 39,  // Ширина в пикселях (39px на день - ширина ячейки)
@@ -3828,7 +3828,7 @@ export default function App() {
                                   position: 'absolute',
                                   left: `${position.left}px`,
                                   width: `${position.width}px`,
-                                  height: '40px',
+                                  height: '38px',
                                   backgroundColor: '#1976d2',
                                   color: 'white',
                                   borderRadius: '4px',
