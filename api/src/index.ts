@@ -27,6 +27,24 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// Прокси для производственного календаря РФ
+app.get('/api/calendar/:year', async (req, res) => {
+  try {
+    const { year } = req.params;
+    const response = await fetch(`https://calendar.kuzyak.in/api/calendar/${year}`);
+    
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch calendar' });
+    }
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Ошибка загрузки календаря:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
 app.use('/projects', productRoutes);

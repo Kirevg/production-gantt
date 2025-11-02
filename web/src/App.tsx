@@ -2838,7 +2838,7 @@ export default function App() {
   const fetchHolidaysCalendar = useCallback(async () => {
     try {
       const year = calendarDate.getFullYear();
-      const response = await fetch(`https://calendar.kuzyak.in/api/calendar/${year}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/calendar/${year}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -2852,7 +2852,7 @@ export default function App() {
 
       const data = await response.json();
       const holidaysMap = new Map<string, boolean>();
-      
+
       // Преобразуем данные в Map с ключом в формате YYYY-MM-DD
       if (data.calendar && Array.isArray(data.calendar)) {
         data.calendar.forEach((day: any) => {
