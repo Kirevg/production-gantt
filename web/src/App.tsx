@@ -2870,12 +2870,10 @@ export default function App() {
           const dateStr = day.date ? day.date.split('T')[0] : day.date; // Формат: YYYY-MM-DD
           shortDaysMap.set(dateStr, true);
         });
-        console.log('📅 Сокращенные дни:', Array.from(shortDaysMap.keys()));
       }
 
       setHolidays(holidaysMap);
       setShortDays(shortDaysMap);
-      console.log('✅ Производственный календарь загружен, праздничных дней:', holidaysMap.size, 'сокращенных дней:', shortDaysMap.size);
     } catch (error) {
       console.error('Ошибка загрузки производственного календаря:', error);
     }
@@ -3997,11 +3995,6 @@ export default function App() {
                         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6) && !isShortDay; // Выходной, если не сокращенный день
                         // Красный цвет для выходных и праздничных дней (производственный календарь)
                         const isRedDay = isWeekend || isHolidayDay;
-
-                        // Отладочный вывод для ноября 2025
-                        if (day.getMonth() === 10 && day.getFullYear() === 2025 && day.getDate() <= 5) {
-                          console.log(`📅 ${dateStr} (${day.getDate()} ноября): isWeekend=${dayOfWeek === 0 || dayOfWeek === 6}, isShortDay=${!!isShortDay}, isRedDay=${isRedDay}`);
-                        }
                         return (
                           <Box
                             key={index}
