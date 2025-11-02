@@ -3609,7 +3609,7 @@ export default function App() {
 
                   const startDate = new Date(product.startDate);
                   const endDate = new Date(product.endDate);
-                  
+
                   // Нормализуем даты (убираем время)
                   startDate.setHours(0, 0, 0, 0);
                   endDate.setHours(0, 0, 0, 0);
@@ -3628,7 +3628,7 @@ export default function App() {
 
                   // Определяем, нужно ли обрезать слева
                   const isCutLeft = startDate < periodStart;
-                  
+
                   // Определяем, нужно ли обрезать справа
                   const isCutRight = endDate > periodEnd;
 
@@ -3898,10 +3898,10 @@ export default function App() {
                                   background: position.isCutLeft && position.isCutRight
                                     ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px, #0B2037 calc(100% - 20px), rgba(11, 32, 55, 0.3))'
                                     : position.isCutLeft
-                                    ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px)'
-                                    : position.isCutRight
-                                    ? 'linear-gradient(to left, rgba(11, 32, 55, 0.3), #0B2037 20px)'
-                                    : '#0B2037'
+                                      ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px)'
+                                      : position.isCutRight
+                                        ? 'linear-gradient(to left, rgba(11, 32, 55, 0.3), #0B2037 20px)'
+                                        : '#0B2037'
                                 }}
                                 onClick={() => {
                                   // Можно добавить обработчик клика по карточке изделия
@@ -3964,7 +3964,7 @@ export default function App() {
                                     />
                                   </Box>
                                 )}
-                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
+                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px', color: '#FFD700' }}>
                                   {product.projectName}
                                 </Box>
                                 <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
