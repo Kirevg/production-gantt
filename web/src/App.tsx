@@ -2572,6 +2572,7 @@ export default function App() {
   const [calendarDate, setCalendarDate] = useState<Date>(new Date()); // Текущая дата календаря
   const [_calendarProjects, setCalendarProjects] = useState<Project[]>([]); // Проекты для отображения в календаре (оставлено для обратной совместимости)
   const [calendarProducts, setCalendarProducts] = useState<ProductChip[]>([]); // Изделия для отображения в календаре
+  const [holidays, setHolidays] = useState<Map<string, boolean>>(new Map()); // Праздничные дни из производственного календаря РФ
 
   // Состояние для показа/скрытия состава проекта
   const [showProjectComposition, setShowProjectComposition] = useState(false);
@@ -2833,12 +2834,49 @@ export default function App() {
   }, [user]);
 
   // Загружаем проекты при изменении пользователя или календаря
+  // Функция для загрузки производственного календаря РФ
+  const fetchHolidaysCalendar = useCallback(async () => {
+    try {
+      const year = calendarDate.getFullYear();
+      const response = await fetch(`https://calendar.kuzyak.in/api/calendar/${year}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Ошибка загрузки календаря:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      const holidaysMap = new Map<string, boolean>();
+      
+      // Преобразуем данные в Map с ключом в формате YYYY-MM-DD
+      if (data.calendar && Array.isArray(data.calendar)) {
+        data.calendar.forEach((day: any) => {
+          if (day.isHoliday || day.isDayOff || day.isShort) {
+            const dateStr = day.date; // Формат: YYYY-MM-DD
+            holidaysMap.set(dateStr, true);
+          }
+        });
+      }
+
+      setHolidays(holidaysMap);
+      console.log('✅ Производственный календарь загружен, праздничных дней:', holidaysMap.size);
+    } catch (error) {
+      console.error('Ошибка загрузки производственного календаря:', error);
+    }
+  }, [calendarDate]);
+
   useEffect(() => {
     if (user) {
       fetchCalendarProjects();
       fetchCalendarProducts();
+      fetchHolidaysCalendar(); // Загружаем производственный календарь
     }
-  }, [user, fetchCalendarProjects, fetchCalendarProducts]);
+  }, [user, fetchCalendarProjects, fetchCalendarProducts, fetchHolidaysCalendar]);
 
   // Обновляем данные календаря при переключении на вкладку Главная
   useEffect(() => {
@@ -2846,6 +2884,11 @@ export default function App() {
       fetchCalendarProducts();
     }
   }, [user, currentTab, fetchCalendarProducts]);
+
+  // Обновляем производственный календарь при смене года
+  useEffect(() => {
+    fetchHolidaysCalendar();
+  }, [calendarDate.getFullYear(), fetchHolidaysCalendar]);
 
   // Функция для восстановления из резервной копии
   const handleRestoreBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -3930,8 +3973,9 @@ export default function App() {
                         // Определяем выходной день (суббота = 6, воскресенье = 0)
                         const dayOfWeek = day.getDay();
                         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                        // Определяем праздничный день
-                        const isHolidayDay = isHoliday(day);
+                        // Определяем праздничный день из производственного календаря РФ
+                        const dateStr = day.toISOString().split('T')[0]; // Формат: YYYY-MM-DD
+                        const isHolidayDay = holidays.get(dateStr) || isHoliday(day); // Используем данные API, если есть, иначе старую функцию
                         // Красный цвет для выходных и праздничных дней (производственный календарь)
                         const isRedDay = isWeekend || isHolidayDay;
                         return (
