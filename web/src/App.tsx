@@ -4130,9 +4130,6 @@ export default function App() {
                                       }
                                     };
 
-                                    // Формируем текст подсказки: первая строка - статус с лампочкой (Unicode U+1F4A1), вторая - проект, третья - изделие
-                                    const tooltipTitle = `💡 ${getStatusText(product.productStatus || 'InProject')}\n${product.projectName}\n${product.productName}`;
-
                                     // Определяем цвет лампочки в зависимости от статуса изделия
                                     let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
                                     if (product.productStatus === 'Done') {
@@ -4171,19 +4168,40 @@ export default function App() {
                                       </Box>
                                     );
 
-                                    // Tooltip показывается всегда с полной информацией в 2 строки
+                                    // Кастомный компонент для Tooltip с цветной лампочкой
+                                    const CustomTooltipContent = (
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: '4px' }}>
+                                        <Box
+                                          sx={{
+                                            width: '10px',
+                                            height: '10px',
+                                            borderRadius: '50%',
+                                            backgroundColor: statusColor,
+                                            flexShrink: 0
+                                          }}
+                                        />
+                                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                          {getStatusText(product.productStatus || 'InProject')}
+                                        </Typography>
+                                      </Box>
+                                    );
+
+                                    // Tooltip показывается всегда с полной информацией: статус с лампочкой, проект, изделие
                                     return (
                                       <Tooltip
-                                        title={tooltipTitle}
+                                        title={
+                                          <Box>
+                                            {CustomTooltipContent}
+                                            <Box component="div">
+                                              {product.projectName}
+                                            </Box>
+                                            <Box component="div">
+                                              {product.productName}
+                                            </Box>
+                                          </Box>
+                                        }
                                         enterDelay={1000}
                                         arrow
-                                        componentsProps={{
-                                          tooltip: {
-                                            sx: {
-                                              whiteSpace: 'pre-line' // Позволяет отображать переносы строк
-                                            }
-                                          }
-                                        }}
                                       >
                                         {nameBox}
                                       </Tooltip>
