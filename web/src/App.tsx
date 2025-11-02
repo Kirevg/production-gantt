@@ -4173,18 +4173,16 @@ export default function App() {
                                 const end2 = stage2.position.startIndex + stage2.position.daysCount - 1; // Последний день второго этапа (индекс)
 
                                 // Проверяем, перекрываются ли этапы
-                                // Логика: каждое начало чипа со следующей даты перекрывает конец предыдущей
-                                // Это означает: если этап 1 заканчивается в день N, а этап 2 начинается в день N+1, то это перекрытие
-                                // Но для штриховки нужно реальное пересечение по датам
-                                // Этапы перекрываются, если начало одного < конец другого (не <=, чтобы исключить случай, когда они не пересекаются)
-                                const overlaps = start1 < end2 && start2 < end1;
+                                // Логика: если дата начала одного этапа = дате окончания другого, это перекрытие
+                                // Этапы перекрываются, если начало одного <= конец другого И начало другого <= конец первого
+                                const overlaps = start1 <= end2 && start2 <= end1;
 
                                 if (overlaps) {
                                   // Есть перекрытие - вычисляем область пересечения
                                   // Область пересечения: от начала более позднего до конца более раннего (включительно)
                                   const intersectionStart = Math.max(start1, start2);
                                   const intersectionEnd = Math.min(end1, end2) + 1; // +1 чтобы включить последний день пересечения
-                                  
+
                                   // Добавляем диапазон только если есть реальное пересечение (минимум 1 день)
                                   if (intersectionStart < intersectionEnd) {
                                     intersectionRanges.push({
@@ -4286,7 +4284,7 @@ export default function App() {
                                   // Вычисляем незаштрихованную область для текущего чипа этапа
                                   const stageStart = stage.position.startIndex;
                                   const stageEnd = stage.position.startIndex + stage.position.daysCount;
-                                  
+
                                   // Находим пересечения, которые затрагивают текущий чип (используем индексы дней напрямую)
                                   const affectingIntersections = intersections.filter(intersection => {
                                     // Проверяем, пересекается ли пересечение с текущим чипом используя индексы дней
@@ -4296,7 +4294,7 @@ export default function App() {
                                   // Определяем незаштрихованную область
                                   let unshadedStart = stageStart;
                                   let unshadedEnd = stageEnd;
-                                  
+
                                   // Если есть пересечения, находим самый большой незаштрихованный сегмент
                                   if (affectingIntersections.length > 0) {
                                     // Используем индексы дней напрямую и сортируем
@@ -4416,10 +4414,12 @@ export default function App() {
                                       left: `${intersection.left}px`,
                                       width: `${intersection.width}px`,
                                       bottom: '4px',
-                                      height: '16px',
-                                      backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255, 255, 255, 0.15) 4px, rgba(255, 255, 255, 0.15) 8px)',
+                                      height: '14px',
+                                      backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255, 255, 255, 0.3) 2px, rgba(255, 255, 255, 0.3) 4px)',
+                                      backgroundColor: 'transparent',
+                                      border: '1px solid #0254A5',
                                       pointerEvents: 'none',
-                                      zIndex: 8, // Поверх чипов этапов
+                                      zIndex: 15, // Поверх чипов этапов
                                       borderRadius: '3px'
                                     }}
                                   />
