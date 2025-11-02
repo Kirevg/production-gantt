@@ -916,10 +916,33 @@ const ProductCard: React.FC<ProductCardProps> = ({
             });
         } else {
             setEditingStage(null);
+            
+            // Определяем начальную дату: если есть этапы - берем последнюю дату окончания + 1 день, иначе - сегодня
+            let initialStartDate = new Date().toISOString().split('T')[0];
+            if (stages && stages.length > 0) {
+                // Находим самую позднюю дату окончания среди всех этапов
+                const latestEndDate = stages.reduce((latest, stage) => {
+                    if (stage.endDate) {
+                        const endDate = new Date(stage.endDate);
+                        if (!latest || endDate > latest) {
+                            return endDate;
+                        }
+                    }
+                    return latest;
+                }, null as Date | null);
+                
+                if (latestEndDate) {
+                    // Прибавляем 1 день к последней дате окончания
+                    const nextStartDate = new Date(latestEndDate);
+                    nextStartDate.setDate(nextStartDate.getDate() + 1);
+                    initialStartDate = nextStartDate.toISOString().split('T')[0];
+                }
+            }
+            
             setStageForm({
                 sum: '',
                 hours: '',
-                startDate: new Date().toISOString().split('T')[0], // Сегодняшняя дата
+                startDate: initialStartDate,
                 duration: 1,
                 workTypeId: '',
                 assigneeId: ''

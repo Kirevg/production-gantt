@@ -723,6 +723,29 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     const handleAddStage = (productId: string) => {
         // console.log('Добавить этап работ в изделие:', productId);
 
+        // Определяем начальную дату: если есть этапы для этого изделия - берем последнюю дату окончания + 1 день, иначе - сегодня
+        let initialStartDate = new Date().toISOString().split('T')[0];
+        const productStages = kanbanTasks.filter(task => task.productId === productId);
+        if (productStages && productStages.length > 0) {
+            // Находим самую позднюю дату окончания среди всех этапов изделия
+            const latestEndDate = productStages.reduce((latest, task) => {
+                if (task.end) {
+                    const endDate = new Date(task.end);
+                    if (!latest || endDate > latest) {
+                        return endDate;
+                    }
+                }
+                return latest;
+            }, null as Date | null);
+            
+            if (latestEndDate) {
+                // Прибавляем 1 день к последней дате окончания
+                const nextStartDate = new Date(latestEndDate);
+                nextStartDate.setDate(nextStartDate.getDate() + 1);
+                initialStartDate = nextStartDate.toISOString().split('T')[0];
+            }
+        }
+
         // Создаем пустую задачу для нового этапа
         const newTask: KanbanTask = {
             id: '', // Будет создан на сервере
@@ -745,11 +768,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             projectManager: null
         };
 
-        // Устанавливаем пустую форму
+        // Устанавливаем форму с вычисленной начальной датой
         setStageForm({
             sum: '',
             hours: '',
-            startDate: new Date().toISOString().split('T')[0], // Сегодняшняя дата
+            startDate: initialStartDate,
             duration: 1,
             workTypeId: '',
             assigneeId: ''
