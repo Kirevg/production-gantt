@@ -54,6 +54,7 @@ interface KanbanTask {
     hours?: string;
     projectId?: string;
     projectName?: string;
+    projectOrderIndex?: number;
     productId?: string;
     productName?: string;
     productDescription?: string | null; // Описание из справочника Product
@@ -366,6 +367,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     workTypeId: stage.workTypeId || null,
                     projectId: stage.projectId,
                     projectName: stage.projectName || 'Проект',
+                    projectOrderIndex: stage.projectOrderIndex,
                     productId: stage.productId,
                     productName: stage.productName || 'Изделие',
                     productDescription: stage.productDescription || null, // Описание из Product
@@ -893,7 +895,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                     projectsMap.get(task.projectId || '')?.push(task);
                                 });
 
-                                return Array.from(projectsMap.entries()).map(([projectId, tasks]) => {
+                                // Сортируем проекты по projectOrderIndex
+                                return Array.from(projectsMap.entries())
+                                    .sort((a, b) => {
+                                        const orderA = a[1][0]?.projectOrderIndex ?? 999999;
+                                        const orderB = b[1][0]?.projectOrderIndex ?? 999999;
+                                        return orderA - orderB;
+                                    })
+                                    .map(([projectId, tasks]) => {
                                     const projectName = tasks[0]?.projectName || 'Без проекта';
 
                                     // Теперь группируем этапы этого проекта по изделиям

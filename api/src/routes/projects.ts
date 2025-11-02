@@ -177,6 +177,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       },
       projectId: stage.product.project.id,
       projectName: stage.product.project.name,
+      projectOrderIndex: stage.product.project.orderIndex,
       productId: stage.product.id,
       productName: stage.product.product?.name || 'Изделие', // Теперь правильно получаем название из справочника
       productDescription: stage.product.product?.description || null, // Описание из справочника Product
@@ -223,6 +224,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
           workTypeId: null,
           projectId: project.id,
           projectName: project.name,
+          projectOrderIndex: project.orderIndex,
           productId: null, // Нет изделия
           productName: null,
           productDescription: null,
@@ -257,6 +259,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
               workTypeId: null,
               projectId: project.id,
               projectName: project.name,
+              projectOrderIndex: project.orderIndex,
               productId: projectProduct.id,
               productName: projectProduct.product?.name || 'Изделие',
               productDescription: projectProduct.product?.description || null,
