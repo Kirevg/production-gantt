@@ -3770,6 +3770,17 @@ export default function App() {
                       continue;
                     }
 
+                    // Проверяем, есть ли в строке уже этап другого изделия
+                    // Каждое изделие должно быть в своей строке
+                    const hasDifferentProduct = rows[i].some(otherStage =>
+                      otherStage.productId !== stage.productId
+                    );
+
+                    // Если в строке уже есть этап другого изделия - пропускаем эту строку
+                    if (hasDifferentProduct) {
+                      continue;
+                    }
+
                     // Проверяем, не пересекается ли с другими этапами в строке
                     // Этапы одного изделия (productId) могут перекрываться друг с другом
                     // Этапы разных изделий не должны пересекаться
