@@ -4084,17 +4084,65 @@ export default function App() {
                                   </Box>
                                 )}
                                 {/* Первая строка: название проекта и изделия */}
-                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
-                                  <Box component="span" sx={{ color: '#DDBB88' }}>
-                                    {product.projectName}
-                                  </Box>
-                                  <Box component="span" sx={{ mx: '4px', color: '#B6BEC9' }}>
-                                    •
-                                  </Box>
-                                  <Box component="span" sx={{ color: '#9966B8' }}>
-                                    {product.productName}
-                                  </Box>
-                                </Box>
+                                {(() => {
+                                  // Компонент для названия изделия с проверкой обрезки текста
+                                  const ProductNameComponent = React.memo(() => {
+                                    const textRef = React.useRef<HTMLDivElement>(null);
+                                    const [isTextOverflowing, setIsTextOverflowing] = React.useState(false);
+                                    const fullText = `${product.projectName} • ${product.productName}`;
+
+                                    React.useEffect(() => {
+                                      // Проверяем, обрезан ли текст
+                                      const checkOverflow = () => {
+                                        if (textRef.current) {
+                                          const isOverflowing = textRef.current.scrollWidth > textRef.current.clientWidth;
+                                          setIsTextOverflowing(isOverflowing);
+                                        }
+                                      };
+                                      
+                                      checkOverflow();
+                                      
+                                      // Перепроверяем при изменении размера
+                                      const timeoutId = setTimeout(checkOverflow, 100);
+                                      
+                                      return () => clearTimeout(timeoutId);
+                                    }, [fullText]);
+
+                                    const nameBox = (
+                                      <Box 
+                                        ref={textRef}
+                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}
+                                      >
+                                        <Box component="span" sx={{ color: '#DDBB88' }}>
+                                          {product.projectName}
+                                        </Box>
+                                        <Box component="span" sx={{ mx: '4px', color: '#B6BEC9' }}>
+                                          •
+                                        </Box>
+                                        <Box component="span" sx={{ color: '#9966B8' }}>
+                                          {product.productName}
+                                        </Box>
+                                      </Box>
+                                    );
+
+                                    // Показываем Tooltip только если текст обрезан
+                                    if (isTextOverflowing) {
+                                      return (
+                                        <Tooltip
+                                          title={fullText}
+                                          enterDelay={1000}
+                                          arrow
+                                        >
+                                          {nameBox}
+                                        </Tooltip>
+                                      );
+                                    }
+
+                                    return nameBox;
+                                  });
+
+                                  return <ProductNameComponent key={`${product.id}-name`} />;
+                                })()}
                               </Box>
                             );
                           })}
@@ -4103,7 +4151,7 @@ export default function App() {
                             if (!stage.position) return null;
 
                             const stageName = stage.nomenclatureItem?.name || 'Этап работ';
-                            
+
                             // Компонент для чипа этапа с проверкой обрезки текста
                             const StageChipComponent = React.memo(() => {
                               const textRef = React.useRef<HTMLDivElement>(null);
@@ -4117,12 +4165,12 @@ export default function App() {
                                     setIsTextOverflowing(isOverflowing);
                                   }
                                 };
-                                
+
                                 checkOverflow();
-                                
+
                                 // Перепроверяем при изменении размера (ResizeObserver не используется для простоты)
                                 const timeoutId = setTimeout(checkOverflow, 100);
-                                
+
                                 return () => clearTimeout(timeoutId);
                               }, []);
 
