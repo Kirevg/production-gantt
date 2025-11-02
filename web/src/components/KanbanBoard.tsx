@@ -64,6 +64,7 @@ interface KanbanTask {
     projectStatus?: string;
     assigneeId?: string | null;
     workTypeId?: string | null;
+    orderIndex?: number; // Индекс порядка этапа работ
     projectManager?: {
         name: string;
         phone: string | null;
@@ -264,36 +265,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     // const [overId, setOverId] = useState<string | null>(null);
     // const [shouldMove, setShouldMove] = useState<boolean>(false);
 
-    // Функция загрузки сохраненного порядка из localStorage
-    const loadSavedOrder = (tasks: KanbanTask[]): KanbanTask[] => {
-        try {
-            const savedOrder = localStorage.getItem('kanban-task-order');
-            if (!savedOrder) return tasks;
-
-            const orderData = JSON.parse(savedOrder);
-            // console.log('📂 Загружен сохраненный порядок:', orderData);
-
-            // Создаем карту порядка по ID задачи
-            const orderMap = new Map();
-            orderData.forEach((item: any) => {
-                orderMap.set(item.id, item.order);
-            });
-
-            // Сортируем задачи по сохраненному порядку
-            const sortedTasks = [...tasks].sort((a, b) => {
-                const orderA = orderMap.get(a.id) ?? 999999; // Новые задачи в конец
-                const orderB = orderMap.get(b.id) ?? 999999;
-                return orderA - orderB;
-            });
-
-            // console.log('🔄 Применен сохраненный порядок');
-            return sortedTasks;
-        } catch (error) {
-            console.warn('Ошибка загрузки сохраненного порядка:', error);
-            return tasks;
-        }
-    };
-
     // Загрузка данных для канбан-доски
     const fetchKanbanData = async () => {
         try {
@@ -376,6 +347,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     productDescription: stage.productDescription || null, // Описание из Product
                     serialNumber: stage.serialNumber || null,
                     projectStatus: stage.projectStatus,
+                    orderIndex: stage.orderIndex || 0, // Индекс порядка этапа работ
                     projectManager: stage.projectManager || null
                 };
             }).filter(Boolean);
@@ -383,9 +355,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // console.log('🎯 Преобразованные задачи:', tasks);
             // console.log('🔍 Количество задач:', tasks.length);
 
-            // Применяем сохраненный порядок
-            const orderedTasks = loadSavedOrder(tasks);
-            setKanbanTasks(orderedTasks);
+            // Порядок уже отсортирован в API по orderIndex
+            setKanbanTasks(tasks);
         } catch (err) {
             console.error('Ошибка загрузки данных канбан-доски:', err);
             setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
@@ -647,16 +618,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     // Функция сохранения порядка этапов
     const saveTaskOrder = async (tasks: KanbanTask[]) => {
         try {
-            // Сохраняем порядок в localStorage для персистентности
-            const taskOrder = tasks.map((task, index) => ({
-                id: task.id,
-                order: index,
-                productId: task.productId
-            }));
-
-            localStorage.setItem('kanban-task-order', JSON.stringify(taskOrder));
-            // console.log('💾 Порядок этапов сохранен в localStorage:', taskOrder);
-
             // Группируем этапы по изделиям для отправки на сервер
             const stagesByProduct = new Map<string, Array<{ id: string; order: number }>>();
 
@@ -675,7 +636,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Отправляем обновления для каждого изделия
             const token = localStorage.getItem('token');
             if (!token) {
-                console.warn('Токен не найден, сохраняем только в localStorage');
+                console.warn('Токен не найден');
                 return;
             }
 
@@ -707,6 +668,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             await Promise.all(updatePromises);
             // console.log('✅ Все обновления порядка этапов завершены');
+            
+            // Обновляем данные для синхронизации с сервером
+            await fetchKanbanData();
         } catch (error) {
             console.error('Ошибка сохранения порядка этапов:', error);
         }

@@ -171,6 +171,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       hours: stage.hours || '0',
       assigneeId: stage.assigneeId || null, // ID исполнителя
       workTypeId: stage.nomenclatureItemId || null, // ID вида работ
+      orderIndex: stage.orderIndex || 0, // Индекс порядка этапа работ
       // Логируем для отладки
       _debug: {
         nomenclatureItemId: stage.nomenclatureItemId,
