@@ -1036,11 +1036,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 productId: productId
             };
 
-            if (!editingStage) {
-                requestData.orderIndex = 0;
-            }
-
-
             const response = await fetch(url, {
                 method,
                 headers: {

@@ -375,7 +375,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 endDate.setDate(startDate.getDate() + stageForm.duration);
             }
 
-            const requestData = {
+            const requestData: any = {
                 sum: stageForm.sum,
                 hours: stageForm.hours,
                 startDate: stageForm.startDate || null,
@@ -388,11 +388,8 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             };
 
             if (editingStage) {
-                (requestData as any).version = editingStage.version;
-            } else {
-                (requestData as any).orderIndex = 0;
+                requestData.version = editingStage.version;
             }
-
 
             const response = await fetch(url, {
                 method,

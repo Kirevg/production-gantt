@@ -294,8 +294,19 @@ router.post('/products/:productId/work-stages', authenticateToken, requireRole([
       return res.status(400).json({ error: 'Product ID is required' });
     }
 
+    // Получаем максимальный orderIndex для изделия
+    const lastStage = await prisma.workStage.findFirst({
+      where: { productId: productId },
+      orderBy: { orderIndex: 'desc' }
+    });
+
+    const orderIndex = lastStage ? lastStage.orderIndex + 1 : 0;
+
     const workStage = await prisma.workStage.create({
-      data: data as any
+      data: {
+        ...data as any,
+        orderIndex: orderIndex
+      }
     });
 
     res.status(201).json(workStage);
