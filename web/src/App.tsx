@@ -3733,7 +3733,7 @@ export default function App() {
 
                         return {
                           left: startIndex * 39, // Позиция слева в пикселях
-                          width: daysDiff * 40,  // Ширина в пикселях (40px на день)
+                          width: daysDiff * 39,  // Ширина в пикселях (39px на день - ширина ячейки)
                           startIndex,
                           daysCount: daysDiff
                         };
