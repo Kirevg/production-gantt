@@ -3872,7 +3872,7 @@ export default function App() {
                                 key={index}
                                 sx={{
                                   width: '39px',
-                                  minHeight: '72px', // Увеличена высота для чипов изделий с этапами работ
+                                  minHeight: '40px',
                                   flexShrink: 0,
                                   borderRight: index < days.length - 1 ? 'thin solid #262D33' : 'none',
                                   borderTop: `thin solid ${borderTopColor}`,
@@ -3892,7 +3892,7 @@ export default function App() {
                                   position: 'absolute',
                                   left: `${position.left}px`,
                                   width: `${position.width}px`,
-                                  height: '70px', // Увеличили высоту для второй строки с этапами
+                                  height: '38px',
                                   color: '#B6BEC9',
                                   borderRadius: '4px',
                                   border: '1px solid #0254A5',
@@ -3906,7 +3906,6 @@ export default function App() {
                                   fontSize: '12px',
                                   fontWeight: 500,
                                   boxSizing: 'border-box',
-                                  gap: '4px', // Отступ между строками
                                   // Градиент для обрезки с фоном
                                   background: position.isCutLeft && position.isCutRight
                                     ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px, #0B2037 calc(100% - 20px), rgba(11, 32, 55, 0.3))'
@@ -3991,7 +3990,7 @@ export default function App() {
                                 </Box>
                                 {/* Вторая строка: чипы этапов работ */}
                                 {product.workStages && product.workStages.length > 0 && (
-                                  <Box sx={{ position: 'relative', height: '20px', mt: '4px' }}>
+                                  <Box sx={{ position: 'relative', height: '14px', mt: '2px' }}>
                                     {product.workStages
                                       .filter((stage) => stage.startDate && stage.endDate)
                                       .map((stage) => {
@@ -4039,16 +4038,16 @@ export default function App() {
                                               position: 'absolute',
                                               left: `${stageLeft}px`,
                                               width: `${stageWidth}px`,
-                                              height: '18px',
+                                              height: '12px',
                                               backgroundColor: '#1A3A5A',
                                               color: '#B6BEC9',
                                               borderRadius: '2px',
                                               border: '1px solid #0254A5',
-                                              padding: '0 4px',
+                                              padding: '0 2px',
                                               display: 'flex',
                                               alignItems: 'center',
                                               overflow: 'hidden',
-                                              fontSize: '10px',
+                                              fontSize: '9px',
                                               fontWeight: 400,
                                               zIndex: 6
                                             }}
