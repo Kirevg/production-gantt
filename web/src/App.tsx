@@ -3983,7 +3983,11 @@ export default function App() {
                       {days.map((day, index) => {
                         const isToday = day.toDateString() === new Date().toDateString();
                         // Определяем праздничный день из производственного календаря РФ
-                        const dateStr = day.toISOString().split('T')[0]; // Формат: YYYY-MM-DD
+                        // Используем локальное время, а не UTC для корректной даты в России
+                        const year = day.getFullYear();
+                        const month = String(day.getMonth() + 1).padStart(2, '0');
+                        const date = String(day.getDate()).padStart(2, '0');
+                        const dateStr = `${year}-${month}-${date}`; // Формат: YYYY-MM-DD
                         const isHolidayDay = holidays.get(dateStr) || isHoliday(day); // Используем данные API, если есть, иначе старую функцию
                         // Определяем сокращенный день (рабочий, но на 1 час короче)
                         const isShortDay = shortDays.get(dateStr);
@@ -3993,7 +3997,7 @@ export default function App() {
                         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6) && !isShortDay; // Выходной, если не сокращенный день
                         // Красный цвет для выходных и праздничных дней (производственный календарь)
                         const isRedDay = isWeekend || isHolidayDay;
-                        
+
                         // Отладочный вывод для ноября 2025
                         if (day.getMonth() === 10 && day.getFullYear() === 2025 && day.getDate() <= 5) {
                           console.log(`📅 ${dateStr} (${day.getDate()} ноября): isWeekend=${dayOfWeek === 0 || dayOfWeek === 6}, isShortDay=${!!isShortDay}, isRedDay=${isRedDay}`);
