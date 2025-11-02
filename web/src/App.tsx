@@ -3695,22 +3695,22 @@ export default function App() {
 
                   // Вычисляем количество дней между началом и концом этапа в отображаемом периоде
                   const daysDiff = endIndex - startIndex + 1;
-                  
+
                   // Ячейки календаря имеют ширину 39px включая бордюр справа (1px) с box-sizing: border-box
                   // Чипы этапов имеют бордюр 1px с каждой стороны с box-sizing: border-box
                   // Чип этапа должен помещаться внутри ячейки вместе со своими бордюрами
                   // Между соседними чипами всегда будет бордюр ячейки (1px)
                   const cellWidth = 39; // Ширина ячейки включая бордюр справа
-                  
+
                   // Позиция чипа этапа: левая граница первой ячейки
                   // Чип этапа начинается с позиции левой границы ячейки (без смещения, бордюры внутри ячейки)
                   const left = startIndex * cellWidth;
-                  
+
                   // Ширина чипа этапа: суммарная ширина всех ячеек
                   // Чип занимает всю ширину ячеек, его бордюры учитываются внутри через box-sizing: border-box
                   // Между соседними чипами (в разных ячейках) будет бордюр ячейки (1px)
                   const width = daysDiff * cellWidth;
-                  
+
                   return {
                     left, // Позиция слева - левая граница первой ячейки
                     width, // Ширина чипа = суммарная ширина всех ячеек (чип помещается внутри с бордюрами)
@@ -4105,11 +4105,11 @@ export default function App() {
                                   position: 'absolute',
                                   left: `${stage.position.left}px`,
                                   width: `${stage.position.width}px`,
-                                  bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
-                                  height: '12px',
+                                  bottom: '3px', // Позиция внизу чипа изделия (3px от нижнего края)
+                                  height: '14px',
                                   backgroundColor: '#1A3A5A',
                                   color: '#B6BEC9',
-                                  borderRadius: '2px',
+                                  borderRadius: '3px',
                                   border: '1px solid #0254A5',
                                   padding: '0',
                                   display: 'flex',
