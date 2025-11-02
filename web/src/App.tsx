@@ -4180,9 +4180,9 @@ export default function App() {
                                             flexShrink: 0
                                           }}
                                         />
-                                        <Typography variant="body2">
+                                        <Box component="span">
                                           {getStatusText(product.productStatus || 'InProject')}
-                                        </Typography>
+                                        </Box>
                                       </Box>
                                     );
 
@@ -4192,12 +4192,12 @@ export default function App() {
                                         title={
                                           <Box>
                                             {CustomTooltipContent}
-                                            <Typography variant="body2">
+                                            <Box component="div">
                                               {product.projectName}
-                                            </Typography>
-                                            <Typography variant="body2">
+                                            </Box>
+                                            <Box component="div">
                                               {product.productName}
-                                            </Typography>
+                                            </Box>
                                           </Box>
                                         }
                                         enterDelay={1000}
