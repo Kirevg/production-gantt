@@ -274,6 +274,12 @@ interface ProductChip {
   productName: string;         // Название изделия
   startDate: string;           // Дата начала (самая ранняя из этапов работ)
   endDate: string;             // Дата окончания (самая поздняя из этапов работ)
+  workStages?: Array<{         // Этапы работ изделия
+    id: string;
+    startDate: string | null;
+    endDate: string | null;
+    nomenclatureItem?: { name: string } | null;
+  }>;
 }
 
 // Интерфейс для руководителя проекта
@@ -2793,7 +2799,13 @@ export default function App() {
                     projectName: project.name,
                     productName: product.product?.name || 'Не указано',
                     startDate: earliestStart.toISOString(),
-                    endDate: latestEnd.toISOString()
+                    endDate: latestEnd.toISOString(),
+                    workStages: product.workStages.map((stage: any) => ({
+                      id: stage.id,
+                      startDate: stage.startDate,
+                      endDate: stage.endDate,
+                      nomenclatureItem: stage.nomenclatureItem ? { name: stage.nomenclatureItem.name } : null
+                    }))
                   });
                 }
               }
@@ -3860,7 +3872,7 @@ export default function App() {
                                 key={index}
                                 sx={{
                                   width: '39px',
-                                  minHeight: '40px',
+                                  minHeight: '72px', // Увеличена высота для чипов изделий с этапами работ
                                   flexShrink: 0,
                                   borderRight: index < days.length - 1 ? 'thin solid #262D33' : 'none',
                                   borderTop: `thin solid ${borderTopColor}`,
@@ -3880,20 +3892,21 @@ export default function App() {
                                   position: 'absolute',
                                   left: `${position.left}px`,
                                   width: `${position.width}px`,
-                                  height: '38px',
+                                  height: '70px', // Увеличили высоту для второй строки с этапами
                                   color: '#B6BEC9',
                                   borderRadius: '4px',
                                   border: '1px solid #0254A5',
                                   padding: '4px 8px',
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  justifyContent: 'center',
-                                  overflow: 'hidden',
+                                  justifyContent: 'flex-start',
+                                  overflow: 'visible', // Изменено с 'hidden' на 'visible', чтобы чипы этапов были видны
                                   cursor: 'pointer',
                                   zIndex: 5,
                                   fontSize: '12px',
                                   fontWeight: 500,
                                   boxSizing: 'border-box',
+                                  gap: '4px', // Отступ между строками
                                   // Градиент для обрезки с фоном
                                   background: position.isCutLeft && position.isCutRight
                                     ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px, #0B2037 calc(100% - 20px), rgba(11, 32, 55, 0.3))'
@@ -3964,6 +3977,7 @@ export default function App() {
                                     />
                                   </Box>
                                 )}
+                                {/* Первая строка: название проекта и изделия */}
                                 <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
                                   <Box component="span" sx={{ color: '#DDBB88' }}>
                                     {product.projectName}
@@ -3975,6 +3989,87 @@ export default function App() {
                                     {product.productName}
                                   </Box>
                                 </Box>
+                                {/* Вторая строка: чипы этапов работ */}
+                                {product.workStages && product.workStages.length > 0 && (
+                                  <Box sx={{ position: 'relative', height: '20px', mt: '4px' }}>
+                                    {product.workStages
+                                      .filter((stage) => stage.startDate && stage.endDate)
+                                      .map((stage) => {
+                                        // Вычисляем позицию этапа относительно начала чипа изделия
+                                        const stageStartDate = new Date(stage.startDate!);
+                                        stageStartDate.setHours(0, 0, 0, 0);
+                                        const stageEndDate = new Date(stage.endDate!);
+                                        stageEndDate.setHours(0, 0, 0, 0);
+
+                                        // Находим индексы начала и конца этапа в массиве days
+                                        const stageStartIndex = days.findIndex(day => {
+                                          const dayDate = new Date(day);
+                                          dayDate.setHours(0, 0, 0, 0);
+                                          return dayDate.getTime() === stageStartDate.getTime();
+                                        });
+
+                                        const stageEndIndex = days.findIndex(day => {
+                                          const dayDate = new Date(day);
+                                          dayDate.setHours(0, 0, 0, 0);
+                                          return dayDate.getTime() === stageEndDate.getTime();
+                                        });
+
+                                        // Пропускаем этапы, которые полностью вне видимого периода
+                                        if (stageStartIndex === -1 && stageEndIndex === -1) return null;
+
+                                        // Вычисляем относительную позицию этапа внутри чипа изделия
+                                        // Если этап начинается до начала чипа изделия - начинаем с 0
+                                        const relativeStartIndex = Math.max(0, stageStartIndex - position.startIndex);
+                                        // Если этап заканчивается после конца чипа изделия - заканчиваем на ширине чипа
+                                        const relativeEndIndex = Math.min(
+                                          position.daysCount - 1,
+                                          stageEndIndex !== -1 ? stageEndIndex - position.startIndex : position.daysCount - 1
+                                        );
+
+                                        // Если относительный индекс начала больше чем индекс конца - пропускаем
+                                        if (relativeStartIndex > relativeEndIndex || relativeStartIndex < 0 || relativeEndIndex < 0) return null;
+
+                                        const stageWidth = (relativeEndIndex - relativeStartIndex + 1) * 39;
+                                        const stageLeft = relativeStartIndex * 39;
+
+                                        return (
+                                          <Box
+                                            key={stage.id}
+                                            sx={{
+                                              position: 'absolute',
+                                              left: `${stageLeft}px`,
+                                              width: `${stageWidth}px`,
+                                              height: '18px',
+                                              backgroundColor: '#1A3A5A',
+                                              color: '#B6BEC9',
+                                              borderRadius: '2px',
+                                              border: '1px solid #0254A5',
+                                              padding: '0 4px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              overflow: 'hidden',
+                                              fontSize: '10px',
+                                              fontWeight: 400,
+                                              zIndex: 6
+                                            }}
+                                            title={stage.nomenclatureItem?.name || 'Этап работ'}
+                                          >
+                                            <Box
+                                              sx={{
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                                width: '100%'
+                                              }}
+                                            >
+                                              {stage.nomenclatureItem?.name || 'Этап'}
+                                            </Box>
+                                          </Box>
+                                        );
+                                      })
+                                      .filter(Boolean)}
+                                  </Box>
+                                )}
                               </Box>
                             );
                           })}
