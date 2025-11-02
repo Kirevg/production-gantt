@@ -2884,9 +2884,15 @@ export default function App() {
     if (user) {
       fetchCalendarProjects();
       fetchCalendarProducts();
-      fetchHolidaysCalendar(); // Загружаем производственный календарь
     }
-  }, [user, fetchCalendarProjects, fetchCalendarProducts, fetchHolidaysCalendar]);
+  }, [user, fetchCalendarProjects, fetchCalendarProducts]);
+
+  // Загружаем производственный календарь отдельно от других данных
+  useEffect(() => {
+    if (user) {
+      fetchHolidaysCalendar();
+    }
+  }, [user, calendarDate.getFullYear(), fetchHolidaysCalendar]);
 
   // Обновляем данные календаря при переключении на вкладку Главная
   useEffect(() => {
@@ -2894,11 +2900,6 @@ export default function App() {
       fetchCalendarProducts();
     }
   }, [user, currentTab, fetchCalendarProducts]);
-
-  // Обновляем производственный календарь при смене года
-  useEffect(() => {
-    fetchHolidaysCalendar();
-  }, [calendarDate.getFullYear(), fetchHolidaysCalendar]);
 
   // Функция для восстановления из резервной копии
   const handleRestoreBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
