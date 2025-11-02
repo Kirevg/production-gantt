@@ -4192,12 +4192,12 @@ export default function App() {
                                         title={
                                           <Box>
                                             {CustomTooltipContent}
-                                            <Box component="div">
+                                            <Typography variant="body2">
                                               {product.projectName}
-                                            </Box>
-                                            <Box component="div">
+                                            </Typography>
+                                            <Typography variant="body2">
                                               {product.productName}
-                                            </Box>
+                                            </Typography>
                                           </Box>
                                         }
                                         enterDelay={1000}
