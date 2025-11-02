@@ -3981,16 +3981,17 @@ export default function App() {
                     <Box sx={{ display: 'flex' }}>
                       {days.map((day, index) => {
                         const isToday = day.toDateString() === new Date().toDateString();
-                        // Определяем выходной день (суббота = 6, воскресенье = 0)
-                        const dayOfWeek = day.getDay();
-                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
                         // Определяем праздничный день из производственного календаря РФ
                         const dateStr = day.toISOString().split('T')[0]; // Формат: YYYY-MM-DD
                         const isHolidayDay = holidays.get(dateStr) || isHoliday(day); // Используем данные API, если есть, иначе старую функцию
-                        // Красный цвет для выходных и праздничных дней (производственный календарь)
-                        const isRedDay = isWeekend || isHolidayDay;
                         // Определяем сокращенный день (рабочий, но на 1 час короче)
                         const isShortDay = shortDays.get(dateStr);
+                        // Определяем выходной день (суббота = 6, воскресенье = 0)
+                        // НО: если день в shortDays - это рабочий день, даже если это суббота/воскресенье
+                        const dayOfWeek = day.getDay();
+                        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6) && !isShortDay; // Выходной, если не сокращенный день
+                        // Красный цвет для выходных и праздничных дней (производственный календарь)
+                        const isRedDay = isWeekend || isHolidayDay;
                         return (
                           <Box
                             key={index}
