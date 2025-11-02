@@ -4046,10 +4046,12 @@ export default function App() {
                                               padding: '0',
                                               display: 'flex',
                                               alignItems: 'center',
+                                              justifyContent: 'center',
                                               overflow: 'hidden',
                                               fontSize: '9px',
                                               fontWeight: 400,
-                                              zIndex: 6
+                                              zIndex: 6,
+                                              textAlign: 'center'
                                             }}
                                             title={stage.nomenclatureItem?.name || 'Этап работ'}
                                           >
@@ -4057,8 +4059,7 @@ export default function App() {
                                               sx={{
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                                width: '100%'
+                                                whiteSpace: 'nowrap'
                                               }}
                                             >
                                               {stage.nomenclatureItem?.name || 'Этап'}
