@@ -4181,9 +4181,9 @@ export default function App() {
 
                                 if (overlaps) {
                                   // Есть перекрытие - вычисляем область пересечения
-                                  // Область пересечения: от начала более позднего до конца более раннего
+                                  // Область пересечения: от начала более позднего до конца более раннего (включительно)
                                   const intersectionStart = Math.max(start1, start2);
-                                  const intersectionEnd = Math.min(end1, end2);
+                                  const intersectionEnd = Math.min(end1, end2) + 1; // +1 чтобы включить последний день пересечения
                                   
                                   // Добавляем диапазон только если есть реальное пересечение (минимум 1 день)
                                   if (intersectionStart < intersectionEnd) {
@@ -4214,11 +4214,13 @@ export default function App() {
                               }
                             }
 
-                            // Преобразуем объединенные диапазоны в пиксельные координаты
+                            // Преобразуем объединенные диапазоны в пиксельные координаты и храним также индексы дней
                             const cellWidth = 39;
                             const intersections = mergedIntersections.map(range => ({
                               left: range.start * cellWidth,
-                              width: (range.end - range.start) * cellWidth
+                              width: (range.end - range.start) * cellWidth,
+                              startIndex: range.start, // Индекс дня начала пересечения (включительно)
+                              endIndex: range.end      // Индекс дня конца пересечения (включительно, последний день + 1)
                             }));
 
                             return (
@@ -4285,12 +4287,10 @@ export default function App() {
                                   const stageStart = stage.position.startIndex;
                                   const stageEnd = stage.position.startIndex + stage.position.daysCount;
                                   
-                                  // Находим пересечения, которые затрагивают текущий чип
+                                  // Находим пересечения, которые затрагивают текущий чип (используем индексы дней напрямую)
                                   const affectingIntersections = intersections.filter(intersection => {
-                                    const intersectionStart = intersection.left / 39; // Преобразуем в индексы дней
-                                    const intersectionEnd = (intersection.left + intersection.width) / 39;
-                                    // Проверяем, пересекается ли пересечение с текущим чипом
-                                    return !(intersectionEnd <= stageStart || intersectionStart >= stageEnd);
+                                    // Проверяем, пересекается ли пересечение с текущим чипом используя индексы дней
+                                    return !(intersection.endIndex <= stageStart || intersection.startIndex >= stageEnd);
                                   });
 
                                   // Определяем незаштрихованную область
@@ -4299,16 +4299,16 @@ export default function App() {
                                   
                                   // Если есть пересечения, находим самый большой незаштрихованный сегмент
                                   if (affectingIntersections.length > 0) {
-                                    // Преобразуем пересечения в индексы дней и сортируем
+                                    // Используем индексы дней напрямую и сортируем
                                     const shadedRanges = affectingIntersections.map(intersection => ({
-                                      start: intersection.left / 39,
-                                      end: (intersection.left + intersection.width) / 39
+                                      start: intersection.startIndex,
+                                      end: intersection.endIndex
                                     })).sort((a, b) => a.start - b.start);
 
                                     // Находим незаштрихованные сегменты
                                     const unshadedSegments: Array<{ start: number; end: number }> = [];
                                     let currentStart = stageStart;
-                                    
+
                                     for (const shaded of shadedRanges) {
                                       // Если есть незаштрихованная область до текущего заштрихованного диапазона
                                       if (currentStart < shaded.start) {
@@ -4319,7 +4319,7 @@ export default function App() {
                                       }
                                       currentStart = Math.max(currentStart, shaded.end);
                                     }
-                                    
+
                                     // Добавляем последний незаштрихованный сегмент
                                     if (currentStart < stageEnd) {
                                       unshadedSegments.push({
@@ -4327,7 +4327,7 @@ export default function App() {
                                         end: stageEnd
                                       });
                                     }
-                                    
+
                                     // Находим самый большой незаштрихованный сегмент
                                     if (unshadedSegments.length > 0) {
                                       const largestSegment = unshadedSegments.reduce((max, seg) => {
