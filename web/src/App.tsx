@@ -4174,18 +4174,18 @@ export default function App() {
                             // Первая строка: название этапа • исполнитель
                             const firstLineParts: string[] = [];
                             firstLineParts.push(stage.nomenclatureItem?.name || 'Этап работ');
-                            
+
                             if (stage.assignee?.name) {
                               firstLineParts.push(stage.assignee.name);
                             } else {
                               firstLineParts.push('Не указан');
                             }
-                            
+
                             // Вторая строка: дата старта • дата финиша • продолжительность
                             const secondLineParts: string[] = [];
                             secondLineParts.push(formatDate(stage.startDate));
                             secondLineParts.push(formatDate(stage.endDate));
-                            
+
                             // Продолжительность
                             if (stage.duration !== null && stage.duration !== undefined) {
                               secondLineParts.push(`${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
@@ -4257,6 +4257,13 @@ export default function App() {
                                 title={tooltipTitle}
                                 enterDelay={1000}
                                 arrow
+                                componentsProps={{
+                                  tooltip: {
+                                    sx: {
+                                      whiteSpace: 'pre-line' // Позволяет отображать переносы строк
+                                    }
+                                  }
+                                }}
                               >
                                 {chipBox}
                               </Tooltip>
