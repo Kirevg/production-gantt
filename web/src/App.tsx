@@ -4180,7 +4180,7 @@ export default function App() {
                                             flexShrink: 0
                                           }}
                                         />
-                                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                        <Typography variant="body2">
                                           {getStatusText(product.productStatus || 'InProject')}
                                         </Typography>
                                       </Box>
