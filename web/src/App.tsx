@@ -3835,10 +3835,9 @@ export default function App() {
                                   border: '1px solid #0254A5',
                                   padding: '4px 8px',
                                   display: 'flex',
-                                  alignItems: 'center',
+                                  flexDirection: 'column',
+                                  justifyContent: 'center',
                                   overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
                                   cursor: 'pointer',
                                   zIndex: 5,
                                   fontSize: '12px',
@@ -3850,7 +3849,12 @@ export default function App() {
                                   console.log('Клик по изделию:', product.productName, 'проект:', product.projectName);
                                 }}
                               >
-                                {product.projectName} - {product.productName}
+                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
+                                  {product.projectName}
+                                </Box>
+                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
+                                  {product.productName}
+                                </Box>
                               </Box>
                             );
                           })}
