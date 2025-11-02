@@ -3830,7 +3830,7 @@ export default function App() {
                                   width: `${position.width}px`,
                                   height: '38px',
                                   backgroundColor: '#0B2037',
-                                  color: 'white',
+                                  color: '#B6BEC9',
                                   borderRadius: '4px',
                                   border: '1px solid #0254A5',
                                   padding: '4px 8px',
