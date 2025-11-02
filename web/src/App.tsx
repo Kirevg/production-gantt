@@ -3964,7 +3964,7 @@ export default function App() {
                                     />
                                   </Box>
                                 )}
-                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px', color: '#FFD700' }}>
+                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px', color: '#DDBB88' }}>
                                   {product.projectName}
                                 </Box>
                                 <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}>
