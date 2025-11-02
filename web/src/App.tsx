@@ -4170,21 +4170,28 @@ export default function App() {
                               }
                             };
 
-                            // Формируем текст подсказки с полной информацией
-                            const tooltipLines: string[] = [];
-                            tooltipLines.push(`Название: ${stage.nomenclatureItem?.name || 'Этап работ'}`);
+                            // Формируем текст подсказки с полной информацией через точки-разделители
+                            const tooltipParts: string[] = [];
                             
+                            // Название этапа
+                            tooltipParts.push(stage.nomenclatureItem?.name || 'Этап работ');
+                            
+                            // Исполнитель
                             if (stage.assignee?.name) {
-                              tooltipLines.push(`Исполнитель: ${stage.assignee.name}`);
+                              tooltipParts.push(stage.assignee.name);
                             } else {
-                              tooltipLines.push(`Исполнитель: Не указан`);
+                              tooltipParts.push('Не указан');
                             }
                             
-                            tooltipLines.push(`Дата старта: ${formatDate(stage.startDate)}`);
-                            tooltipLines.push(`Дата финиша: ${formatDate(stage.endDate)}`);
+                            // Дата старта
+                            tooltipParts.push(formatDate(stage.startDate));
                             
+                            // Дата финиша
+                            tooltipParts.push(formatDate(stage.endDate));
+                            
+                            // Продолжительность
                             if (stage.duration !== null && stage.duration !== undefined) {
-                              tooltipLines.push(`Продолжительность: ${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
+                              tooltipParts.push(`${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
                             } else {
                               // Вычисляем продолжительность из дат, если не указана
                               if (stage.startDate && stage.endDate) {
@@ -4194,17 +4201,19 @@ export default function App() {
                                   if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
                                     const diffTime = end.getTime() - start.getTime();
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 чтобы включить первый день
-                                    tooltipLines.push(`Продолжительность: ${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
+                                    tooltipParts.push(`${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
+                                  } else {
+                                    tooltipParts.push('Не указана');
                                   }
                                 } catch {
-                                  tooltipLines.push(`Продолжительность: Не указана`);
+                                  tooltipParts.push('Не указана');
                                 }
                               } else {
-                                tooltipLines.push(`Продолжительность: Не указана`);
+                                tooltipParts.push('Не указана');
                               }
                             }
 
-                            const tooltipTitle = tooltipLines.join('\n');
+                            const tooltipTitle = tooltipParts.join(' • ');
 
                             const chipBox = (
                               <Box
