@@ -333,9 +333,12 @@ router.put('/products/:productId/work-stages/:workStageId', authenticateToken, r
 
     const data = workStageUpdateSchema.parse(req.body);
 
+    // Исключаем orderIndex из обновления - он меняется только через drag-and-drop
+    const { orderIndex, ...updateData } = data as any;
+
     const workStage = await prisma.workStage.update({
       where: { id: workStageId },
-      data: data as any
+      data: updateData
     });
 
     res.json(workStage);
