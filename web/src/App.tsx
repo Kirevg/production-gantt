@@ -3775,12 +3775,12 @@ export default function App() {
                     // Этапы разных изделий не должны пересекаться
                     const overlaps = rows[i].some(otherStage => {
                       if (!otherStage.position || !stage.position) return false;
-                      
+
                       // Если этапы одного изделия - разрешаем перекрытие
                       if (stage.productId === otherStage.productId) {
                         return false; // Этапы одного изделия могут перекрываться
                       }
-                      
+
                       // Для этапов разных изделий проверяем пересечение интервалов
                       const stageEnd = stage.position.startIndex + stage.position.daysCount;
                       const otherStageEnd = otherStage.position.startIndex + otherStage.position.daysCount;
@@ -4149,8 +4149,72 @@ export default function App() {
                             );
                           })}
                           {/* Чипы этапов работ (основные элементы) для этой строки */}
-                          {stagesForRow.map((stage) => {
-                            if (!stage.position) return null;
+                          {(() => {
+                            // Определяем пересечения этапов одного изделия для штриховки
+                            const intersectionRanges: Array<{ start: number; end: number }> = [];
+                            
+                            // Находим все пересечения этапов одного изделия
+                            for (let i = 0; i < stagesForRow.length; i++) {
+                              const stage1 = stagesForRow[i];
+                              if (!stage1.position) continue;
+                              
+                              for (let j = i + 1; j < stagesForRow.length; j++) {
+                                const stage2 = stagesForRow[j];
+                                if (!stage2.position) continue;
+                                
+                                // Проверяем, что этапы одного изделия
+                                if (stage1.productId !== stage2.productId) continue;
+                                
+                                // Определяем пересечение интервалов
+                                const start1 = stage1.position.startIndex;
+                                const end1 = stage1.position.startIndex + stage1.position.daysCount;
+                                const start2 = stage2.position.startIndex;
+                                const end2 = stage2.position.startIndex + stage2.position.daysCount;
+                                
+                                // Вычисляем область пересечения
+                                const intersectionStart = Math.max(start1, start2);
+                                const intersectionEnd = Math.min(end1, end2);
+                                
+                                if (intersectionStart < intersectionEnd) {
+                                  // Есть пересечение - добавляем диапазон
+                                  intersectionRanges.push({
+                                    start: intersectionStart,
+                                    end: intersectionEnd
+                                  });
+                                }
+                              }
+                            }
+                            
+                            // Объединяем пересекающиеся диапазоны
+                            const mergedIntersections: Array<{ start: number; end: number }> = [];
+                            intersectionRanges.sort((a, b) => a.start - b.start);
+                            
+                            for (const range of intersectionRanges) {
+                              if (mergedIntersections.length === 0) {
+                                mergedIntersections.push({ ...range });
+                              } else {
+                                const last = mergedIntersections[mergedIntersections.length - 1];
+                                // Если текущий диапазон пересекается с последним - объединяем
+                                if (range.start <= last.end) {
+                                  last.end = Math.max(last.end, range.end);
+                                } else {
+                                  mergedIntersections.push({ ...range });
+                                }
+                              }
+                            }
+                            
+                            // Преобразуем объединенные диапазоны в пиксельные координаты
+                            const cellWidth = 39;
+                            const intersections = mergedIntersections.map(range => ({
+                              left: range.start * cellWidth,
+                              width: (range.end - range.start) * cellWidth
+                            }));
+                            
+                            return (
+                              <>
+                                {/* Рендерим чипы этапов */}
+                                {stagesForRow.map((stage) => {
+                                  if (!stage.position) return null;
 
                             // Функция для форматирования даты
                             const formatDate = (dateString: string | null): string => {
@@ -4262,7 +4326,27 @@ export default function App() {
                                 {chipBox}
                               </Tooltip>
                             );
-                          })}
+                                })}
+                                {/* Штрихованные overlay элементы в местах пересечения этапов одного изделия */}
+                                {intersections.map((intersection, idx) => (
+                                  <Box
+                                    key={`intersection-${idx}`}
+                                    sx={{
+                                      position: 'absolute',
+                                      left: `${intersection.left}px`,
+                                      width: `${intersection.width}px`,
+                                      bottom: '4px',
+                                      height: '16px',
+                                      backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255, 255, 255, 0.15) 4px, rgba(255, 255, 255, 0.15) 8px)',
+                                      pointerEvents: 'none',
+                                      zIndex: 8, // Поверх чипов этапов
+                                      borderRadius: '3px'
+                                    }}
+                                  />
+                                ))}
+                              </>
+                            );
+                          })()}
                         </Box>
                       );
                     })}
