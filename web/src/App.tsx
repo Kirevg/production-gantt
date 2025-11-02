@@ -3603,6 +3603,95 @@ export default function App() {
                   monthGroups.push({ month: currentMonth, startIndex: currentStart, count: days.length - currentStart });
                 }
 
+                // Вычисляем позиции изделий и распределяем по строкам (один раз, не в map)
+                const getProductPosition = (product: ProductChip) => {
+                  if (!product.startDate || !product.endDate) return null;
+
+                  const startDate = new Date(product.startDate);
+                  const endDate = new Date(product.endDate);
+
+                  // Находим индекс дня начала в массиве days
+                  const startIndex = days.findIndex(day => {
+                    const dayDate = new Date(day);
+                    dayDate.setHours(0, 0, 0, 0);
+                    const productStart = new Date(startDate);
+                    productStart.setHours(0, 0, 0, 0);
+                    return dayDate.getTime() === productStart.getTime();
+                  });
+
+                  if (startIndex === -1) return null;
+
+                  // Находим индекс дня окончания в массиве days
+                  const endIndex = days.findIndex(day => {
+                    const dayDate = new Date(day);
+                    dayDate.setHours(0, 0, 0, 0);
+                    const productEnd = new Date(endDate);
+                    productEnd.setHours(0, 0, 0, 0);
+                    return dayDate.getTime() === productEnd.getTime();
+                  });
+
+                  if (endIndex === -1) return null;
+
+                  // Вычисляем количество дней между началом и концом изделия
+                  const daysDiff = endIndex - startIndex + 1;
+
+                  return {
+                    left: startIndex * 39, // Позиция слева в пикселях
+                    width: daysDiff * 39,  // Ширина в пикселях (39px на день - ширина ячейки)
+                    startIndex,
+                    daysCount: daysDiff
+                  };
+                };
+
+                // Алгоритм распределения изделий по строкам
+                const productsWithPositions = calendarProducts
+                  .map(product => ({
+                    product,
+                    position: getProductPosition(product)
+                  }))
+                  .filter(item => item.position !== null);
+
+                // Распределяем изделия по строкам
+                const rows: Array<Array<{ product: ProductChip; position: { left: number; width: number; startIndex: number; daysCount: number } }>> = [];
+
+                productsWithPositions.forEach(({ product, position }) => {
+                  if (!position) return;
+
+                  // Ищем строку, где изделие помещается
+                  let placed = false;
+                  for (let i = 0; i < rows.length; i++) {
+                    // Проверяем, что в строке все изделия с таким же названием проекта
+                    const sameProjectName = rows[i].every(({ product: otherProduct }) =>
+                      otherProduct.projectName === product.projectName
+                    );
+
+                    if (!sameProjectName) {
+                      // В строке есть изделия с другим названием проекта - пропускаем эту строку
+                      continue;
+                    }
+
+                    // Проверяем, не пересекается ли с другими изделиями в строке
+                    const overlaps = rows[i].some(({ position: otherPos }) => {
+                      if (!otherPos) return false;
+                      // Проверяем пересечение интервалов
+                      const end1 = position.startIndex + position.daysCount;
+                      const end2 = otherPos.startIndex + otherPos.daysCount;
+                      return !(position.startIndex >= end2 || otherPos.startIndex >= end1);
+                    });
+
+                    if (!overlaps) {
+                      rows[i].push({ product, position });
+                      placed = true;
+                      break;
+                    }
+                  }
+
+                  // Если не поместилось, создаем новую строку
+                  if (!placed) {
+                    rows.push([{ product, position }]);
+                  }
+                });
+
                 return (
                   <>
                     {/* Строка с месяцами - первая */}
@@ -3718,97 +3807,7 @@ export default function App() {
                       })}
                     </Box>
                     {/* Остальные строки с ячейками и карточками изделий */}
-                    {Array.from({ length: 15 }, (_, rowIndex) => {
-                      // Функция для вычисления позиции изделия в календаре
-                      const getProductPosition = (product: ProductChip) => {
-                        if (!product.startDate || !product.endDate) return null;
-
-                        const startDate = new Date(product.startDate);
-                        const endDate = new Date(product.endDate);
-
-                        // Находим индекс дня начала в массиве days
-                        const startIndex = days.findIndex(day => {
-                          const dayDate = new Date(day);
-                          dayDate.setHours(0, 0, 0, 0);
-                          const productStart = new Date(startDate);
-                          productStart.setHours(0, 0, 0, 0);
-                          return dayDate.getTime() === productStart.getTime();
-                        });
-
-                        if (startIndex === -1) return null;
-
-                        // Находим индекс дня окончания в массиве days
-                        const endIndex = days.findIndex(day => {
-                          const dayDate = new Date(day);
-                          dayDate.setHours(0, 0, 0, 0);
-                          const productEnd = new Date(endDate);
-                          productEnd.setHours(0, 0, 0, 0);
-                          return dayDate.getTime() === productEnd.getTime();
-                        });
-
-                        if (endIndex === -1) return null;
-
-                        // Вычисляем количество дней между началом и концом изделия
-                        const daysDiff = endIndex - startIndex + 1;
-
-                        return {
-                          left: startIndex * 39, // Позиция слева в пикселях
-                          width: daysDiff * 39,  // Ширина в пикселях (39px на день - ширина ячейки)
-                          startIndex,
-                          daysCount: daysDiff
-                        };
-                      };
-
-                      // Алгоритм распределения изделий по строкам
-                      // Сначала вычисляем позиции всех изделий
-                      const productsWithPositions = calendarProducts
-                        .map(product => ({
-                          product,
-                          position: getProductPosition(product)
-                        }))
-                        .filter(item => item.position !== null);
-
-                      // Распределяем изделия по строкам
-                      const rows: Array<Array<{ product: ProductChip; position: { left: number; width: number; startIndex: number; daysCount: number } }>> = [];
-
-                      productsWithPositions.forEach(({ product, position }) => {
-                        if (!position) return;
-
-                        // Ищем строку, где изделие помещается
-                        let placed = false;
-                        for (let i = 0; i < rows.length; i++) {
-                          // Проверяем, что в строке все изделия с таким же названием проекта
-                          const sameProjectName = rows[i].every(({ product: otherProduct }) =>
-                            otherProduct.projectName === product.projectName
-                          );
-
-                          if (!sameProjectName) {
-                            // В строке есть изделия с другим названием проекта - пропускаем эту строку
-                            continue;
-                          }
-
-                          // Проверяем, не пересекается ли с другими изделиями в строке
-                          const overlaps = rows[i].some(({ position: otherPos }) => {
-                            if (!otherPos) return false;
-                            // Проверяем пересечение интервалов
-                            const end1 = position.startIndex + position.daysCount;
-                            const end2 = otherPos.startIndex + otherPos.daysCount;
-                            return !(position.startIndex >= end2 || otherPos.startIndex >= end1);
-                          });
-
-                          if (!overlaps) {
-                            rows[i].push({ product, position });
-                            placed = true;
-                            break;
-                          }
-                        }
-
-                        // Если не поместилось, создаем новую строку
-                        if (!placed) {
-                          rows.push([{ product, position }]);
-                        }
-                      });
-
+                    {Array.from({ length: Math.max(rows.length, 15) }, (_, rowIndex) => {
                       // Получаем изделия для текущей строки
                       const productsForRow = rows[rowIndex] || [];
 
