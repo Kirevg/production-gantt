@@ -3832,6 +3832,7 @@ export default function App() {
                                   backgroundColor: '#0B2037',
                                   color: 'white',
                                   borderRadius: '4px',
+                                  border: '1px solid #0254A5',
                                   padding: '4px 8px',
                                   display: 'flex',
                                   alignItems: 'center',
