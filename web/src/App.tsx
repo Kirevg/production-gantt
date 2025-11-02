@@ -3990,7 +3990,7 @@ export default function App() {
                                 </Box>
                                 {/* Вторая строка: чипы этапов работ */}
                                 {product.workStages && product.workStages.length > 0 && (
-                                  <Box sx={{ position: 'relative', height: '14px', mt: '2px' }}>
+                                  <Box sx={{ position: 'relative', height: '14px', mt: '2px', ml: '-8px', mr: '-8px' }}>
                                     {product.workStages
                                       .filter((stage) => stage.startDate && stage.endDate)
                                       .map((stage) => {
@@ -4043,7 +4043,7 @@ export default function App() {
                                               color: '#B6BEC9',
                                               borderRadius: '2px',
                                               border: '1px solid #0254A5',
-                                              padding: '0 2px',
+                                              padding: '0',
                                               display: 'flex',
                                               alignItems: 'center',
                                               overflow: 'hidden',
