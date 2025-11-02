@@ -185,6 +185,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       productName: stage.product.product?.name || 'Изделие', // Теперь правильно получаем название из справочника
       productDescription: stage.product.product?.description || null, // Описание из справочника Product
       serialNumber: stage.product.serialNumber || null, // Серийный номер изделия
+      productStatus: stage.product.status || 'InProject', // Статус изделия
       projectStatus: stage.product.project.status,
       duration: stage.duration,
       projectManager: stage.product.project.projectManager ? {

@@ -272,6 +272,7 @@ interface ProductChip {
   id: string;                  // ID изделия проекта (ProjectProduct)
   projectId: string;           // ID проекта
   projectName: string;         // Название проекта
+  projectStatus?: string;      // Статус проекта
   productName: string;         // Название изделия
   startDate: string;           // Дата начала (самая ранняя из этапов работ)
   endDate: string;             // Дата окончания (самая поздняя из этапов работ)
@@ -2800,6 +2801,7 @@ export default function App() {
                     id: product.id,
                     projectId: project.id,
                     projectName: project.name,
+                    projectStatus: project.status || 'InProject',
                     productName: product.product?.name || 'Не указано',
                     startDate: earliestStart.toISOString(),
                     endDate: latestEnd.toISOString(),
@@ -4118,11 +4120,32 @@ export default function App() {
                                     // Формируем текст подсказки в 2 строки: первая - проект, вторая - изделие
                                     const tooltipTitle = `${product.projectName}\n${product.productName}`;
 
+                                    // Определяем цвет лампочки в зависимости от статуса проекта
+                                    let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
+                                    if (product.projectStatus === 'Done') {
+                                      statusColor = '#81C784'; // Зеленый - готово
+                                    } else if (product.projectStatus === 'HasProblems') {
+                                      statusColor = '#E57373'; // Красный - проблема
+                                    } else if (product.projectStatus === 'InProgress') {
+                                      statusColor = '#64B5F6'; // Синий - в работе
+                                    }
+
                                     const nameBox = (
                                       <Box
                                         ref={textRef}
-                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}
+                                        sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}
                                       >
+                                        {/* Лампочка статуса проекта */}
+                                        <Box
+                                          sx={{
+                                            width: '8px',
+                                            height: '8px',
+                                            borderRadius: '50%',
+                                            backgroundColor: statusColor,
+                                            mr: '6px',
+                                            flexShrink: 0
+                                          }}
+                                        />
                                         <Box component="span" sx={{ color: '#DDBB88' }}>
                                           {product.projectName}
                                         </Box>

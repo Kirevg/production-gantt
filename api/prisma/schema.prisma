@@ -121,6 +121,7 @@ model ProjectProduct {
   description           String?
   quantity              Int                    @default(1)
   productSum            Float?
+  status                ProductStatus          @default(InProject)
   orderIndex            Int                    @default(0)
   version               Int                    @default(1)
   createdAt             DateTime               @default(now())
@@ -134,6 +135,7 @@ model ProjectProduct {
   @@index([projectId])
   @@index([productId])
   @@index([orderIndex])
+  @@index([status])
 }
 
 model WorkStage {
@@ -304,4 +306,11 @@ enum NomenclatureType {
   Product
   Service
   Work
+}
+
+enum ProductStatus {
+  InProject
+  InProgress
+  Done
+  HasProblems
 }

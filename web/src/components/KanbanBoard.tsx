@@ -61,6 +61,7 @@ interface KanbanTask {
     productName?: string;
     productDescription?: string | null; // Описание из справочника Product
     serialNumber?: string | null;
+    productStatus?: string; // Статус изделия
     projectStatus?: string;
     assigneeId?: string | null;
     workTypeId?: string | null;
@@ -248,6 +249,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         task: KanbanTask | null;
     } | null>(null);
 
+    // Состояние для меню статуса изделия
+    const [productStatusMenu, setProductStatusMenu] = useState<{
+        anchorEl: HTMLElement | null;
+        productId: string;
+    } | null>(null);
+
     // Сенсоры для drag-and-drop с ограничениями
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -346,7 +353,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     productName: stage.productName || 'Изделие',
                     productDescription: stage.productDescription || null, // Описание из Product
                     serialNumber: stage.serialNumber || null,
-                    projectStatus: stage.projectStatus,
+                    productStatus: stage.productStatus || 'InProject', // Статус изделия
+                    projectStatus: stage.projectStatus, // Статус проекта
                     orderIndex: stage.orderIndex || 0, // Индекс порядка этапа работ
                     projectManager: stage.projectManager || null
                 };
@@ -758,6 +766,66 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         });
     };
 
+    // Обработчики меню статуса изделия
+    const handleProductStatusMenuOpen = (event: React.MouseEvent<HTMLElement>, productId: string) => {
+        event.stopPropagation();
+        setProductStatusMenu({
+            anchorEl: event.currentTarget,
+            productId
+        });
+    };
+
+    const handleProductStatusMenuClose = () => {
+        setProductStatusMenu(null);
+    };
+
+    const handleProductStatusChange = async (productId: string, newStatus: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            // Получаем текущую версию изделия и projectId
+            const productTask = kanbanTasks.find(t => t.productId === productId);
+            if (!productTask || !productTask.projectId) return;
+
+            // Получаем текущую версию изделия с сервера
+            const productsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${productTask.projectId}/products`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const products = await productsResponse.json();
+            const product = products.find((p: any) => p.id === productId);
+            
+            if (!product) {
+                console.error('Изделие не найдено');
+                return;
+            }
+
+            // Обновляем статус
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${productTask.projectId}/products/${productId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    version: product.version || 1,
+                    status: newStatus
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка обновления статуса');
+            }
+
+            // Обновляем данные
+            await fetchKanbanData();
+        } catch (error) {
+            console.error('Ошибка обновления статуса изделия:', error);
+        } finally {
+            handleProductStatusMenuClose();
+        }
+    };
+
     const handleCloseContextMenu = () => {
         setContextMenu(null);
     };
@@ -1091,6 +1159,43 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                             >
                                                                                 +
                                                                             </VolumeButton>
+                                                                            {/* Лампочка статуса изделия с выпадающим меню */}
+                                                                            {(() => {
+                                                                                const productStatus = productTasks[0]?.productStatus || 'InProject';
+                                                                                let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
+                                                                                if (productStatus === 'Done') {
+                                                                                    statusColor = '#81C784'; // Зеленый - готово
+                                                                                } else if (productStatus === 'HasProblems') {
+                                                                                    statusColor = '#E57373'; // Красный - проблема
+                                                                                } else if (productStatus === 'InProgress') {
+                                                                                    statusColor = '#64B5F6'; // Синий - в работе
+                                                                                }
+
+                                                                                return (
+                                                                                    <Tooltip title="Изменить статус изделия">
+                                                                                        <IconButton
+                                                                                            onClick={(e) => handleProductStatusMenuOpen(e, productTasks[0]?.productId || '')}
+                                                                                            size="small"
+                                                                                            sx={{
+                                                                                                width: '20px',
+                                                                                                height: '20px',
+                                                                                                p: 0,
+                                                                                                mr: '4px'
+                                                                                            }}
+                                                                                        >
+                                                                                            <Box
+                                                                                                sx={{
+                                                                                                    width: '12px',
+                                                                                                    height: '12px',
+                                                                                                    borderRadius: '50%',
+                                                                                                    backgroundColor: statusColor,
+                                                                                                    border: '1px solid rgba(0,0,0,0.2)'
+                                                                                                }}
+                                                                                            />
+                                                                                        </IconButton>
+                                                                                    </Tooltip>
+                                                                                );
+                                                                            })()}
                                                                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
                                                                                 {productName}
                                                                             </Typography>
@@ -1267,6 +1372,74 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             <Delete fontSize="small" />
                         </ListItemIcon>
                         <ListItemText>Удалить</ListItemText>
+                    </MenuItem>
+                </Menu>
+
+                {/* Меню статуса изделия */}
+                <Menu
+                    open={productStatusMenu !== null}
+                    onClose={handleProductStatusMenuClose}
+                    anchorEl={productStatusMenu?.anchorEl || null}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                >
+                    <MenuItem onClick={() => productStatusMenu && handleProductStatusChange(productStatusMenu.productId, 'InProject')}>
+                        <Box
+                            sx={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                backgroundColor: '#FFE082',
+                                mr: 1,
+                                border: '1px solid rgba(0,0,0,0.2)'
+                            }}
+                        />
+                        <ListItemText>В проекте</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => productStatusMenu && handleProductStatusChange(productStatusMenu.productId, 'InProgress')}>
+                        <Box
+                            sx={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                backgroundColor: '#64B5F6',
+                                mr: 1,
+                                border: '1px solid rgba(0,0,0,0.2)'
+                            }}
+                        />
+                        <ListItemText>В работе</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => productStatusMenu && handleProductStatusChange(productStatusMenu.productId, 'Done')}>
+                        <Box
+                            sx={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                backgroundColor: '#81C784',
+                                mr: 1,
+                                border: '1px solid rgba(0,0,0,0.2)'
+                            }}
+                        />
+                        <ListItemText>Готово</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => productStatusMenu && handleProductStatusChange(productStatusMenu.productId, 'HasProblems')}>
+                        <Box
+                            sx={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                backgroundColor: '#E57373',
+                                mr: 1,
+                                border: '1px solid rgba(0,0,0,0.2)'
+                            }}
+                        />
+                        <ListItemText>Проблема</ListItemText>
                     </MenuItem>
                 </Menu>
             </Box>

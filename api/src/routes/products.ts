@@ -16,7 +16,8 @@ const productCreateSchema = z.object({
 });
 
 const productUpdateSchema = productCreateSchema.partial().extend({
-  version: z.number().min(1)
+  version: z.number().min(1),
+  status: z.enum(['InProject', 'InProgress', 'Done', 'HasProblems']).optional()
 });
 
 // Схема для создания этапов работ
@@ -53,6 +54,7 @@ router.get('/:projectId/products', authenticateToken, async (req, res) => {
         description: true,
         quantity: true,
         productSum: true,
+        status: true,
         version: true,
         orderIndex: true,
         createdAt: true,
