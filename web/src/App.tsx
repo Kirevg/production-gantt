@@ -2819,6 +2819,13 @@ export default function App() {
     }
   }, [user, fetchCalendarProjects, fetchCalendarProducts]);
 
+  // Обновляем данные календаря при переключении на вкладку Главная
+  useEffect(() => {
+    if (user && currentTab === 0) {
+      fetchCalendarProducts();
+    }
+  }, [user, currentTab, fetchCalendarProducts]);
+
   // Функция для восстановления из резервной копии
   const handleRestoreBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
