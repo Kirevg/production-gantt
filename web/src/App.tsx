@@ -4170,28 +4170,25 @@ export default function App() {
                               }
                             };
 
-                            // Формируем текст подсказки с полной информацией через точки-разделители
-                            const tooltipParts: string[] = [];
+                            // Формируем текст подсказки в 2 строки через точки-разделители
+                            // Первая строка: название этапа • исполнитель
+                            const firstLineParts: string[] = [];
+                            firstLineParts.push(stage.nomenclatureItem?.name || 'Этап работ');
                             
-                            // Название этапа
-                            tooltipParts.push(stage.nomenclatureItem?.name || 'Этап работ');
-                            
-                            // Исполнитель
                             if (stage.assignee?.name) {
-                              tooltipParts.push(stage.assignee.name);
+                              firstLineParts.push(stage.assignee.name);
                             } else {
-                              tooltipParts.push('Не указан');
+                              firstLineParts.push('Не указан');
                             }
                             
-                            // Дата старта
-                            tooltipParts.push(formatDate(stage.startDate));
-                            
-                            // Дата финиша
-                            tooltipParts.push(formatDate(stage.endDate));
+                            // Вторая строка: дата старта • дата финиша • продолжительность
+                            const secondLineParts: string[] = [];
+                            secondLineParts.push(formatDate(stage.startDate));
+                            secondLineParts.push(formatDate(stage.endDate));
                             
                             // Продолжительность
                             if (stage.duration !== null && stage.duration !== undefined) {
-                              tooltipParts.push(`${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
+                              secondLineParts.push(`${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
                             } else {
                               // Вычисляем продолжительность из дат, если не указана
                               if (stage.startDate && stage.endDate) {
@@ -4201,19 +4198,19 @@ export default function App() {
                                   if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
                                     const diffTime = end.getTime() - start.getTime();
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 чтобы включить первый день
-                                    tooltipParts.push(`${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
+                                    secondLineParts.push(`${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
                                   } else {
-                                    tooltipParts.push('Не указана');
+                                    secondLineParts.push('Не указана');
                                   }
                                 } catch {
-                                  tooltipParts.push('Не указана');
+                                  secondLineParts.push('Не указана');
                                 }
                               } else {
-                                tooltipParts.push('Не указана');
+                                secondLineParts.push('Не указана');
                               }
                             }
 
-                            const tooltipTitle = tooltipParts.join(' • ');
+                            const tooltipTitle = `${firstLineParts.join(' • ')}\n${secondLineParts.join(' • ')}`;
 
                             const chipBox = (
                               <Box
