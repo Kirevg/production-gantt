@@ -3617,7 +3617,7 @@ export default function App() {
 
                 // НОВАЯ ЛОГИКА: Основными чипами для расположения являются этапы работ
                 // Сначала вычисляем позиции этапов работ, затем натягиваем чипы изделий на крайние даты этапов
-                
+
                 interface StageChip {
                   id: string;
                   productId: string;
@@ -3641,7 +3641,7 @@ export default function App() {
 
                   const startDate = new Date(stage.startDate);
                   const endDate = new Date(stage.endDate);
-                  
+
                   // Нормализуем даты (убираем время)
                   startDate.setHours(0, 0, 0, 0);
                   endDate.setHours(0, 0, 0, 0);
@@ -3659,7 +3659,7 @@ export default function App() {
 
                   // Определяем, нужно ли обрезать слева
                   const isCutLeft = startDate < periodStart;
-                  
+
                   // Определяем, нужно ли обрезать справа
                   const isCutRight = endDate > periodEnd;
 
@@ -3696,9 +3696,24 @@ export default function App() {
                   // Вычисляем количество дней между началом и концом этапа в отображаемом периоде
                   const daysDiff = endIndex - startIndex + 1;
                   
+                  // Ячейки календаря имеют ширину 39px включая бордюр справа (1px) с box-sizing: border-box
+                  // Чипы этапов имеют бордюр 1px с каждой стороны с box-sizing: border-box
+                  // Чип этапа должен помещаться внутри ячейки вместе со своими бордюрами
+                  // Между соседними чипами всегда будет бордюр ячейки (1px)
+                  const cellWidth = 39; // Ширина ячейки включая бордюр справа
+                  
+                  // Позиция чипа этапа: левая граница первой ячейки
+                  // Чип этапа начинается с позиции левой границы ячейки (без смещения, бордюры внутри ячейки)
+                  const left = startIndex * cellWidth;
+                  
+                  // Ширина чипа этапа: суммарная ширина всех ячеек
+                  // Чип занимает всю ширину ячеек, его бордюры учитываются внутри через box-sizing: border-box
+                  // Между соседними чипами (в разных ячейках) будет бордюр ячейки (1px)
+                  const width = daysDiff * cellWidth;
+                  
                   return {
-                    left: startIndex * 39, // Позиция слева точно по границе дня (без учета бордюра)
-                    width: daysDiff * 39, // Ширина в пикселях (39px на день)
+                    left, // Позиция слева - левая граница первой ячейки
+                    width, // Ширина чипа = суммарная ширина всех ячеек (чип помещается внутри с бордюрами)
                     startIndex,
                     daysCount: daysDiff,
                     isCutLeft,
@@ -3933,7 +3948,7 @@ export default function App() {
                     {Array.from({ length: Math.max(rows.length, 15) }, (_, rowIndex) => {
                       // Получаем этапы работ для текущей строки
                       const stagesForRow = rows[rowIndex] || [];
-                      
+
                       // Группируем этапы по изделиям для рендеринга чипов изделий
                       const productGroupsForRow = new Map<string, StageChip[]>();
                       stagesForRow.forEach(stage => {
@@ -3972,7 +3987,7 @@ export default function App() {
                             const product = stages[0].product;
                             const position = productPositions.get(productId);
                             if (!position) return null;
-                            
+
                             return (
                               <Box
                                 key={product.id}
@@ -4082,7 +4097,7 @@ export default function App() {
                           {/* Чипы этапов работ (основные элементы) для этой строки */}
                           {stagesForRow.map((stage) => {
                             if (!stage.position) return null;
-                            
+
                             return (
                               <Box
                                 key={stage.id}
@@ -4104,7 +4119,8 @@ export default function App() {
                                   fontSize: '9px',
                                   fontWeight: 400,
                                   zIndex: 7, // Поверх чипа изделия
-                                  textAlign: 'center'
+                                  textAlign: 'center',
+                                  boxSizing: 'border-box' // Бордюры учитываются внутри ширины чипа
                                 }}
                                 title={stage.nomenclatureItem?.name || 'Этап работ'}
                               >
