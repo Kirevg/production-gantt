@@ -163,7 +163,8 @@ import {
   FormControlLabel, // Лейбл для элементов формы
   Checkbox,     // Чекбокс
   ToggleButtonGroup, // Группа переключателей
-  ToggleButton  // Переключатель
+  ToggleButton,  // Переключатель
+  Tooltip       // Подсказка при наведении
 } from '@mui/material';
 
 // Импорт иконок из Material-UI
@@ -3702,11 +3703,11 @@ export default function App() {
                   // Между соседними чипами всегда будет бордюр ячейки (1px)
                   const cellWidth = 39; // Ширина ячейки включая бордюр справа
                   const cellBorderWidth = 1; // Толщина бордюра ячейки справа
-                  
+
                   // Позиция чипа этапа: левая граница первой ячейки
                   // Чип этапа начинается с позиции левой границы ячейки (без смещения, бордюры внутри ячейки)
                   const left = startIndex * cellWidth;
-                  
+
                   // Ширина чипа этапа: суммарная ширина всех ячеек минус бордюр последней ячейки справа
                   // Чип занимает всю ширину ячеек кроме последнего бордюра справа, его бордюры учитываются внутри через box-sizing: border-box
                   // Между соседними чипами (в разных ячейках) будет бордюр ячейки (1px)
@@ -4101,43 +4102,86 @@ export default function App() {
                           {stagesForRow.map((stage) => {
                             if (!stage.position) return null;
 
-                            return (
-                              <Box
-                                key={stage.id}
-                                sx={{
-                                  position: 'absolute',
-                                  left: `${stage.position.left}px`,
-                                  width: `${stage.position.width}px`,
-                                  bottom: '3px', // Позиция внизу чипа изделия (3px от нижнего края)
-                                  height: '14px',
-                                  backgroundColor: '#1A3A5A',
-                                  color: '#B6BEC9',
-                                  borderRadius: '3px',
-                                  border: '1px solid #0254A5',
-                                  padding: '0',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  overflow: 'hidden',
-                                  fontSize: '9px',
-                                  fontWeight: 400,
-                                  zIndex: 7, // Поверх чипа изделия
-                                  textAlign: 'center',
-                                  boxSizing: 'border-box' // Бордюры учитываются внутри ширины чипа
-                                }}
-                                title={stage.nomenclatureItem?.name || 'Этап работ'}
-                              >
+                            const stageName = stage.nomenclatureItem?.name || 'Этап работ';
+                            
+                            // Компонент для чипа этапа с проверкой обрезки текста
+                            const StageChipComponent = React.memo(() => {
+                              const textRef = React.useRef<HTMLDivElement>(null);
+                              const [isTextOverflowing, setIsTextOverflowing] = React.useState(false);
+
+                              React.useEffect(() => {
+                                // Проверяем, обрезан ли текст
+                                const checkOverflow = () => {
+                                  if (textRef.current) {
+                                    const isOverflowing = textRef.current.scrollWidth > textRef.current.clientWidth;
+                                    setIsTextOverflowing(isOverflowing);
+                                  }
+                                };
+                                
+                                checkOverflow();
+                                
+                                // Перепроверяем при изменении размера (ResizeObserver не используется для простоты)
+                                const timeoutId = setTimeout(checkOverflow, 100);
+                                
+                                return () => clearTimeout(timeoutId);
+                              }, []);
+
+                              const chipBox = (
                                 <Box
                                   sx={{
+                                    position: 'absolute',
+                                    left: `${stage.position!.left}px`,
+                                    width: `${stage.position!.width}px`,
+                                    bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
+                                    height: '16px',
+                                    backgroundColor: '#1A3A5A',
+                                    color: '#B6BEC9',
+                                    borderRadius: '3px',
+                                    border: '1px solid #0254A5',
+                                    padding: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
                                     overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap'
+                                    fontSize: '9px',
+                                    fontWeight: 400,
+                                    zIndex: 7, // Поверх чипа изделия
+                                    textAlign: 'center',
+                                    boxSizing: 'border-box', // Бордюры учитываются внутри ширины чипа
+                                    cursor: 'default'
                                   }}
                                 >
-                                  {stage.nomenclatureItem?.name || 'Этап'}
+                                  <Box
+                                    ref={textRef}
+                                    sx={{
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                      width: '100%'
+                                    }}
+                                  >
+                                    {stage.nomenclatureItem?.name || 'Этап'}
+                                  </Box>
                                 </Box>
-                              </Box>
-                            );
+                              );
+
+                              // Показываем Tooltip только если текст обрезан
+                              if (isTextOverflowing) {
+                                return (
+                                  <Tooltip
+                                    title={stageName}
+                                    enterDelay={1000}
+                                    arrow
+                                  >
+                                    {chipBox}
+                                  </Tooltip>
+                                );
+                              }
+
+                              return chipBox;
+                            });
+
+                            return <StageChipComponent key={stage.id} />;
                           })}
                         </Box>
                       );
