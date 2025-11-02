@@ -280,6 +280,8 @@ interface ProductChip {
     startDate: string | null;
     endDate: string | null;
     nomenclatureItem?: { name: string } | null;
+    assignee?: { id: string; name: string } | null;
+    duration?: number | null;
   }>;
 }
 
@@ -2805,7 +2807,9 @@ export default function App() {
                       id: stage.id,
                       startDate: stage.startDate,
                       endDate: stage.endDate,
-                      nomenclatureItem: stage.nomenclatureItem ? { name: stage.nomenclatureItem.name } : null
+                      nomenclatureItem: stage.nomenclatureItem ? { name: stage.nomenclatureItem.name } : null,
+                      assignee: stage.assignee ? { id: stage.assignee.id, name: stage.assignee.name } : null,
+                      duration: stage.duration || null
                     }))
                   });
                 }
@@ -3626,6 +3630,8 @@ export default function App() {
                   startDate: string | null;
                   endDate: string | null;
                   nomenclatureItem?: { name: string } | null;
+                  assignee?: { id: string; name: string } | null;
+                  duration?: number | null;
                   position: {
                     left: number;
                     width: number;
@@ -3737,6 +3743,8 @@ export default function App() {
                           startDate: stage.startDate,
                           endDate: stage.endDate,
                           nomenclatureItem: stage.nomenclatureItem,
+                          assignee: stage.assignee || null,
+                          duration: stage.duration || null,
                           position
                         });
                       }
@@ -4099,17 +4107,17 @@ export default function App() {
                                           setIsTextOverflowing(isOverflowing);
                                         }
                                       };
-                                      
+
                                       checkOverflow();
-                                      
+
                                       // Перепроверяем при изменении размера
                                       const timeoutId = setTimeout(checkOverflow, 100);
-                                      
+
                                       return () => clearTimeout(timeoutId);
                                     }, [fullText]);
 
                                     const nameBox = (
-                                      <Box 
+                                      <Box
                                         ref={textRef}
                                         sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: '14px' }}
                                       >
@@ -4150,86 +4158,103 @@ export default function App() {
                           {stagesForRow.map((stage) => {
                             if (!stage.position) return null;
 
-                            const stageName = stage.nomenclatureItem?.name || 'Этап работ';
+                            // Функция для форматирования даты
+                            const formatDate = (dateString: string | null): string => {
+                              if (!dateString) return 'Не указано';
+                              try {
+                                const date = new Date(dateString);
+                                if (isNaN(date.getTime())) return 'Не указано';
+                                return date.toLocaleDateString('ru-RU');
+                              } catch {
+                                return 'Не указано';
+                              }
+                            };
 
-                            // Компонент для чипа этапа с проверкой обрезки текста
-                            const StageChipComponent = React.memo(() => {
-                              const textRef = React.useRef<HTMLDivElement>(null);
-                              const [isTextOverflowing, setIsTextOverflowing] = React.useState(false);
-
-                              React.useEffect(() => {
-                                // Проверяем, обрезан ли текст
-                                const checkOverflow = () => {
-                                  if (textRef.current) {
-                                    const isOverflowing = textRef.current.scrollWidth > textRef.current.clientWidth;
-                                    setIsTextOverflowing(isOverflowing);
+                            // Формируем текст подсказки с полной информацией
+                            const tooltipLines: string[] = [];
+                            tooltipLines.push(`Название: ${stage.nomenclatureItem?.name || 'Этап работ'}`);
+                            
+                            if (stage.assignee?.name) {
+                              tooltipLines.push(`Исполнитель: ${stage.assignee.name}`);
+                            } else {
+                              tooltipLines.push(`Исполнитель: Не указан`);
+                            }
+                            
+                            tooltipLines.push(`Дата старта: ${formatDate(stage.startDate)}`);
+                            tooltipLines.push(`Дата финиша: ${formatDate(stage.endDate)}`);
+                            
+                            if (stage.duration !== null && stage.duration !== undefined) {
+                              tooltipLines.push(`Продолжительность: ${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
+                            } else {
+                              // Вычисляем продолжительность из дат, если не указана
+                              if (stage.startDate && stage.endDate) {
+                                try {
+                                  const start = new Date(stage.startDate);
+                                  const end = new Date(stage.endDate);
+                                  if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                                    const diffTime = end.getTime() - start.getTime();
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 чтобы включить первый день
+                                    tooltipLines.push(`Продолжительность: ${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
                                   }
-                                };
+                                } catch {
+                                  tooltipLines.push(`Продолжительность: Не указана`);
+                                }
+                              } else {
+                                tooltipLines.push(`Продолжительность: Не указана`);
+                              }
+                            }
 
-                                checkOverflow();
+                            const tooltipTitle = tooltipLines.join('\n');
 
-                                // Перепроверяем при изменении размера (ResizeObserver не используется для простоты)
-                                const timeoutId = setTimeout(checkOverflow, 100);
-
-                                return () => clearTimeout(timeoutId);
-                              }, []);
-
-                              const chipBox = (
+                            const chipBox = (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  left: `${stage.position.left}px`,
+                                  width: `${stage.position.width}px`,
+                                  bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
+                                  height: '16px',
+                                  backgroundColor: '#1A3A5A',
+                                  color: '#B6BEC9',
+                                  borderRadius: '3px',
+                                  border: '1px solid #0254A5',
+                                  padding: '0',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  overflow: 'hidden',
+                                  fontSize: '9px',
+                                  fontWeight: 400,
+                                  zIndex: 7, // Поверх чипа изделия
+                                  textAlign: 'center',
+                                  boxSizing: 'border-box', // Бордюры учитываются внутри ширины чипа
+                                  cursor: 'default'
+                                }}
+                              >
                                 <Box
                                   sx={{
-                                    position: 'absolute',
-                                    left: `${stage.position!.left}px`,
-                                    width: `${stage.position!.width}px`,
-                                    bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
-                                    height: '16px',
-                                    backgroundColor: '#1A3A5A',
-                                    color: '#B6BEC9',
-                                    borderRadius: '3px',
-                                    border: '1px solid #0254A5',
-                                    padding: '0',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
                                     overflow: 'hidden',
-                                    fontSize: '9px',
-                                    fontWeight: 400,
-                                    zIndex: 7, // Поверх чипа изделия
-                                    textAlign: 'center',
-                                    boxSizing: 'border-box', // Бордюры учитываются внутри ширины чипа
-                                    cursor: 'default'
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    width: '100%'
                                   }}
                                 >
-                                  <Box
-                                    ref={textRef}
-                                    sx={{
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                      width: '100%'
-                                    }}
-                                  >
-                                    {stage.nomenclatureItem?.name || 'Этап'}
-                                  </Box>
+                                  {stage.nomenclatureItem?.name || 'Этап'}
                                 </Box>
-                              );
+                              </Box>
+                            );
 
-                              // Показываем Tooltip только если текст обрезан
-                              if (isTextOverflowing) {
-                                return (
-                                  <Tooltip
-                                    title={stageName}
-                                    enterDelay={1000}
-                                    arrow
-                                  >
-                                    {chipBox}
-                                  </Tooltip>
-                                );
-                              }
-
-                              return chipBox;
-                            });
-
-                            return <StageChipComponent key={stage.id} />;
+                            // Tooltip показывается всегда с полной информацией
+                            return (
+                              <Tooltip
+                                key={stage.id}
+                                title={tooltipTitle}
+                                enterDelay={1000}
+                                arrow
+                              >
+                                {chipBox}
+                              </Tooltip>
+                            );
                           })}
                         </Box>
                       );
