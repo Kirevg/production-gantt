@@ -4152,43 +4152,53 @@ export default function App() {
                           {(() => {
                             // Определяем пересечения этапов одного изделия для штриховки
                             const intersectionRanges: Array<{ start: number; end: number }> = [];
-                            
+
                             // Находим все пересечения этапов одного изделия
                             for (let i = 0; i < stagesForRow.length; i++) {
                               const stage1 = stagesForRow[i];
                               if (!stage1.position) continue;
-                              
+
                               for (let j = i + 1; j < stagesForRow.length; j++) {
                                 const stage2 = stagesForRow[j];
                                 if (!stage2.position) continue;
-                                
+
                                 // Проверяем, что этапы одного изделия
                                 if (stage1.productId !== stage2.productId) continue;
-                                
+
                                 // Определяем пересечение интервалов
+                                // Логика: каждое начало чипа со следующей даты перекрывает конец предыдущей
                                 const start1 = stage1.position.startIndex;
-                                const end1 = stage1.position.startIndex + stage1.position.daysCount;
+                                const end1 = stage1.position.startIndex + stage1.position.daysCount - 1; // Последний день первого этапа (индекс)
                                 const start2 = stage2.position.startIndex;
-                                const end2 = stage2.position.startIndex + stage2.position.daysCount;
-                                
-                                // Вычисляем область пересечения
-                                const intersectionStart = Math.max(start1, start2);
-                                const intersectionEnd = Math.min(end1, end2);
-                                
-                                if (intersectionStart < intersectionEnd) {
-                                  // Есть пересечение - добавляем диапазон
-                                  intersectionRanges.push({
-                                    start: intersectionStart,
-                                    end: intersectionEnd
-                                  });
+                                const end2 = stage2.position.startIndex + stage2.position.daysCount - 1; // Последний день второго этапа (индекс)
+
+                                // Проверяем, перекрываются ли этапы
+                                // Этапы перекрываются, если начало следующего <= конец предыдущего + 1
+                                // Если этап 1 заканчивается в день N (end1 = N), а этап 2 начинается в день N+1 (start2 = N+1), то это перекрытие
+                                // Проверяем: начало одного <= конец другого + 1
+                                const overlaps = start1 <= end2 + 1 && start2 <= end1 + 1;
+
+                                if (overlaps) {
+                                  // Есть перекрытие - вычисляем область пересечения
+                                  // Область пересечения: от начала более позднего до конца более раннего + 1
+                                  const intersectionStart = Math.max(start1, start2);
+                                  const intersectionEnd = Math.min(end1, end2) + 1; // +1 чтобы включить последний день пересечения
+                                  
+                                  // Добавляем диапазон только если есть реальное пересечение (минимум 1 день)
+                                  if (intersectionStart < intersectionEnd) {
+                                    intersectionRanges.push({
+                                      start: intersectionStart,
+                                      end: intersectionEnd
+                                    });
+                                  }
                                 }
                               }
                             }
-                            
+
                             // Объединяем пересекающиеся диапазоны
                             const mergedIntersections: Array<{ start: number; end: number }> = [];
                             intersectionRanges.sort((a, b) => a.start - b.start);
-                            
+
                             for (const range of intersectionRanges) {
                               if (mergedIntersections.length === 0) {
                                 mergedIntersections.push({ ...range });
@@ -4202,130 +4212,199 @@ export default function App() {
                                 }
                               }
                             }
-                            
+
                             // Преобразуем объединенные диапазоны в пиксельные координаты
                             const cellWidth = 39;
                             const intersections = mergedIntersections.map(range => ({
                               left: range.start * cellWidth,
                               width: (range.end - range.start) * cellWidth
                             }));
-                            
+
                             return (
                               <>
                                 {/* Рендерим чипы этапов */}
                                 {stagesForRow.map((stage) => {
                                   if (!stage.position) return null;
 
-                            // Функция для форматирования даты
-                            const formatDate = (dateString: string | null): string => {
-                              if (!dateString) return 'Не указано';
-                              try {
-                                const date = new Date(dateString);
-                                if (isNaN(date.getTime())) return 'Не указано';
-                                return date.toLocaleDateString('ru-RU');
-                              } catch {
-                                return 'Не указано';
-                              }
-                            };
+                                  // Функция для форматирования даты
+                                  const formatDate = (dateString: string | null): string => {
+                                    if (!dateString) return 'Не указано';
+                                    try {
+                                      const date = new Date(dateString);
+                                      if (isNaN(date.getTime())) return 'Не указано';
+                                      return date.toLocaleDateString('ru-RU');
+                                    } catch {
+                                      return 'Не указано';
+                                    }
+                                  };
 
-                            // Формируем текст подсказки в 2 строки через точки-разделители
-                            // Первая строка: название этапа • исполнитель
-                            const firstLineParts: string[] = [];
-                            firstLineParts.push(stage.nomenclatureItem?.name || 'Этап работ');
+                                  // Формируем текст подсказки в 2 строки через точки-разделители
+                                  // Первая строка: название этапа • исполнитель
+                                  const firstLineParts: string[] = [];
+                                  firstLineParts.push(stage.nomenclatureItem?.name || 'Этап работ');
 
-                            if (stage.assignee?.name) {
-                              firstLineParts.push(stage.assignee.name);
-                            } else {
-                              firstLineParts.push('Не указан');
-                            }
-
-                            // Вторая строка: дата старта • дата финиша • продолжительность
-                            const secondLineParts: string[] = [];
-                            secondLineParts.push(formatDate(stage.startDate));
-                            secondLineParts.push(formatDate(stage.endDate));
-
-                            // Продолжительность
-                            if (stage.duration !== null && stage.duration !== undefined) {
-                              secondLineParts.push(`${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
-                            } else {
-                              // Вычисляем продолжительность из дат, если не указана
-                              if (stage.startDate && stage.endDate) {
-                                try {
-                                  const start = new Date(stage.startDate);
-                                  const end = new Date(stage.endDate);
-                                  if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-                                    const diffTime = end.getTime() - start.getTime();
-                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 чтобы включить первый день
-                                    secondLineParts.push(`${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
+                                  if (stage.assignee?.name) {
+                                    firstLineParts.push(stage.assignee.name);
                                   } else {
-                                    secondLineParts.push('Не указана');
+                                    firstLineParts.push('Не указан');
                                   }
-                                } catch {
-                                  secondLineParts.push('Не указана');
-                                }
-                              } else {
-                                secondLineParts.push('Не указана');
-                              }
-                            }
 
-                            const tooltipTitle = `${firstLineParts.join(' • ')}\n${secondLineParts.join(' • ')}`;
+                                  // Вторая строка: дата старта • дата финиша • продолжительность
+                                  const secondLineParts: string[] = [];
+                                  secondLineParts.push(formatDate(stage.startDate));
+                                  secondLineParts.push(formatDate(stage.endDate));
 
-                            const chipBox = (
-                              <Box
-                                sx={{
-                                  position: 'absolute',
-                                  left: `${stage.position.left}px`,
-                                  width: `${stage.position.width}px`,
-                                  bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
-                                  height: '16px',
-                                  backgroundColor: '#1A3A5A',
-                                  color: '#B6BEC9',
-                                  borderRadius: '3px',
-                                  border: '1px solid #0254A5',
-                                  padding: '0',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  overflow: 'hidden',
-                                  fontSize: '9px',
-                                  fontWeight: 400,
-                                  zIndex: 7, // Поверх чипа изделия
-                                  textAlign: 'center',
-                                  boxSizing: 'border-box', // Бордюры учитываются внутри ширины чипа
-                                  cursor: 'default'
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    width: '100%'
-                                  }}
-                                >
-                                  {stage.nomenclatureItem?.name || 'Этап'}
-                                </Box>
-                              </Box>
-                            );
-
-                            // Tooltip показывается всегда с полной информацией
-                            return (
-                              <Tooltip
-                                key={stage.id}
-                                title={tooltipTitle}
-                                enterDelay={1000}
-                                arrow
-                                componentsProps={{
-                                  tooltip: {
-                                    sx: {
-                                      whiteSpace: 'pre-line' // Позволяет отображать переносы строк
+                                  // Продолжительность
+                                  if (stage.duration !== null && stage.duration !== undefined) {
+                                    secondLineParts.push(`${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
+                                  } else {
+                                    // Вычисляем продолжительность из дат, если не указана
+                                    if (stage.startDate && stage.endDate) {
+                                      try {
+                                        const start = new Date(stage.startDate);
+                                        const end = new Date(stage.endDate);
+                                        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                                          const diffTime = end.getTime() - start.getTime();
+                                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 чтобы включить первый день
+                                          secondLineParts.push(`${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
+                                        } else {
+                                          secondLineParts.push('Не указана');
+                                        }
+                                      } catch {
+                                        secondLineParts.push('Не указана');
+                                      }
+                                    } else {
+                                      secondLineParts.push('Не указана');
                                     }
                                   }
-                                }}
-                              >
-                                {chipBox}
-                              </Tooltip>
-                            );
+
+                                  const tooltipTitle = `${firstLineParts.join(' • ')}\n${secondLineParts.join(' • ')}`;
+
+                                  // Вычисляем незаштрихованную область для текущего чипа этапа
+                                  const stageStart = stage.position.startIndex;
+                                  const stageEnd = stage.position.startIndex + stage.position.daysCount;
+                                  
+                                  // Находим пересечения, которые затрагивают текущий чип
+                                  const affectingIntersections = intersections.filter(intersection => {
+                                    const intersectionStart = intersection.left / 39; // Преобразуем в индексы дней
+                                    const intersectionEnd = (intersection.left + intersection.width) / 39;
+                                    // Проверяем, пересекается ли пересечение с текущим чипом
+                                    return !(intersectionEnd <= stageStart || intersectionStart >= stageEnd);
+                                  });
+
+                                  // Определяем незаштрихованную область
+                                  let unshadedStart = stageStart;
+                                  let unshadedEnd = stageEnd;
+                                  
+                                  // Если есть пересечения, находим самый большой незаштрихованный сегмент
+                                  if (affectingIntersections.length > 0) {
+                                    // Преобразуем пересечения в индексы дней и сортируем
+                                    const shadedRanges = affectingIntersections.map(intersection => ({
+                                      start: intersection.left / 39,
+                                      end: (intersection.left + intersection.width) / 39
+                                    })).sort((a, b) => a.start - b.start);
+
+                                    // Находим незаштрихованные сегменты
+                                    const unshadedSegments: Array<{ start: number; end: number }> = [];
+                                    let currentStart = stageStart;
+                                    
+                                    for (const shaded of shadedRanges) {
+                                      // Если есть незаштрихованная область до текущего заштрихованного диапазона
+                                      if (currentStart < shaded.start) {
+                                        unshadedSegments.push({
+                                          start: currentStart,
+                                          end: shaded.start
+                                        });
+                                      }
+                                      currentStart = Math.max(currentStart, shaded.end);
+                                    }
+                                    
+                                    // Добавляем последний незаштрихованный сегмент
+                                    if (currentStart < stageEnd) {
+                                      unshadedSegments.push({
+                                        start: currentStart,
+                                        end: stageEnd
+                                      });
+                                    }
+                                    
+                                    // Находим самый большой незаштрихованный сегмент
+                                    if (unshadedSegments.length > 0) {
+                                      const largestSegment = unshadedSegments.reduce((max, seg) => {
+                                        const size = seg.end - seg.start;
+                                        const maxSize = max.end - max.start;
+                                        return size > maxSize ? seg : max;
+                                      });
+                                      unshadedStart = largestSegment.start;
+                                      unshadedEnd = largestSegment.end;
+                                    }
+                                  }
+
+                                  // Вычисляем позицию и ширину для центрирования текста по незаштрихованной области
+                                  const cellWidth = 39;
+                                  const unshadedLeft = (unshadedStart - stageStart) * cellWidth;
+                                  const unshadedWidth = (unshadedEnd - unshadedStart) * cellWidth;
+
+                                  const chipBox = (
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        left: `${stage.position.left}px`,
+                                        width: `${stage.position.width}px`,
+                                        bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
+                                        height: '16px',
+                                        backgroundColor: '#1A3A5A',
+                                        color: '#B6BEC9',
+                                        borderRadius: '3px',
+                                        border: '1px solid #0254A5',
+                                        padding: '0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // Изменено с 'center' на 'flex-start' для позиционирования по незаштрихованной области
+                                        overflow: 'hidden',
+                                        fontSize: '9px',
+                                        fontWeight: 400,
+                                        zIndex: 7, // Поверх чипа изделия
+                                        textAlign: 'center',
+                                        boxSizing: 'border-box', // Бордюры учитываются внутри ширины чипа
+                                        cursor: 'default'
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          position: 'absolute',
+                                          left: `${unshadedLeft + unshadedWidth / 2}px`, // Центр незаштрихованной области
+                                          transform: 'translateX(-50%)', // Центрируем текст относительно центра незаштрихованной области
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          maxWidth: `${unshadedWidth}px`, // Максимальная ширина = незаштрихованная область
+                                          textAlign: 'center',
+                                          pointerEvents: 'none' // Чтобы не блокировать клики на чип
+                                        }}
+                                      >
+                                        {stage.nomenclatureItem?.name || 'Этап'}
+                                      </Box>
+                                    </Box>
+                                  );
+
+                                  // Tooltip показывается всегда с полной информацией
+                                  return (
+                                    <Tooltip
+                                      key={stage.id}
+                                      title={tooltipTitle}
+                                      enterDelay={1000}
+                                      arrow
+                                      componentsProps={{
+                                        tooltip: {
+                                          sx: {
+                                            whiteSpace: 'pre-line' // Позволяет отображать переносы строк
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      {chipBox}
+                                    </Tooltip>
+                                  );
                                 })}
                                 {/* Штрихованные overlay элементы в местах пересечения этапов одного изделия */}
                                 {intersections.map((intersection, idx) => (
