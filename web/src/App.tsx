@@ -3817,12 +3817,14 @@ export default function App() {
 
                   // Вычисляем позицию чипа изделия на основе крайних дат этапов
                   // Чип изделия может выпирать влево и вправо на величину своего бордюра (1px)
-                  const borderWidth = 1;
+                  // Слева нужно дополнительно учесть бордюр ячейки даты (1px)
+                  const borderWidth = 1; // Бордюр чипа изделия
+                  const cellBorderWidth = 1; // Бордюр ячейки даты справа
                   const productDaysCount = maxEndIndex - minStartIndex + 1;
 
                   productPositions.set(product.id, {
-                    left: minStartIndex * 39 - borderWidth, // Выпирает на 1px влево
-                    width: productDaysCount * 39 + borderWidth * 2, // Выпирает на 1px вправо
+                    left: minStartIndex * 39 - borderWidth - cellBorderWidth, // Выпирает на бордюр чипа (1px) + бордюр ячейки (1px) влево
+                    width: productDaysCount * 39 + borderWidth * 2, // Выпирает на бордюр чипа (1px) вправо
                     startIndex: minStartIndex,
                     daysCount: productDaysCount,
                     isCutLeft: minStartIndex === 0,
