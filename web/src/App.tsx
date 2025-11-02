@@ -3608,7 +3608,7 @@ export default function App() {
                         // Проверяем, является ли это последней ячейкой месяца или последней ячейкой строки
                         const isLastDayOfMonth = monthGroup && (index === monthGroup.startIndex + monthGroup.count - 1 || index === days.length - 1);
                         // Граница справа под цвет фона внутри месяца, цветная на границе между месяцами
-                        const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#4B4F50' : '#0E1720';
+                        const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#262D33' : '#0E1720';
 
                         return (
                           <Box
@@ -3680,7 +3680,7 @@ export default function App() {
                               justifyContent: 'center',
                               cursor: 'pointer',
                               backgroundColor: 'transparent',
-                              borderRight: index < days.length - 1 ? 'thin solid #4B4F50' : 'none',
+                              borderRight: index < days.length - 1 ? 'thin solid #262D33' : 'none',
                               borderBottom: 'thin solid #4B4F50',
                               boxSizing: 'border-box'
                             }}
@@ -3810,7 +3810,7 @@ export default function App() {
                                   width: '39px',
                                   minHeight: '40px',
                                   flexShrink: 0,
-                                  borderRight: index < days.length - 1 ? 'thin solid #4B4F50' : 'none',
+                                  borderRight: index < days.length - 1 ? 'thin solid #262D33' : 'none',
                                   borderTop: `thin solid ${borderTopColor}`,
                                   borderBottom: `thin solid ${borderBottomColor}`,
                                   position: 'relative',
