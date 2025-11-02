@@ -119,6 +119,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       },
       orderBy: [
         { product: { project: { orderIndex: 'asc' } } },
+        { product: { orderIndex: 'asc' } },
         { orderIndex: 'asc' }
       ]
     } as any);
@@ -179,6 +180,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       projectName: stage.product.project.name,
       projectOrderIndex: stage.product.project.orderIndex,
       productId: stage.product.id,
+      productOrderIndex: stage.product.orderIndex,
       productName: stage.product.product?.name || 'Изделие', // Теперь правильно получаем название из справочника
       productDescription: stage.product.product?.description || null, // Описание из справочника Product
       serialNumber: stage.product.serialNumber || null, // Серийный номер изделия
@@ -261,6 +263,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
               projectName: project.name,
               projectOrderIndex: project.orderIndex,
               productId: projectProduct.id,
+              productOrderIndex: projectProduct.orderIndex,
               productName: projectProduct.product?.name || 'Изделие',
               productDescription: projectProduct.product?.description || null,
               serialNumber: projectProduct.serialNumber || null,

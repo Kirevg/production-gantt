@@ -56,6 +56,7 @@ interface KanbanTask {
     projectName?: string;
     projectOrderIndex?: number;
     productId?: string;
+    productOrderIndex?: number;
     productName?: string;
     productDescription?: string | null; // Описание из справочника Product
     serialNumber?: string | null;
@@ -369,6 +370,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     projectName: stage.projectName || 'Проект',
                     projectOrderIndex: stage.projectOrderIndex,
                     productId: stage.productId,
+                    productOrderIndex: stage.productOrderIndex,
                     productName: stage.productName || 'Изделие',
                     productDescription: stage.productDescription || null, // Описание из Product
                     serialNumber: stage.serialNumber || null,
@@ -905,20 +907,28 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                     .map(([projectId, tasks]) => {
                                     const projectName = tasks[0]?.projectName || 'Без проекта';
 
-                                    // Теперь группируем этапы этого проекта по изделиям
-                                    // Используем productId как ключ, чтобы каждое изделие было уникальным
-                                    const productsMap = new Map<string, KanbanTask[]>();
-                                    tasks.forEach(task => {
-                                        // Пропускаем записи проектов без изделий (project-only-)
-                                        if (task.id && task.id.startsWith('project-only-')) {
-                                            return;
-                                        }
-                                        // Используем productId как ключ для уникальности изделий
-                                        const productKey = task.productId || 'unknown';
-                                        if (!productsMap.has(productKey)) {
-                                            productsMap.set(productKey, []);
-                                        }
-                                        productsMap.get(productKey)?.push(task);
+                                // Теперь группируем этапы этого проекта по изделиям
+                                // Используем productId как ключ, чтобы каждое изделие было уникальным
+                                const productsMap = new Map<string, KanbanTask[]>();
+                                tasks.forEach(task => {
+                                    // Пропускаем записи проектов без изделий (project-only-)
+                                    if (task.id && task.id.startsWith('project-only-')) {
+                                        return;
+                                    }
+                                    // Используем productId как ключ для уникальности изделий
+                                    const productKey = task.productId || 'unknown';
+                                    if (!productsMap.has(productKey)) {
+                                        productsMap.set(productKey, []);
+                                    }
+                                    productsMap.get(productKey)?.push(task);
+                                });
+                                
+                                // Сортируем изделия по productOrderIndex для правильного порядка
+                                const sortedProducts = Array.from(productsMap.entries())
+                                    .sort((a, b) => {
+                                        const orderA = a[1][0]?.productOrderIndex ?? 999999;
+                                        const orderB = b[1][0]?.productOrderIndex ?? 999999;
+                                        return orderA - orderB;
                                     });
 
                                     // Определяем, есть ли у проекта изделия
@@ -1009,7 +1019,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                 </Box>
 
                                                 {/* Группировка по изделиям (показываем только если проект не свернут и есть изделия) */}
-                                                {!isCollapsed && hasProducts && Array.from(productsMap.entries()).map(([productKey, productTasks]) => {
+                                                {!isCollapsed && hasProducts && sortedProducts.map(([productKey, productTasks]) => {
                                                     const productName = productTasks[0]?.productName || 'Без изделия';
                                                     const productDescription = productTasks[0]?.productDescription; // Описание из Product
                                                     const serialNumber = productTasks[0]?.serialNumber;

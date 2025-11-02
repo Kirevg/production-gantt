@@ -3773,20 +3773,20 @@ export default function App() {
 
                       productsWithPositions.forEach(({ product, position }) => {
                         if (!position) return;
-                        
+
                         // Ищем строку, где изделие помещается
                         let placed = false;
                         for (let i = 0; i < rows.length; i++) {
                           // Проверяем, что в строке все изделия с таким же названием проекта
-                          const sameProjectName = rows[i].every(({ product: otherProduct }) => 
+                          const sameProjectName = rows[i].every(({ product: otherProduct }) =>
                             otherProduct.projectName === product.projectName
                           );
-                          
+
                           if (!sameProjectName) {
                             // В строке есть изделия с другим названием проекта - пропускаем эту строку
                             continue;
                           }
-                          
+
                           // Проверяем, не пересекается ли с другими изделиями в строке
                           const overlaps = rows[i].some(({ position: otherPos }) => {
                             if (!otherPos) return false;
@@ -3795,14 +3795,14 @@ export default function App() {
                             const end2 = otherPos.startIndex + otherPos.daysCount;
                             return !(position.startIndex >= end2 || otherPos.startIndex >= end1);
                           });
-                          
+
                           if (!overlaps) {
                             rows[i].push({ product, position });
                             placed = true;
                             break;
                           }
                         }
-                        
+
                         // Если не поместилось, создаем новую строку
                         if (!placed) {
                           rows.push([{ product, position }]);
