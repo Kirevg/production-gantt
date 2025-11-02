@@ -3476,7 +3476,7 @@ export default function App() {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: '#222946',
+                backgroundColor: '#0E1720',
                 borderBottom: 0,
                 overflowX: 'auto',
                 width: 'calc(100% - 60px)',
@@ -3488,7 +3488,7 @@ export default function App() {
                   height: '8px',
                 },
                 '&::-webkit-scrollbar-track': {
-                  backgroundColor: '#222946',
+                  backgroundColor: '#0E1720',
                   borderRadius: '4px',
                   border: '1px solid #4B4F50'
                 },
@@ -3608,7 +3608,7 @@ export default function App() {
                         // Проверяем, является ли это последней ячейкой месяца или последней ячейкой строки
                         const isLastDayOfMonth = monthGroup && (index === monthGroup.startIndex + monthGroup.count - 1 || index === days.length - 1);
                         // Граница справа под цвет фона внутри месяца, цветная на границе между месяцами
-                        const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#4B4F50' : '#222946';
+                        const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#4B4F50' : '#0E1720';
 
                         return (
                           <Box
@@ -3799,9 +3799,9 @@ export default function App() {
                         <Box key={rowIndex} sx={{ display: 'flex', position: 'relative' }}>
                           {days.map((_, index) => {
                             // Верхние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
-                            const borderTopColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
+                            const borderTopColor = (rowIndex <= 1 || rowIndex >= 2) ? '#0E1720' : '#4B4F50';
                             // Нижние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
-                            const borderBottomColor = (rowIndex <= 1 || rowIndex >= 2) ? '#222946' : '#4B4F50';
+                            const borderBottomColor = (rowIndex <= 1 || rowIndex >= 2) ? '#0E1720' : '#4B4F50';
 
                             return (
                               <Box
