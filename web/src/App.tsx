@@ -2573,6 +2573,7 @@ export default function App() {
   const [_calendarProjects, setCalendarProjects] = useState<Project[]>([]); // Проекты для отображения в календаре (оставлено для обратной совместимости)
   const [calendarProducts, setCalendarProducts] = useState<ProductChip[]>([]); // Изделия для отображения в календаре
   const [holidays, setHolidays] = useState<Map<string, boolean>>(new Map()); // Праздничные дни из производственного календаря РФ
+  const [shortDays, setShortDays] = useState<Map<string, boolean>>(new Map()); // Сокращенные дни из производственного календаря РФ
 
   // Состояние для показа/скрытия состава проекта
   const [showProjectComposition, setShowProjectComposition] = useState(false);
@@ -2852,9 +2853,10 @@ export default function App() {
 
       const data = await response.json();
       const holidaysMap = new Map<string, boolean>();
+      const shortDaysMap = new Map<string, boolean>();
 
       // Преобразуем данные в Map с ключом в формате YYYY-MM-DD
-      // holidays - праздничные дни, shortDays - сокращенные дни
+      // holidays - праздничные дни (выходные)
       if (data.holidays && Array.isArray(data.holidays)) {
         data.holidays.forEach((day: any) => {
           const dateStr = day.date ? day.date.split('T')[0] : day.date; // Формат: YYYY-MM-DD
@@ -2862,15 +2864,17 @@ export default function App() {
         });
       }
 
+      // shortDays - сокращенные дни (рабочие, но на 1 час короче)
       if (data.shortDays && Array.isArray(data.shortDays)) {
         data.shortDays.forEach((day: any) => {
           const dateStr = day.date ? day.date.split('T')[0] : day.date; // Формат: YYYY-MM-DD
-          holidaysMap.set(dateStr, true);
+          shortDaysMap.set(dateStr, true);
         });
       }
 
       setHolidays(holidaysMap);
-      console.log('✅ Производственный календарь загружен, праздничных дней:', holidaysMap.size);
+      setShortDays(shortDaysMap);
+      console.log('✅ Производственный календарь загружен, праздничных дней:', holidaysMap.size, 'сокращенных дней:', shortDaysMap.size);
     } catch (error) {
       console.error('Ошибка загрузки производственного календаря:', error);
     }
@@ -3984,6 +3988,8 @@ export default function App() {
                         const isHolidayDay = holidays.get(dateStr) || isHoliday(day); // Используем данные API, если есть, иначе старую функцию
                         // Красный цвет для выходных и праздничных дней (производственный календарь)
                         const isRedDay = isWeekend || isHolidayDay;
+                        // Определяем сокращенный день (рабочий, но на 1 час короче)
+                        const isShortDay = shortDays.get(dateStr);
                         return (
                           <Box
                             key={index}
@@ -4022,7 +4028,7 @@ export default function App() {
                                 fontWeight: isToday ? 700 : 400
                               }}
                             >
-                              {day.getDate()}
+                              {day.getDate()}{isShortDay ? '*' : ''}
                             </Typography>
                           </Box>
                         );
