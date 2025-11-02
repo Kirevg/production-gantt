@@ -4130,8 +4130,8 @@ export default function App() {
                                       }
                                     };
 
-                                    // Формируем текст подсказки: первая строка - статус, вторая - проект, третья - изделие
-                                    const tooltipTitle = `Статус: ${getStatusText(product.productStatus || 'InProject')}\n${product.projectName}\n${product.productName}`;
+                                    // Формируем текст подсказки: первая строка - статус с лампочкой (Unicode U+1F4A1), вторая - проект, третья - изделие
+                                    const tooltipTitle = `💡 ${getStatusText(product.productStatus || 'InProject')}\n${product.projectName}\n${product.productName}`;
 
                                     // Определяем цвет лампочки в зависимости от статуса изделия
                                     let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
