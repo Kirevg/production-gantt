@@ -23,7 +23,7 @@ import {
     Checkbox
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-import { Contractor } from '../types/common';
+import type { Contractor } from '../types/common';
 import { formatPhoneDisplay } from '../utils/phoneUtils';
 import PhoneInput from './PhoneInput';
 

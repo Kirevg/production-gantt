@@ -39,7 +39,7 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Project, User } from '../types/common';
+import type { Project, User } from '../types/common';
 import { formatPhoneDisplay } from '../utils/phoneUtils';
 
 interface ProjectsListProps {

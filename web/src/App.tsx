@@ -23,7 +23,8 @@ import {
   Menu,         // Контекстное меню
   MenuItem,     // Элемент контекстного меню
   ToggleButtonGroup, // Группа переключателей
-  ToggleButton  // Переключатель
+  ToggleButton, // Переключатель
+  Tooltip       // Подсказка при наведении
 } from '@mui/material';
 
 // Импорт иконок из Material-UI
@@ -45,7 +46,6 @@ import {
 
 
 // Импорт компонентов
-// import GanttChart from './components/GanttChart'; // Не используется
 import KanbanBoard from './components/KanbanBoard';
 import ReferencesPage from './components/ReferencesPage';
 import VolumeButton from './components/VolumeButton';
@@ -60,6 +60,37 @@ interface LoginResponse {
   accessToken: string; // JWT токен для аутентификации
   user: User;          // Данные пользователя
 }
+
+// Функция для определения праздничного дня
+const isHoliday = (date: Date): boolean => {
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  // Новый год и рождественские праздники (1-8 января)
+  if (month === 0) {
+    if (day >= 1 && day <= 8) return true;
+  }
+
+  // 23 февраля - День защитника Отечества
+  if (month === 1 && day === 23) return true;
+
+  // 8 марта - Международный женский день
+  if (month === 2 && day === 8) return true;
+
+  // 1 мая - Праздник Весны и Труда
+  if (month === 4 && day === 1) return true;
+
+  // 9 мая - День Победы
+  if (month === 4 && day === 9) return true;
+
+  // 12 июня - День России
+  if (month === 5 && day === 12) return true;
+
+  // 4 ноября - День народного единства
+  if (month === 10 && day === 4) return true;
+
+  return false;
+};
 
 // Интерфейс для чипа изделия в календаре
 interface ProductChip {
@@ -95,8 +126,8 @@ export default function App() {
   const [calendarView, setCalendarView] = useState<'month' | 'quarter' | 'halfyear' | 'year'>('month'); // Вид календаря
   const [calendarDate, setCalendarDate] = useState<Date>(new Date()); // Текущая дата календаря
   const [_calendarProjects, setCalendarProjects] = useState<Project[]>([]); // Проекты для отображения в календаре (оставлено для обратной совместимости)
-  const [_calendarProducts, setCalendarProducts] = useState<ProductChip[]>([]); // Изделия для отображения в календаре
-  const [_holidays, setHolidays] = useState<Map<string, boolean>>(new Map()); // Праздничные дни из производственного календаря РФ
+  const [calendarProducts, setCalendarProducts] = useState<ProductChip[]>([]); // Изделия для отображения в календаре
+  const [holidays, setHolidays] = useState<Map<string, boolean>>(new Map()); // Праздничные дни из производственного календаря РФ
   const [_shortDays, setShortDays] = useState<Map<string, boolean>>(new Map()); // Сокращенные дни из производственного календаря РФ
 
   // Состояние для показа/скрытия состава проекта (используется только через setter)
@@ -630,268 +661,1130 @@ export default function App() {
   // Функция для рендеринга контента вкладок
   const renderTabContent = () => {
     switch (currentTab) {
-      case 0: // Главная страница - календарь
+      case 0: // Главная страница с календарем
         return (
-          <Box className="page-content-container">
-            <Box sx={{ mt: 2, mb: 1, width: 'calc(100% - 60px)', marginLeft: '30px', marginRight: '30px' }}>
-              {/* Контролы для управления календарем */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                {/* Кнопки переключения вида календаря */}
-                <ToggleButtonGroup
-                  value={calendarView}
-                  exclusive
-                  onChange={(_, newValue) => {
-                    if (newValue !== null) {
-                      setCalendarView(newValue);
-                    }
-                  }}
-                  aria-label="вид календаря"
+          <>
+            {/* Календарь под вкладками */}
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+              backgroundColor: 'transparent',
+              borderBottom: 0
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton
                   size="small"
                   sx={{
-                    '& .MuiToggleButton-root': {
-                      fontSize: '0.875rem',
-                      padding: '6px 12px',
-                      border: '1px solid rgba(0, 0, 0, 0.23)',
-                      '&.Mui-selected': {
-                        backgroundColor: '#1976d2',
-                        color: 'white',
-                        '&:hover': {
-                          backgroundColor: '#1565c0',
-                        },
-                      },
-                    },
+                    color: 'white',
+                    border: 'none',
+                    '&:hover': {
+                      backgroundColor: 'transparent'
+                    }
+                  }}
+                  onClick={() => {
+                    const newDate = new Date(calendarDate);
+                    if (calendarView === 'quarter') {
+                      newDate.setMonth(newDate.getMonth() - 3);
+                    } else if (calendarView === 'halfyear') {
+                      newDate.setMonth(newDate.getMonth() - 6);
+                    } else if (calendarView === 'year') {
+                      newDate.setFullYear(newDate.getFullYear() - 1);
+                    } else {
+                      newDate.setMonth(newDate.getMonth() - 1);
+                    }
+                    setCalendarDate(newDate);
                   }}
                 >
-                  <ToggleButton value="month" aria-label="месяц">
-                    <CalendarMonthIcon sx={{ mr: 0.5 }} />
-                    Месяц
-                  </ToggleButton>
-                  <ToggleButton value="quarter" aria-label="квартал">
-                    <CalendarTodayIcon sx={{ mr: 0.5 }} />
-                    Квартал
-                  </ToggleButton>
-                  <ToggleButton value="halfyear" aria-label="полгода">
-                    <ViewAgendaIcon sx={{ mr: 0.5 }} />
-                    Полгода
-                  </ToggleButton>
-                  <ToggleButton value="year" aria-label="год">
-                    <EventIcon sx={{ mr: 0.5 }} />
-                    Год
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {/* Кнопки навигации по датам */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <IconButton
-                    onClick={() => {
-                      const newDate = new Date(calendarDate);
-                      switch (calendarView) {
-                        case 'month':
-                          newDate.setMonth(newDate.getMonth() - 1);
-                          break;
-                        case 'quarter':
-                          newDate.setMonth(newDate.getMonth() - 3);
-                          break;
-                        case 'halfyear':
-                          newDate.setMonth(newDate.getMonth() - 6);
-                          break;
-                        case 'year':
-                          newDate.setFullYear(newDate.getFullYear() - 1);
-                          break;
-                      }
-                      setCalendarDate(newDate);
-                    }}
-                    aria-label="предыдущий период"
-                  >
-                    <ChevronLeftIcon />
-                  </IconButton>
-                  <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center' }}>
-                    {(() => {
-                      switch (calendarView) {
-                        case 'month':
-                          return calendarDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-                        case 'quarter':
-                          const quarter = Math.floor(calendarDate.getMonth() / 3) + 1;
-                          return `${quarter} квартал ${calendarDate.getFullYear()}`;
-                        case 'halfyear':
-                          const half = calendarDate.getMonth() < 6 ? 1 : 2;
-                          return `${half} полугодие ${calendarDate.getFullYear()}`;
-                        case 'year':
-                          return calendarDate.getFullYear().toString();
-                        default:
-                          return '';
-                      }
-                    })()}
-                  </Typography>
-                  <IconButton
-                    onClick={() => {
-                      const newDate = new Date(calendarDate);
-                      switch (calendarView) {
-                        case 'month':
-                          newDate.setMonth(newDate.getMonth() + 1);
-                          break;
-                        case 'quarter':
-                          newDate.setMonth(newDate.getMonth() + 3);
-                          break;
-                        case 'halfyear':
-                          newDate.setMonth(newDate.getMonth() + 6);
-                          break;
-                        case 'year':
-                          newDate.setFullYear(newDate.getFullYear() + 1);
-                          break;
-                      }
-                      setCalendarDate(newDate);
-                    }}
-                    aria-label="следующий период"
-                  >
-                    <ChevronRightIcon />
-                  </IconButton>
-                </Box>
-              </Box>
-
-              {/* Календарь */}
-              <Box
-                sx={{
-                  overflow: 'auto',
-                  width: '100%',
-                  marginLeft: '30px',
-                  marginRight: '30px',
-                  borderRadius: '4px',
-                  // Стили горизонтального скроллбара
-                  '&::-webkit-scrollbar': {
-                    height: '8px',
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    backgroundColor: '#0E1720',
-                    borderRadius: '4px',
-                    border: '1px solid #4B4F50'
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    backgroundColor: '#4B4F50',
-                    borderRadius: '4px',
-                    border: '1px solid #4B4F50',
+                  <ChevronLeftIcon />
+                </IconButton>
+                <Typography variant="body1" sx={{ minWidth: '200px', textAlign: 'center', color: 'white' }}>
+                  {calendarView === 'month' && calendarDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+                  {calendarView === 'quarter' && (() => {
+                    const quarter = Math.floor(calendarDate.getMonth() / 3) + 1;
+                    return `${quarter} квартал ${calendarDate.getFullYear()}`;
+                  })()}
+                  {calendarView === 'halfyear' && (() => {
+                    const halfyear = Math.floor(calendarDate.getMonth() / 6) + 1;
+                    return `${halfyear} полугодие ${calendarDate.getFullYear()}`;
+                  })()}
+                  {calendarView === 'year' && calendarDate.getFullYear()}
+                </Typography>
+                <IconButton
+                  size="small"
+                  sx={{
+                    color: 'white',
+                    border: 'none',
                     '&:hover': {
-                      backgroundColor: '#5a5f60'
+                      backgroundColor: 'transparent'
+                    }
+                  }}
+                  onClick={() => {
+                    const newDate = new Date(calendarDate);
+                    if (calendarView === 'quarter') {
+                      newDate.setMonth(newDate.getMonth() + 3);
+                    } else if (calendarView === 'halfyear') {
+                      newDate.setMonth(newDate.getMonth() + 6);
+                    } else if (calendarView === 'year') {
+                      newDate.setFullYear(newDate.getFullYear() + 1);
+                    } else {
+                      newDate.setMonth(newDate.getMonth() + 1);
+                    }
+                    setCalendarDate(newDate);
+                  }}
+                >
+                  <ChevronRightIcon />
+                </IconButton>
+              </Box>
+              <ToggleButtonGroup
+                value={calendarView}
+                exclusive
+                onChange={(_, value) => value && setCalendarView(value)}
+                size="small"
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    color: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.3)'
+                      }
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
                     }
                   }
-                }}>
-                {(() => {
-                  const days: Date[] = [];
-                  if (calendarView === 'month') {
-                    // Добавляем полный предыдущий месяц
-                    const prevMonth = calendarDate.getMonth() === 0 ? 11 : calendarDate.getMonth() - 1;
-                    const prevYear = calendarDate.getMonth() === 0 ? calendarDate.getFullYear() - 1 : calendarDate.getFullYear();
-                    const firstDayOfPrevMonth = new Date(prevYear, prevMonth, 1);
-                    const lastDayOfPrevMonth = new Date(prevYear, prevMonth + 1, 0);
-                    const daysInPrevMonth = lastDayOfPrevMonth.getDate();
-                    for (let i = 0; i < daysInPrevMonth; i++) {
-                      const day = new Date(firstDayOfPrevMonth);
-                      day.setDate(firstDayOfPrevMonth.getDate() + i);
-                      days.push(day);
-                    }
-                    // Добавляем дни текущего месяца
-                    const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
-                    const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
+                }}
+              >
+                <ToggleButton value="month">
+                  <CalendarMonthIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Месяц
+                </ToggleButton>
+                <ToggleButton value="quarter">
+                  <ViewAgendaIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Квартал
+                </ToggleButton>
+                <ToggleButton value="halfyear">
+                  <CalendarTodayIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Полугодие
+                </ToggleButton>
+                <ToggleButton value="year">
+                  <EventIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  Год
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            {/* Полоска с днями */}
+            <Box
+              onWheel={(e) => {
+                const container = e.currentTarget;
+                container.scrollLeft += e.deltaY;
+              }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#0E1720',
+                borderBottom: 0,
+                overflowX: 'auto',
+                width: 'calc(100% - 60px)',
+                marginLeft: '30px',
+                marginRight: '30px',
+                borderRadius: '4px',
+                // Стили горизонтального скроллбара
+                '&::-webkit-scrollbar': {
+                  height: '8px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: '#0E1720',
+                  borderRadius: '4px',
+                  border: '1px solid #4B4F50'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#4B4F50',
+                  borderRadius: '4px',
+                  border: '1px solid #4B4F50',
+                  '&:hover': {
+                    backgroundColor: '#5a5f60'
+                  }
+                }
+              }}>
+              {(() => {
+                const days: Date[] = [];
+                if (calendarView === 'month') {
+                  // Добавляем полный предыдущий месяц
+                  const prevMonth = calendarDate.getMonth() === 0 ? 11 : calendarDate.getMonth() - 1;
+                  const prevYear = calendarDate.getMonth() === 0 ? calendarDate.getFullYear() - 1 : calendarDate.getFullYear();
+                  const firstDayOfPrevMonth = new Date(prevYear, prevMonth, 1);
+                  const lastDayOfPrevMonth = new Date(prevYear, prevMonth + 1, 0);
+                  const daysInPrevMonth = lastDayOfPrevMonth.getDate();
+                  for (let i = 0; i < daysInPrevMonth; i++) {
+                    const day = new Date(firstDayOfPrevMonth);
+                    day.setDate(firstDayOfPrevMonth.getDate() + i);
+                    days.push(day);
+                  }
+                  // Добавляем дни текущего месяца
+                  const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+                  const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
+                  const daysInMonth = lastDay.getDate();
+                  for (let i = 0; i < daysInMonth; i++) {
+                    const day = new Date(firstDay);
+                    day.setDate(firstDay.getDate() + i);
+                    days.push(day);
+                  }
+                  // Добавляем полный следующий месяц
+                  const nextMonth = calendarDate.getMonth() === 11 ? 0 : calendarDate.getMonth() + 1;
+                  const nextYear = calendarDate.getMonth() === 11 ? calendarDate.getFullYear() + 1 : calendarDate.getFullYear();
+                  const firstDayOfNextMonth = new Date(nextYear, nextMonth, 1);
+                  const lastDayOfNextMonth = new Date(nextYear, nextMonth + 1, 0);
+                  const daysInNextMonth = lastDayOfNextMonth.getDate();
+                  for (let i = 0; i < daysInNextMonth; i++) {
+                    const day = new Date(firstDayOfNextMonth);
+                    day.setDate(firstDayOfNextMonth.getDate() + i);
+                    days.push(day);
+                  }
+                } else if (calendarView === 'quarter') {
+                  const quarter = Math.floor(calendarDate.getMonth() / 3);
+                  const startMonth = quarter * 3;
+                  for (let month = startMonth; month < startMonth + 3; month++) {
+                    const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                    const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
                     const daysInMonth = lastDay.getDate();
                     for (let i = 0; i < daysInMonth; i++) {
                       const day = new Date(firstDay);
                       day.setDate(firstDay.getDate() + i);
                       days.push(day);
                     }
-                    // Добавляем полный следующий месяц
-                    const nextMonth = calendarDate.getMonth() === 11 ? 0 : calendarDate.getMonth() + 1;
-                    const nextYear = calendarDate.getMonth() === 11 ? calendarDate.getFullYear() + 1 : calendarDate.getFullYear();
-                    const firstDayOfNextMonth = new Date(nextYear, nextMonth, 1);
-                    const lastDayOfNextMonth = new Date(nextYear, nextMonth + 1, 0);
-                    const daysInNextMonth = lastDayOfNextMonth.getDate();
-                    for (let i = 0; i < daysInNextMonth; i++) {
-                      const day = new Date(firstDayOfNextMonth);
-                      day.setDate(firstDayOfNextMonth.getDate() + i);
+                  }
+                } else if (calendarView === 'halfyear') {
+                  const halfyear = Math.floor(calendarDate.getMonth() / 6);
+                  const startMonth = halfyear * 6;
+                  for (let month = startMonth; month < startMonth + 6; month++) {
+                    const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                    const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                    const daysInMonth = lastDay.getDate();
+                    for (let i = 0; i < daysInMonth; i++) {
+                      const day = new Date(firstDay);
+                      day.setDate(firstDay.getDate() + i);
                       days.push(day);
                     }
-                  } else if (calendarView === 'quarter') {
-                    const quarter = Math.floor(calendarDate.getMonth() / 3);
-                    const startMonth = quarter * 3;
-                    for (let month = startMonth; month < startMonth + 3; month++) {
-                      const firstDay = new Date(calendarDate.getFullYear(), month, 1);
-                      const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
-                      const daysInMonth = lastDay.getDate();
-                      for (let i = 0; i < daysInMonth; i++) {
-                        const day = new Date(firstDay);
-                        day.setDate(firstDay.getDate() + i);
-                        days.push(day);
-                      }
+                  }
+                } else {
+                  // Год
+                  for (let month = 0; month < 12; month++) {
+                    const firstDay = new Date(calendarDate.getFullYear(), month, 1);
+                    const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
+                    const daysInMonth = lastDay.getDate();
+                    for (let i = 0; i < daysInMonth; i++) {
+                      const day = new Date(firstDay);
+                      day.setDate(firstDay.getDate() + i);
+                      days.push(day);
                     }
-                  } else if (calendarView === 'halfyear') {
-                    const halfyear = Math.floor(calendarDate.getMonth() / 6);
-                    const startMonth = halfyear * 6;
-                    for (let month = startMonth; month < startMonth + 6; month++) {
-                      const firstDay = new Date(calendarDate.getFullYear(), month, 1);
-                      const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
-                      const daysInMonth = lastDay.getDate();
-                      for (let i = 0; i < daysInMonth; i++) {
-                        const day = new Date(firstDay);
-                        day.setDate(firstDay.getDate() + i);
-                        days.push(day);
-                      }
+                  }
+                }
+                // Создаем массив групп месяцев для строки с месяцами
+                const monthGroups: Array<{ month: string, startIndex: number, count: number }> = [];
+                let currentMonth = '';
+                let currentStart = 0;
+
+                days.forEach((day, index) => {
+                  // Формируем формат "НОЯБРЬ 2025" вместо "нояб. 2025 г."
+                  const monthName = day.toLocaleDateString('ru-RU', { month: 'long' }).toUpperCase();
+                  const year = day.getFullYear();
+                  const monthKey = `${monthName} ${year}`;
+                  if (monthKey !== currentMonth) {
+                    if (currentMonth) {
+                      monthGroups.push({ month: currentMonth, startIndex: currentStart, count: index - currentStart });
                     }
-                  } else if (calendarView === 'year') {
-                    for (let month = 0; month < 12; month++) {
-                      const firstDay = new Date(calendarDate.getFullYear(), month, 1);
-                      const lastDay = new Date(calendarDate.getFullYear(), month + 1, 0);
-                      const daysInMonth = lastDay.getDate();
-                      for (let i = 0; i < daysInMonth; i++) {
-                        const day = new Date(firstDay);
-                        day.setDate(firstDay.getDate() + i);
-                        days.push(day);
-                      }
+                    currentMonth = monthKey;
+                    currentStart = index;
+                  }
+                });
+                if (currentMonth) {
+                  monthGroups.push({ month: currentMonth, startIndex: currentStart, count: days.length - currentStart });
+                }
+
+                // НОВАЯ ЛОГИКА: Основными чипами для расположения являются этапы работ
+                // Сначала вычисляем позиции этапов работ, затем натягиваем чипы изделий на крайние даты этапов
+
+                interface StageChip {
+                  id: string;
+                  productId: string;
+                  product: ProductChip;
+                  startDate: string | null;
+                  endDate: string | null;
+                  nomenclatureItem?: { name: string } | null;
+                  assignee?: { id: string; name: string } | null;
+                  duration?: number | null;
+                  position: {
+                    left: number;
+                    width: number;
+                    startIndex: number;
+                    daysCount: number;
+                    isCutLeft: boolean;
+                    isCutRight: boolean;
+                  } | null;
+                }
+
+                // Функция вычисления позиции этапа работ
+                const getStagePosition = (stage: { startDate: string | null; endDate: string | null }) => {
+                  if (!stage.startDate || !stage.endDate) return null;
+
+                  const startDate = new Date(stage.startDate);
+                  const endDate = new Date(stage.endDate);
+
+                  // Нормализуем даты (убираем время)
+                  startDate.setHours(0, 0, 0, 0);
+                  endDate.setHours(0, 0, 0, 0);
+
+                  // Получаем границы периода
+                  const periodStart = new Date(days[0]);
+                  periodStart.setHours(0, 0, 0, 0);
+                  const periodEnd = new Date(days[days.length - 1]);
+                  periodEnd.setHours(0, 0, 0, 0);
+
+                  // Проверяем, есть ли пересечение этапа с периодом
+                  if (endDate < periodStart || startDate > periodEnd) {
+                    return null;
+                  }
+
+                  // Определяем, нужно ли обрезать слева
+                  const isCutLeft = startDate < periodStart;
+
+                  // Определяем, нужно ли обрезать справа
+                  const isCutRight = endDate > periodEnd;
+
+                  // Находим индекс дня начала (обрезаем слева, если нужно)
+                  let startIndex = 0;
+                  if (!isCutLeft) {
+                    const foundIndex = days.findIndex(day => {
+                      const dayDate = new Date(day);
+                      dayDate.setHours(0, 0, 0, 0);
+                      return dayDate.getTime() === startDate.getTime();
+                    });
+                    if (foundIndex !== -1) {
+                      startIndex = foundIndex;
+                    } else {
+                      startIndex = 0;
                     }
                   }
 
-                  return (
-                    <>
-                      {/* Полоска с днями */}
-                      <Box
-                        onWheel={(e) => {
-                          const container = e.currentTarget;
-                          container.scrollLeft += e.deltaY;
-                        }}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          backgroundColor: '#0E1720',
-                          borderBottom: 0,
-                          overflowX: 'auto',
-                          width: 'calc(100% - 60px)',
-                          marginLeft: '30px',
-                          marginRight: '30px',
-                          borderRadius: '4px',
-                          // Стили горизонтального скроллбара
-                          '&::-webkit-scrollbar': {
-                            height: '8px',
-                          },
-                          '&::-webkit-scrollbar-track': {
-                            backgroundColor: '#0E1720',
-                            borderRadius: '4px',
-                            border: '1px solid #4B4F50'
-                          },
-                          '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: '#4B4F50',
-                            borderRadius: '4px',
-                            border: '1px solid #4B4F50',
-                            '&:hover': {
-                              backgroundColor: '#5a5f60'
+                  // Находим индекс дня окончания (обрезаем справа, если нужно)
+                  let endIndex = days.length - 1;
+                  if (!isCutRight) {
+                    const foundIndex = days.findIndex(day => {
+                      const dayDate = new Date(day);
+                      dayDate.setHours(0, 0, 0, 0);
+                      return dayDate.getTime() === endDate.getTime();
+                    });
+                    if (foundIndex !== -1) {
+                      endIndex = foundIndex;
+                    } else {
+                      endIndex = days.length - 1;
+                    }
+                  }
+
+                  // Вычисляем количество дней между началом и концом этапа в отображаемом периоде
+                  const daysDiff = endIndex - startIndex + 1;
+
+                  // Ячейки календаря имеют ширину 39px включая бордюр справа (1px) с box-sizing: border-box
+                  // Чипы этапов имеют бордюр 1px с каждой стороны с box-sizing: border-box
+                  // Чип этапа должен помещаться внутри ячейки вместе со своими бордюрами
+                  // Между соседними чипами всегда будет бордюр ячейки (1px)
+                  const cellWidth = 39; // Ширина ячейки включая бордюр справа
+                  const cellBorderWidth = 1; // Толщина бордюра ячейки справа
+
+                  // Позиция чипа этапа: левая граница первой ячейки
+                  // Чип этапа начинается с позиции левой границы ячейки (без смещения, бордюры внутри ячейки)
+                  const left = startIndex * cellWidth;
+
+                  // Ширина чипа этапа: суммарная ширина всех ячеек минус бордюр последней ячейки справа
+                  // Чип занимает всю ширину ячеек кроме последнего бордюра справа, его бордюры учитываются внутри через box-sizing: border-box
+                  // Между соседними чипами (в разных ячейках) будет бордюр ячейки (1px)
+                  const width = daysDiff * cellWidth - cellBorderWidth;
+
+                  return {
+                    left, // Позиция слева - левая граница первой ячейки
+                    width, // Ширина чипа = суммарная ширина всех ячеек минус бордюр последней ячейки справа (чип помещается внутри с бордюрами)
+                    startIndex,
+                    daysCount: daysDiff,
+                    isCutLeft,
+                    isCutRight
+                  };
+                };
+
+                // Собираем все этапы работ со всех изделий
+                const allStages: StageChip[] = [];
+                calendarProducts.forEach(product => {
+                  if (product.workStages && product.workStages.length > 0) {
+                    product.workStages.forEach(stage => {
+                      const position = getStagePosition(stage);
+                      if (position) {
+                        allStages.push({
+                          id: stage.id,
+                          productId: product.id,
+                          product,
+                          startDate: stage.startDate,
+                          endDate: stage.endDate,
+                          nomenclatureItem: stage.nomenclatureItem,
+                          assignee: stage.assignee || null,
+                          duration: stage.duration || null,
+                          position
+                        });
+                      }
+                    });
+                  }
+                });
+
+                // Распределяем этапы работ по строкам (основная логика)
+                const rows: Array<Array<StageChip>> = [];
+
+                allStages.forEach(stage => {
+                  if (!stage.position) return;
+
+                  // Ищем строку, где этап помещается
+                  let placed = false;
+                  for (let i = 0; i < rows.length; i++) {
+                    // Проверяем, что в строке все этапы с таким же названием проекта
+                    const sameProjectName = rows[i].every(otherStage =>
+                      otherStage.product.projectName === stage.product.projectName
+                    );
+
+                    if (!sameProjectName) {
+                      continue;
+                    }
+
+                    // Проверяем, есть ли в строке уже этап другого изделия
+                    // Каждое изделие должно быть в своей строке
+                    const hasDifferentProduct = rows[i].some(otherStage =>
+                      otherStage.productId !== stage.productId
+                    );
+
+                    // Если в строке уже есть этап другого изделия - пропускаем эту строку
+                    if (hasDifferentProduct) {
+                      continue;
+                    }
+
+                    // Проверяем, не пересекается ли с другими этапами в строке
+                    // Этапы одного изделия (productId) могут перекрываться друг с другом
+                    // Этапы разных изделий не должны пересекаться
+                    const overlaps = rows[i].some(otherStage => {
+                      if (!otherStage.position || !stage.position) return false;
+
+                      // Если этапы одного изделия - разрешаем перекрытие
+                      if (stage.productId === otherStage.productId) {
+                        return false; // Этапы одного изделия могут перекрываться
+                      }
+
+                      // Для этапов разных изделий проверяем пересечение интервалов
+                      const stageEnd = stage.position.startIndex + stage.position.daysCount;
+                      const otherStageEnd = otherStage.position.startIndex + otherStage.position.daysCount;
+                      // Этапы разных изделий пересекаются, если их интервалы дней перекрываются
+                      return !(stage.position.startIndex >= otherStageEnd || otherStage.position.startIndex >= stageEnd);
+                    });
+
+                    if (!overlaps) {
+                      rows[i].push(stage);
+                      placed = true;
+                      break;
+                    }
+                  }
+
+                  // Если не поместилось, создаем новую строку
+                  if (!placed) {
+                    rows.push([stage]);
+                  }
+                });
+
+                // Группируем этапы по изделиям для вычисления позиций чипов изделий
+                const productGroups = new Map<string, { product: ProductChip; stages: StageChip[] }>();
+                allStages.forEach(stage => {
+                  if (!productGroups.has(stage.productId)) {
+                    productGroups.set(stage.productId, {
+                      product: stage.product,
+                      stages: []
+                    });
+                  }
+                  productGroups.get(stage.productId)!.stages.push(stage);
+                });
+
+                // Вычисляем позиции чипов изделий на основе крайних дат этапов
+                const productPositions = new Map<string, {
+                  left: number;
+                  width: number;
+                  startIndex: number;
+                  daysCount: number;
+                  isCutLeft: boolean;
+                  isCutRight: boolean;
+                }>();
+
+                productGroups.forEach(({ product, stages }) => {
+                  if (stages.length === 0) return;
+
+                  // Находим самый ранний startIndex и самый поздний endIndex среди этапов
+                  const minStartIndex = Math.min(...stages.map(s => s.position?.startIndex ?? Infinity));
+                  const maxEndIndex = Math.max(...stages.map(s => s.position ? s.position.startIndex + s.position.daysCount - 1 : -Infinity));
+
+                  if (minStartIndex === Infinity || maxEndIndex === -Infinity) return;
+
+                  // Вычисляем позицию чипа изделия на основе крайних дат этапов
+                  // Чип изделия может выпирать влево и вправо на величину своего бордюра (1px)
+                  // Слева нужно дополнительно учесть бордюр ячейки даты (1px)
+                  const borderWidth = 1; // Бордюр чипа изделия
+                  const cellBorderWidth = 1; // Бордюр ячейки даты справа
+                  const productDaysCount = maxEndIndex - minStartIndex + 1;
+
+                  productPositions.set(product.id, {
+                    left: minStartIndex * 39 - borderWidth - cellBorderWidth, // Выпирает на бордюр чипа (1px) + бордюр ячейки (1px) влево
+                    width: productDaysCount * 39 + borderWidth * 2, // Выпирает на бордюр чипа (1px) вправо
+                    startIndex: minStartIndex,
+                    daysCount: productDaysCount,
+                    isCutLeft: minStartIndex === 0,
+                    isCutRight: maxEndIndex === days.length - 1
+                  });
+                });
+
+                return (
+                  <>
+                    {/* Строка с месяцами - первая */}
+                    <Box sx={{ display: 'flex', position: 'relative' }}>
+                      {days.map((_, index) => {
+                        // Находим группу месяца, к которой относится текущая ячейка
+                        const monthGroup = monthGroups.find(g => index >= g.startIndex && index < g.startIndex + g.count);
+                        // Проверяем, является ли это первой ячейкой месяца
+                        const isFirstDayOfMonth = monthGroup && monthGroup.startIndex === index;
+                        // Проверяем, является ли это последней ячейкой месяца или последней ячейкой строки
+                        const isLastDayOfMonth = monthGroup && (index === monthGroup.startIndex + monthGroup.count - 1 || index === days.length - 1);
+                        // Граница справа под цвет фона внутри месяца, цветная на границе между месяцами
+                        const borderRightColor = isLastDayOfMonth || index === days.length - 1 ? '#262D33' : '#0E1720';
+
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              width: '39px',
+                              minHeight: '40px',
+                              flexShrink: 0,
+                              borderRight: index < days.length - 1 ? `thin solid ${borderRightColor}` : 'none',
+                              borderTop: 'thin solid #4B4F50',
+                              borderBottom: 'thin solid #4B4F50',
+                              position: 'relative',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            {isFirstDayOfMonth && monthGroup && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  left: 0,
+                                  width: `${monthGroup.count * 39}px`,
+                                  top: 0,
+                                  bottom: 0,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  pointerEvents: 'none',
+                                  zIndex: 10
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontSize: '14px',
+                                    color: '#EDF3FA'
+                                  }}
+                                >
+                                  {monthGroup.month}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+
+                    {/* Строка с днями - вторая */}
+                    <Box sx={{ display: 'flex' }}>
+                      {days.map((day, index) => {
+                        const isToday = day.toDateString() === new Date().toDateString();
+                        // Определяем выходной день (суббота = 6, воскресенье = 0)
+                        const dayOfWeek = day.getDay();
+                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                        // Определяем праздничный день из производственного календаря РФ
+                        const dateStr = day.toISOString().split('T')[0]; // Формат: YYYY-MM-DD
+                        const isHolidayDay = holidays.get(dateStr) || isHoliday(day); // Используем данные API, если есть, иначе старую функцию
+                        // Красный цвет для выходных и праздничных дней (производственный календарь)
+                        const isRedDay = isWeekend || isHolidayDay;
+                        return (
+                          <Box
+                            key={index}
+                            onClick={() => setCalendarDate(day)}
+                            sx={{
+                              width: '39px',
+                              minHeight: '40px',
+                              flexShrink: 0,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              backgroundColor: 'transparent',
+                              borderRight: index < days.length - 1 ? 'thin solid #262D33' : 'none',
+                              borderBottom: 'thin solid #4B4F50',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontSize: '0.65rem',
+                                color: isRedDay ? '#d32f2f' : '#EDF3FA',
+                                textTransform: 'uppercase',
+                                fontWeight: 500
+                              }}
+                            >
+                              {day.toLocaleDateString('ru-RU', { weekday: 'short' })}
+                            </Typography>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontSize: '14px',
+                                color: isRedDay ? '#d32f2f' : '#EDF3FA',
+                                fontWeight: isToday ? 700 : 400
+                              }}
+                            >
+                              {day.getDate()}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                    {/* Остальные строки с ячейками и карточками изделий */}
+                    {Array.from({ length: Math.max(rows.length, 15) }, (_, rowIndex) => {
+                      // Получаем этапы работ для текущей строки
+                      const stagesForRow = rows[rowIndex] || [];
+
+                      // Группируем этапы по изделиям для рендеринга чипов изделий
+                      const productGroupsForRow = new Map<string, StageChip[]>();
+                      stagesForRow.forEach(stage => {
+                        if (!productGroupsForRow.has(stage.productId)) {
+                          productGroupsForRow.set(stage.productId, []);
+                        }
+                        productGroupsForRow.get(stage.productId)!.push(stage);
+                      });
+
+                      return (
+                        <Box key={rowIndex} sx={{ display: 'flex', position: 'relative' }}>
+                          {days.map((_, index) => {
+                            // Верхние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
+                            const borderTopColor = (rowIndex <= 1 || rowIndex >= 2) ? '#0E1720' : '#4B4F50';
+                            // Нижние границы: строки 3-4 (rowIndex 0-1) и строки 5-17 (rowIndex >= 2) под цвет фона
+                            const borderBottomColor = (rowIndex <= 1 || rowIndex >= 2) ? '#0E1720' : '#4B4F50';
+
+                            return (
+                              <Box
+                                key={index}
+                                sx={{
+                                  width: '39px',
+                                  minHeight: '40px',
+                                  flexShrink: 0,
+                                  borderRight: index < days.length - 1 ? 'thin solid #262D33' : 'none',
+                                  borderTop: `thin solid ${borderTopColor}`,
+                                  borderBottom: `thin solid ${borderBottomColor}`,
+                                  position: 'relative',
+                                  boxSizing: 'border-box'
+                                }}
+                              />
+                            );
+                          })}
+                          {/* Чипы изделий (фоновые элементы) для этой строки */}
+                          {Array.from(productGroupsForRow.entries()).map(([productId, stages]) => {
+                            const product = stages[0].product;
+                            const position = productPositions.get(productId);
+                            if (!position) return null;
+
+                            return (
+                              <Box
+                                key={product.id}
+                                sx={{
+                                  position: 'absolute',
+                                  left: `${position.left}px`,
+                                  width: `${position.width}px`,
+                                  height: '38px',
+                                  color: '#B6BEC9',
+                                  borderRadius: '4px',
+                                  border: '1px solid #0254A5',
+                                  padding: '4px 8px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'flex-start',
+                                  overflow: 'hidden',
+                                  cursor: 'pointer',
+                                  zIndex: 3, // Фоновый элемент, ниже чипов этапов
+                                  fontSize: '12px',
+                                  fontWeight: 500,
+                                  boxSizing: 'border-box',
+                                  // Градиент для обрезки с фоном
+                                  background: position.isCutLeft && position.isCutRight
+                                    ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px, #0B2037 calc(100% - 20px), rgba(11, 32, 55, 0.3))'
+                                    : position.isCutLeft
+                                      ? 'linear-gradient(to right, rgba(11, 32, 55, 0.3), #0B2037 20px)'
+                                      : position.isCutRight
+                                        ? 'linear-gradient(to left, rgba(11, 32, 55, 0.3), #0B2037 20px)'
+                                        : '#0B2037'
+                                }}
+                                onClick={() => {
+                                  // Можно добавить обработчик клика по карточке изделия
+                                  console.log('Клик по изделию:', product.productName, 'проект:', product.projectName);
+                                }}
+                              >
+                                {/* Иконка обрезки слева */}
+                                {position.isCutLeft && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      left: '2px',
+                                      top: '50%',
+                                      transform: 'translateY(-50%)',
+                                      width: '12px',
+                                      height: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      zIndex: 6
+                                    }}
+                                    title="Изделие начинается раньше видимого периода"
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 0,
+                                        height: 0,
+                                        borderTop: '6px solid transparent',
+                                        borderBottom: '6px solid transparent',
+                                        borderRight: '8px solid #0254A5'
+                                      }}
+                                    />
+                                  </Box>
+                                )}
+                                {/* Иконка обрезки справа */}
+                                {position.isCutRight && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      right: '2px',
+                                      top: '50%',
+                                      transform: 'translateY(-50%)',
+                                      width: '12px',
+                                      height: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      zIndex: 6
+                                    }}
+                                    title="Изделие продолжается после видимого периода"
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 0,
+                                        height: 0,
+                                        borderTop: '6px solid transparent',
+                                        borderBottom: '6px solid transparent',
+                                        borderLeft: '8px solid #0254A5'
+                                      }}
+                                    />
+                                  </Box>
+                                )}
+                                {/* Первая строка: название проекта и изделия */}
+                                {(() => {
+                                  // Компонент для названия изделия с подсказкой в 2 строки
+                                  const ProductNameComponent = React.memo(() => {
+                                    const textRef = React.useRef<HTMLDivElement>(null);
+
+                                    // Определяем статус текстом на русском
+                                    const getStatusText = (status: string) => {
+                                      switch (status) {
+                                        case 'InProject': return 'В проекте';
+                                        case 'InProgress': return 'В работе';
+                                        case 'Done': return 'Готово';
+                                        case 'HasProblems': return 'Проблема';
+                                        default: return 'В проекте';
+                                      }
+                                    };
+
+                                    // Определяем цвет лампочки в зависимости от статуса изделия
+                                    let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
+                                    if (product.productStatus === 'Done') {
+                                      statusColor = '#81C784'; // Зеленый - готово
+                                    } else if (product.productStatus === 'HasProblems') {
+                                      statusColor = '#E57373'; // Красный - проблема
+                                    } else if (product.productStatus === 'InProgress') {
+                                      statusColor = '#64B5F6'; // Синий - в работе
+                                    }
+
+                                    const nameBox = (
+                                      <Box
+                                        ref={textRef}
+                                        sx={{ display: 'flex', alignItems: 'center', lineHeight: '14px', overflow: 'hidden' }}
+                                      >
+                                        {/* Лампочка статуса изделия */}
+                                        <Box
+                                          sx={{
+                                            width: '8px',
+                                            height: '8px',
+                                            borderRadius: '50%',
+                                            backgroundColor: statusColor,
+                                            mr: '6px',
+                                            flexShrink: 0
+                                          }}
+                                        />
+                                        <Box component="span" sx={{ color: '#DDBB88', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                          {product.projectName}
+                                        </Box>
+                                        <Box component="span" sx={{ mx: '4px', color: '#B6BEC9', flexShrink: 0 }}>
+                                          •
+                                        </Box>
+                                        <Box component="span" sx={{ color: '#9966B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                          {product.productName}
+                                        </Box>
+                                      </Box>
+                                    );
+
+                                    // Кастомный компонент для Tooltip с цветной лампочкой
+                                    const CustomTooltipContent = (
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: '4px' }}>
+                                        <Box
+                                          sx={{
+                                            width: '10px',
+                                            height: '10px',
+                                            borderRadius: '50%',
+                                            backgroundColor: statusColor,
+                                            flexShrink: 0
+                                          }}
+                                        />
+                                        <Box component="span">
+                                          {getStatusText(product.productStatus || 'InProject')}
+                                        </Box>
+                                      </Box>
+                                    );
+
+                                    // Tooltip показывается всегда с полной информацией: статус с лампочкой, проект, изделие
+                                    return (
+                                      <Tooltip
+                                        title={
+                                          <Box>
+                                            {CustomTooltipContent}
+                                            <Box component="div">
+                                              {product.projectName}
+                                            </Box>
+                                            <Box component="div">
+                                              {product.productName}
+                                            </Box>
+                                          </Box>
+                                        }
+                                        enterDelay={1000}
+                                        arrow
+                                      >
+                                        {nameBox}
+                                      </Tooltip>
+                                    );
+                                  });
+
+                                  return <ProductNameComponent key={`${product.id}-name`} />;
+                                })()}
+                              </Box>
+                            );
+                          })}
+                          {/* Чипы этапов работ (основные элементы) для этой строки */}
+                          {(() => {
+                            // Определяем пересечения этапов одного изделия для штриховки
+                            const intersectionRanges: Array<{ start: number; end: number }> = [];
+
+                            // Находим все пересечения этапов одного изделия
+                            for (let i = 0; i < stagesForRow.length; i++) {
+                              const stage1 = stagesForRow[i];
+                              if (!stage1.position) continue;
+
+                              for (let j = i + 1; j < stagesForRow.length; j++) {
+                                const stage2 = stagesForRow[j];
+                                if (!stage2.position) continue;
+
+                                // Проверяем, что этапы одного изделия
+                                if (stage1.productId !== stage2.productId) continue;
+
+                                // Определяем пересечение интервалов
+                                // Логика: каждое начало чипа со следующей даты перекрывает конец предыдущей
+                                const start1 = stage1.position.startIndex;
+                                const end1 = stage1.position.startIndex + stage1.position.daysCount - 1; // Последний день первого этапа (индекс)
+                                const start2 = stage2.position.startIndex;
+                                const end2 = stage2.position.startIndex + stage2.position.daysCount - 1; // Последний день второго этапа (индекс)
+
+                                // Проверяем, перекрываются ли этапы
+                                // Логика: если дата начала одного этапа = дате окончания другого, это перекрытие
+                                // Этапы перекрываются, если начало одного <= конец другого И начало другого <= конец первого
+                                const overlaps = start1 <= end2 && start2 <= end1;
+
+                                if (overlaps) {
+                                  // Есть перекрытие - вычисляем область пересечения
+                                  // Область пересечения: от начала более позднего до конца более раннего (включительно)
+                                  const intersectionStart = Math.max(start1, start2);
+                                  const intersectionEnd = Math.min(end1, end2) + 1; // +1 чтобы включить последний день пересечения
+
+                                  // Добавляем диапазон только если есть реальное пересечение (минимум 1 день)
+                                  if (intersectionStart < intersectionEnd) {
+                                    intersectionRanges.push({
+                                      start: intersectionStart,
+                                      end: intersectionEnd
+                                    });
+                                  }
+                                }
+                              }
                             }
-                          }
-                        }}>
-                        {/* Календарь будет здесь */}
-                      </Box>
-                    </>
-                  );
-                })()}
-              </Box>
+
+                            // Объединяем пересекающиеся диапазоны
+                            const mergedIntersections: Array<{ start: number; end: number }> = [];
+                            intersectionRanges.sort((a, b) => a.start - b.start);
+
+                            for (const range of intersectionRanges) {
+                              if (mergedIntersections.length === 0) {
+                                mergedIntersections.push({ ...range });
+                              } else {
+                                const last = mergedIntersections[mergedIntersections.length - 1];
+                                // Если текущий диапазон пересекается с последним - объединяем
+                                if (range.start <= last.end) {
+                                  last.end = Math.max(last.end, range.end);
+                                } else {
+                                  mergedIntersections.push({ ...range });
+                                }
+                              }
+                            }
+
+                            // Преобразуем объединенные диапазоны в пиксельные координаты и храним также индексы дней
+                            const cellWidth = 39;
+                            const intersections = mergedIntersections.map(range => ({
+                              left: range.start * cellWidth,
+                              width: (range.end - range.start) * cellWidth,
+                              startIndex: range.start, // Индекс дня начала пересечения (включительно)
+                              endIndex: range.end      // Индекс дня конца пересечения (включительно, последний день + 1)
+                            }));
+
+                            return (
+                              <>
+                                {/* Рендерим чипы этапов */}
+                                {stagesForRow.map((stage) => {
+                                  if (!stage.position) return null;
+
+                                  // Функция для форматирования даты
+                                  const formatDate = (dateString: string | null): string => {
+                                    if (!dateString) return 'Не указано';
+                                    try {
+                                      const date = new Date(dateString);
+                                      if (isNaN(date.getTime())) return 'Не указано';
+                                      return date.toLocaleDateString('ru-RU');
+                                    } catch {
+                                      return 'Не указано';
+                                    }
+                                  };
+
+                                  // Формируем текст подсказки в 2 строки через точки-разделители
+                                  // Первая строка: название этапа • исполнитель
+                                  const firstLineParts: string[] = [];
+                                  firstLineParts.push(stage.nomenclatureItem?.name || 'Этап работ');
+
+                                  if (stage.assignee?.name) {
+                                    firstLineParts.push(stage.assignee.name);
+                                  } else {
+                                    firstLineParts.push('Не указан');
+                                  }
+
+                                  // Вторая строка: дата старта • дата финиша • продолжительность
+                                  const secondLineParts: string[] = [];
+                                  secondLineParts.push(formatDate(stage.startDate));
+                                  secondLineParts.push(formatDate(stage.endDate));
+
+                                  // Продолжительность
+                                  if (stage.duration !== null && stage.duration !== undefined) {
+                                    secondLineParts.push(`${stage.duration} ${stage.duration === 1 ? 'день' : stage.duration < 5 ? 'дня' : 'дней'}`);
+                                  } else {
+                                    // Вычисляем продолжительность из дат, если не указана
+                                    if (stage.startDate && stage.endDate) {
+                                      try {
+                                        const start = new Date(stage.startDate);
+                                        const end = new Date(stage.endDate);
+                                        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                                          const diffTime = end.getTime() - start.getTime();
+                                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 чтобы включить первый день
+                                          secondLineParts.push(`${diffDays} ${diffDays === 1 ? 'день' : diffDays < 5 ? 'дня' : 'дней'}`);
+                                        } else {
+                                          secondLineParts.push('Не указана');
+                                        }
+                                      } catch {
+                                        secondLineParts.push('Не указана');
+                                      }
+                                    } else {
+                                      secondLineParts.push('Не указана');
+                                    }
+                                  }
+
+                                  const tooltipTitle = `${firstLineParts.join(' • ')}\n${secondLineParts.join(' • ')}`;
+
+                                  // Вычисляем незаштрихованную область для текущего чипа этапа
+                                  const stageStart = stage.position.startIndex;
+                                  const stageEnd = stage.position.startIndex + stage.position.daysCount;
+
+                                  // Находим пересечения, которые затрагивают текущий чип (используем индексы дней напрямую)
+                                  const affectingIntersections = intersections.filter(intersection => {
+                                    // Проверяем, пересекается ли пересечение с текущим чипом используя индексы дней
+                                    return !(intersection.endIndex <= stageStart || intersection.startIndex >= stageEnd);
+                                  });
+
+                                  // Определяем незаштрихованную область
+                                  let unshadedStart = stageStart;
+                                  let unshadedEnd = stageEnd;
+
+                                  // Если есть пересечения, находим самый большой незаштрихованный сегмент
+                                  if (affectingIntersections.length > 0) {
+                                    // Используем индексы дней напрямую и сортируем
+                                    const shadedRanges = affectingIntersections.map(intersection => ({
+                                      start: intersection.startIndex,
+                                      end: intersection.endIndex
+                                    })).sort((a, b) => a.start - b.start);
+
+                                    // Находим незаштрихованные сегменты
+                                    const unshadedSegments: Array<{ start: number; end: number }> = [];
+                                    let currentStart = stageStart;
+
+                                    for (const shaded of shadedRanges) {
+                                      // Если есть незаштрихованная область до текущего заштрихованного диапазона
+                                      if (currentStart < shaded.start) {
+                                        unshadedSegments.push({
+                                          start: currentStart,
+                                          end: shaded.start
+                                        });
+                                      }
+                                      currentStart = Math.max(currentStart, shaded.end);
+                                    }
+
+                                    // Добавляем последний незаштрихованный сегмент
+                                    if (currentStart < stageEnd) {
+                                      unshadedSegments.push({
+                                        start: currentStart,
+                                        end: stageEnd
+                                      });
+                                    }
+
+                                    // Находим самый большой незаштрихованный сегмент
+                                    if (unshadedSegments.length > 0) {
+                                      const largestSegment = unshadedSegments.reduce((max, seg) => {
+                                        const size = seg.end - seg.start;
+                                        const maxSize = max.end - max.start;
+                                        return size > maxSize ? seg : max;
+                                      });
+                                      unshadedStart = largestSegment.start;
+                                      unshadedEnd = largestSegment.end;
+                                    }
+                                  }
+
+                                  // Вычисляем позицию и ширину для центрирования текста по незаштрихованной области
+                                  const cellWidth = 39;
+                                  const unshadedLeft = (unshadedStart - stageStart) * cellWidth;
+                                  const unshadedWidth = (unshadedEnd - unshadedStart) * cellWidth;
+
+                                  const chipBox = (
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        left: `${stage.position.left}px`,
+                                        width: `${stage.position.width}px`,
+                                        bottom: '4px', // Позиция внизу чипа изделия (4px от нижнего края)
+                                        height: '16px',
+                                        backgroundColor: '#1A3A5A',
+                                        color: '#B6BEC9',
+                                        borderRadius: '3px',
+                                        border: '1px solid #0254A5',
+                                        padding: '0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // Изменено с 'center' на 'flex-start' для позиционирования по незаштрихованной области
+                                        overflow: 'hidden',
+                                        fontSize: '9px',
+                                        fontWeight: 400,
+                                        zIndex: 7, // Поверх чипа изделия
+                                        textAlign: 'center',
+                                        boxSizing: 'border-box', // Бордюры учитываются внутри ширины чипа
+                                        cursor: 'default'
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          position: 'absolute',
+                                          left: `${unshadedLeft + unshadedWidth / 2}px`, // Центр незаштрихованной области
+                                          transform: 'translateX(-50%)', // Центрируем текст относительно центра незаштрихованной области
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          maxWidth: `${unshadedWidth}px`, // Максимальная ширина = незаштрихованная область
+                                          textAlign: 'center',
+                                          pointerEvents: 'none' // Чтобы не блокировать клики на чип
+                                        }}
+                                      >
+                                        {stage.nomenclatureItem?.name || 'Этап'}
+                                      </Box>
+                                    </Box>
+                                  );
+
+                                  // Tooltip показывается всегда с полной информацией
+                                  return (
+                                    <Tooltip
+                                      key={stage.id}
+                                      title={tooltipTitle}
+                                      enterDelay={1000}
+                                      arrow
+                                      componentsProps={{
+                                        tooltip: {
+                                          sx: {
+                                            whiteSpace: 'pre-line' // Позволяет отображать переносы строк
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      {chipBox}
+                                    </Tooltip>
+                                  );
+                                })}
+                                {/* Штрихованные overlay элементы в местах пересечения этапов одного изделия */}
+                                {intersections.map((intersection, idx) => (
+                                  <Box
+                                    key={`intersection-${idx}`}
+                                    sx={{
+                                      position: 'absolute',
+                                      left: `${intersection.left}px`,
+                                      width: `${intersection.width}px`,
+                                      bottom: '4px',
+                                      height: '14px',
+                                      backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255, 255, 255, 0.3) 2px, rgba(255, 255, 255, 0.3) 4px)',
+                                      backgroundColor: 'transparent',
+                                      border: '1px solid #0254A5',
+                                      pointerEvents: 'none',
+                                      zIndex: 15, // Поверх чипов этапов
+                                      borderRadius: '3px'
+                                    }}
+                                  />
+                                ))}
+                              </>
+                            );
+                          })()}
+                        </Box>
+                      );
+                    })}
+                  </>
+                );
+              })()}
             </Box>
-          </Box>
+          </>
         );
       case 1: // Канбан-доска
         return (

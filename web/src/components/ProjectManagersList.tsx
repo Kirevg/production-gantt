@@ -20,7 +20,7 @@ import {
     CircularProgress
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
-import { ProjectManager } from '../types/common';
+import type { ProjectManager } from '../types/common';
 import { formatPhoneDisplay } from '../utils/phoneUtils';
 import PhoneInput from './PhoneInput';
 import VolumeButton from './VolumeButton';

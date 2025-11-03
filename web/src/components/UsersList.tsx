@@ -23,7 +23,7 @@ import {
     Checkbox
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
-import { User, SystemUser } from '../types/common';
+import type { User, SystemUser } from '../types/common';
 import VolumeButton from './VolumeButton';
 
 interface UsersListProps {
