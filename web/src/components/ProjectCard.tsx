@@ -613,8 +613,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     requestData.version = editingProduct.version;
                 }
             } else {
-                // Для создания добавляем orderIndex
-                requestData.orderIndex = 0;
+                // Для создания добавляем orderIndex - максимальный существующий + 1
+                const maxOrderIndex = products.length > 0 
+                    ? Math.max(...products.map(p => p.orderIndex || 0)) 
+                    : -1;
+                requestData.orderIndex = maxOrderIndex + 1;
             }
 
 
