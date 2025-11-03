@@ -2063,11 +2063,18 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
             label={project.status === 'InProject' ? 'В проекте' :
               project.status === 'InProgress' ? 'В работе' :
                 project.status === 'Done' ? 'Завершён' : 'Проблемы'}
-            color={project.status === 'InProject' ? 'secondary' :
+            color={project.status === 'InProject' ? undefined :
               project.status === 'InProgress' ? 'primary' :
                 project.status === 'Done' ? 'success' : 'error'}
             size="small"
-            sx={{ width: '120px', borderRadius: '6px' }}
+            sx={{
+              width: '90px',
+              borderRadius: '6px',
+              ...(project.status === 'InProject' && {
+                backgroundColor: '#FFE082',
+                color: '#000'
+              })
+            }}
           />
         </TableCell>
         <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
@@ -2314,9 +2321,12 @@ function ProjectsList({ onOpenProjectComposition, onOpenCreateProject, user, can
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                 <Chip
                   label="В проекте"
-                  color="secondary"
                   size="small"
-                  sx={{ borderRadius: '6px' }}
+                  sx={{
+                    borderRadius: '6px',
+                    backgroundColor: '#FFE082',
+                    color: '#000'
+                  }}
                 />
                 <Typography variant="body2" color="text.secondary">
                   ({projects.filter(p => p.status === 'InProject').length})

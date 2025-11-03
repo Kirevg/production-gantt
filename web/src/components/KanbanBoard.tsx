@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, IconButton, Tooltip, MenuItem, Menu, ListItemIcon, ListItemText } from '@mui/material';
-import { Refresh, Edit, Delete, ExpandLess, ExpandMore, Build } from '@mui/icons-material';
+import { Box, Typography, Paper, IconButton, Tooltip, MenuItem, Menu, ListItemIcon, ListItemText, Chip, Checkbox, FormControlLabel } from '@mui/material';
+import { Refresh, Edit, Delete, ExpandLess, ExpandMore, Build, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 import emailIcon from '../assets/e-mail_180.png';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
@@ -19,6 +19,7 @@ import {
     SortableContext,
     sortableKeyboardCoordinates,
     rectSortingStrategy,
+    verticalListSortingStrategy,
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -96,6 +97,54 @@ interface SortableStageCardProps {
     onDoubleClick: (task: KanbanTask) => void;
     onContextMenu: (event: React.MouseEvent, task: KanbanTask) => void;
 }
+
+// Компонент для сортируемой карточки проекта
+interface SortableProjectCardProps {
+    projectId: string;
+    children: React.ReactNode;
+}
+
+const SortableProjectCard: React.FC<SortableProjectCardProps> = ({
+    projectId,
+    children
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        isDragging,
+    } = useSortable({ id: `project-${projectId}` });
+
+    // Определяем, есть ли смещение для анимации
+    const hasTransform = transform && (transform.x !== 0 || transform.y !== 0);
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition: isDragging ? 'none' : hasTransform ? 'transform 0.2s ease' : 'none',
+        opacity: isDragging ? 0.8 : 1,
+        zIndex: isDragging ? 1000 : 'auto',
+    };
+
+    return (
+        <Box
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            sx={{
+                mb: 2,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                '&:hover': {
+                    transform: !isDragging ? 'translateY(-2px)' : 'none',
+                    transition: 'transform 0.2s ease'
+                }
+            }}
+        >
+            {children}
+        </Box>
+    );
+};
 
 // Компонент для сортируемой карточки изделия
 interface SortableProductCardProps {
@@ -263,6 +312,57 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             return new Set<string>();
         }
     });
+
+    // Состояние для якорей меню статусов проектов
+    const [statusMenuAnchor, setStatusMenuAnchor] = useState<{ [key: string]: HTMLElement | null }>({});
+
+    // Состояние для фильтров статусов проектов
+    const [statusFilters, setStatusFilters] = useState({
+        InProject: true,
+        InProgress: true,
+        Done: true,
+        HasProblems: true
+    });
+
+    // Обработчик изменения фильтров статусов
+    const handleStatusFilterChange = (status: keyof typeof statusFilters) => {
+        setStatusFilters(prev => ({
+            ...prev,
+            [status]: !prev[status]
+        }));
+    };
+
+    // Функция для получения цвета статуса проекта
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'InProject': return 'warning';
+            case 'InProgress': return 'primary';
+            case 'Done': return 'success';
+            case 'HasProblems': return 'error';
+            default: return 'default';
+        }
+    };
+
+    // Функция для получения текста статуса проекта
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'InProject': return 'В проекте';
+            case 'InProgress': return 'В работе';
+            case 'Done': return 'Готово';
+            case 'HasProblems': return 'Проблемы';
+            default: return 'Неизвестно';
+        }
+    };
+
+    // Обработчик открытия меню статуса
+    const handleStatusMenuOpen = (event: React.MouseEvent<HTMLElement>, projectId: string) => {
+        setStatusMenuAnchor(prev => ({ ...prev, [projectId]: event.currentTarget }));
+    };
+
+    // Обработчик закрытия меню статуса
+    const handleStatusMenuClose = (projectId: string) => {
+        setStatusMenuAnchor(prev => ({ ...prev, [projectId]: null }));
+    };
 
     // Переключение свёрнутости карточки — отключено
     // Переключение свёрнутости проекта
@@ -759,6 +859,131 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                 // Сохраняем порядок через API
                 await saveProductOrder(productOrders);
+            }
+        }
+    };
+
+    // Функция обновления статуса проекта
+    const handleUpdateProjectStatus = async (projectId: string, newStatus: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка обновления статуса проекта');
+            }
+
+            // Обновляем статус в локальном состоянии
+            const updatedTasks = kanbanTasks.map(task => {
+                if (task.projectId === projectId) {
+                    return {
+                        ...task,
+                        projectStatus: newStatus
+                    };
+                }
+                return task;
+            });
+            setKanbanTasks(updatedTasks);
+        } catch (error) {
+            console.error('Ошибка обновления статуса проекта:', error);
+            // При ошибке обновляем данные, чтобы восстановить правильное состояние
+            await fetchKanbanData();
+        }
+    };
+
+    // Функция сохранения порядка проектов
+    const saveProjectOrder = async (projectOrders: Array<{ id: string; orderIndex: number }>) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Токен не найден');
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/reorder`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ projectOrders })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка сохранения порядка проектов');
+            }
+
+            // Не обновляем данные с сервера, так как мы уже оптимистично обновили локальное состояние
+            // Это предотвращает "подпрыгивание" элементов
+            // Данные будут обновлены при следующей загрузке или при других действиях
+        } catch (error) {
+            console.error('Ошибка сохранения порядка проектов:', error);
+            // При ошибке обновляем данные, чтобы восстановить правильное состояние
+            await fetchKanbanData();
+        }
+    };
+
+    // Функция обработки перетаскивания проектов
+    const handleDragEndProjects = async (event: any, sortedProjects: Array<[string, KanbanTask[]]>) => {
+        const { active, over } = event;
+
+        // Проверяем, что перетаскивание завершилось успешно и это проект
+        if (active.id !== over?.id && over?.id &&
+            active.id.toString().startsWith('project-') &&
+            over.id.toString().startsWith('project-')) {
+
+            // Извлекаем projectId из id (формат: project-{projectId})
+            const activeProjectId = active.id.toString().replace('project-', '');
+            const overProjectId = over.id.toString().replace('project-', '');
+
+            // Находим индексы проектов
+            const oldIndex = sortedProjects.findIndex(([key]) => key === activeProjectId);
+            const newIndex = sortedProjects.findIndex(([key]) => key === overProjectId);
+
+            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                // Перемещаем проекты в новом порядке
+                const newSortedProjects = arrayMove(sortedProjects, oldIndex, newIndex);
+
+                // Оптимистично обновляем локальное состояние kanbanTasks
+                // Обновляем projectOrderIndex для всех задач соответствующих проектов
+                const updatedTasks = kanbanTasks.map(task => {
+                    const newProjectIndex = newSortedProjects.findIndex(([projectKey]) => projectKey === task.projectId);
+                    if (newProjectIndex !== -1) {
+                        return {
+                            ...task,
+                            projectOrderIndex: newProjectIndex
+                        };
+                    }
+                    return task;
+                });
+                setKanbanTasks(updatedTasks);
+
+                // Формируем массив для API с новыми orderIndex
+                // projectKey в sortedProjects - это projectId из KanbanTask
+                const projectOrders = newSortedProjects.map(([projectKey], index) => {
+                    // projectKey - это ID Project
+                    return {
+                        id: projectKey, // ID Project
+                        orderIndex: index
+                    };
+                }).filter(item => item.id); // Убираем пустые
+
+                // Сохраняем порядок через API
+                await saveProjectOrder(projectOrders);
             }
         }
     };
@@ -1487,7 +1712,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         // Отключаем автоматическое возвращение карточек в исходное положение
         // Теперь мы сами управляем позициями через состояние
         >
-            <Box sx={{ width: '100%', minHeight: '600px' }}>
+            <Box sx={{ width: '100%', minHeight: '600px', minWidth: '1200px' }}>
                 {/* Канбан-доска */}
                 <Paper sx={{
                     minHeight: 'calc(100% - 80px)',
@@ -1531,35 +1756,197 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         </Box>
                     ) : kanbanTasks.length > 0 ? (
                         <Box sx={{ pt: 2, pb: 2, paddingLeft: '30px', paddingRight: '30px' }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h6">
-                                    Проекты, изделия и этапы работ
-                                </Typography>
-                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                    <Tooltip title="Создать проект">
-                                        <VolumeButton
-                                            onClick={handleAddProject}
-                                            color="blue"
-                                            sx={{
-                                                width: '30px',
-                                                height: '30px',
-                                                minWidth: '30px',
-                                                minHeight: '30px',
-                                                p: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '20px'
-                                            }}
-                                        >
-                                            +
-                                        </VolumeButton>
-                                    </Tooltip>
-                                    <Tooltip title="Обновить">
-                                        <IconButton onClick={handleRefresh} size="small">
-                                            <Refresh />
-                                        </IconButton>
-                                    </Tooltip>
+                            <Box sx={{ mb: 2 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                                    <Typography variant="h6" sx={{ minWidth: 'fit-content', fontSize: '22px', fontWeight: 'bold' }}>
+                                        Проекты, изделия и этапы работ
+                                    </Typography>
+                                    {/* Фильтры статусов проектов */}
+                                    {(() => {
+                                        // Подсчитываем количество проектов по статусам
+                                        const projectsByStatus = new Map<string, number>();
+                                        kanbanTasks.forEach(task => {
+                                            const status = task.projectStatus || 'InProject';
+                                            projectsByStatus.set(status, (projectsByStatus.get(status) || 0) + 1);
+                                        });
+                                        // Получаем уникальные проекты для подсчета
+                                        const uniqueProjects = new Set(kanbanTasks.map(task => task.projectId).filter(Boolean));
+                                        const projectStatusCounts = new Map<string, number>();
+                                        uniqueProjects.forEach(projectId => {
+                                            const task = kanbanTasks.find(t => t.projectId === projectId);
+                                            if (task) {
+                                                const status = task.projectStatus || 'InProject';
+                                                projectStatusCounts.set(status, (projectStatusCounts.get(status) || 0) + 1);
+                                            }
+                                        });
+
+                                        return (
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', flex: 1, justifyContent: 'center' }}>
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={statusFilters.InProject}
+                                                            onChange={() => handleStatusFilterChange('InProject')}
+                                                            color="default"
+                                                        />
+                                                    }
+                                                    label={
+                                                        <Chip
+                                                            label="В проекте"
+                                                            size="small"
+                                                            sx={{
+                                                                borderRadius: '6px',
+                                                                backgroundColor: '#FFE082',
+                                                                color: '#000',
+                                                                width: '90px'
+                                                            }}
+                                                        />
+                                                    }
+                                                />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={statusFilters.InProgress}
+                                                            onChange={() => handleStatusFilterChange('InProgress')}
+                                                            color="primary"
+                                                        />
+                                                    }
+                                                    label={
+                                                        <Chip
+                                                            label="В работе"
+                                                            color="primary"
+                                                            size="small"
+                                                            sx={{ borderRadius: '6px', width: '90px' }}
+                                                        />
+                                                    }
+                                                />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={statusFilters.Done}
+                                                            onChange={() => handleStatusFilterChange('Done')}
+                                                            color="success"
+                                                        />
+                                                    }
+                                                    label={
+                                                        <Chip
+                                                            label="Готово"
+                                                            color="success"
+                                                            size="small"
+                                                            sx={{ borderRadius: '6px', width: '90px' }}
+                                                        />
+                                                    }
+                                                />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={statusFilters.HasProblems}
+                                                            onChange={() => handleStatusFilterChange('HasProblems')}
+                                                            color="error"
+                                                        />
+                                                    }
+                                                    label={
+                                                        <Chip
+                                                            label="Проблемы"
+                                                            color="error"
+                                                            size="small"
+                                                            sx={{ borderRadius: '6px', width: '90px' }}
+                                                        />
+                                                    }
+                                                />
+                                                <Tooltip title="Показать все">
+                                                    <VolumeButton
+                                                        onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true })}
+                                                        disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
+                                                        color="green"
+                                                        sx={{
+                                                            width: '30px',
+                                                            height: '30px',
+                                                            minWidth: '30px',
+                                                            minHeight: '30px',
+                                                            p: 0,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '20px'
+                                                        }}
+                                                    >
+                                                        <CheckBox fontSize="small" />
+                                                    </VolumeButton>
+                                                </Tooltip>
+                                                <Tooltip title="Скрыть все">
+                                                    <VolumeButton
+                                                        onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false })}
+                                                        disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
+                                                        sx={{
+                                                            width: '30px',
+                                                            height: '30px',
+                                                            minWidth: '30px',
+                                                            minHeight: '30px',
+                                                            p: 0,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '20px',
+                                                            backgroundColor: '#9e9e9e',
+                                                            color: 'white',
+                                                            border: '2px solid #757575',
+                                                            '&:hover': {
+                                                                backgroundColor: '#757575'
+                                                            },
+                                                            '&.Mui-disabled': {
+                                                                backgroundColor: '#9e9e9e',
+                                                                color: 'white',
+                                                                opacity: 0.6
+                                                            }
+                                                        }}
+                                                    >
+                                                        <CheckBoxOutlineBlank fontSize="small" />
+                                                    </VolumeButton>
+                                                </Tooltip>
+                                            </Box>
+                                        );
+                                    })()}
+                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                        <Tooltip title="Создать проект">
+                                            <VolumeButton
+                                                onClick={handleAddProject}
+                                                color="blue"
+                                                sx={{
+                                                    width: '30px',
+                                                    height: '30px',
+                                                    minWidth: '30px',
+                                                    minHeight: '30px',
+                                                    p: 0,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '20px'
+                                                }}
+                                            >
+                                                +
+                                            </VolumeButton>
+                                        </Tooltip>
+                                        <Tooltip title="Обновить">
+                                            <VolumeButton
+                                                onClick={handleRefresh}
+                                                color="orange"
+                                                sx={{
+                                                    width: '30px',
+                                                    height: '30px',
+                                                    minWidth: '30px',
+                                                    minHeight: '30px',
+                                                    p: 0,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '20px'
+                                                }}
+                                            >
+                                                <Refresh fontSize="small" />
+                                            </VolumeButton>
+                                        </Tooltip>
+                                    </Box>
                                 </Box>
                             </Box>
                             {/* Группируем задачи по проектам и изделиям */}
@@ -1573,454 +1960,558 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                     projectsMap.get(task.projectId || '')?.push(task);
                                 });
 
-                                // Сортируем проекты по projectOrderIndex
-                                return Array.from(projectsMap.entries())
+                                // Фильтруем и сортируем проекты по projectOrderIndex и статусу
+                                const sortedProjects = Array.from(projectsMap.entries())
+                                    .filter(([, tasks]) => {
+                                        // Применяем фильтры по статусу
+                                        const projectStatus = tasks[0]?.projectStatus || 'InProject';
+                                        return statusFilters[projectStatus as keyof typeof statusFilters];
+                                    })
                                     .sort((a, b) => {
                                         const orderA = a[1][0]?.projectOrderIndex ?? 999999;
                                         const orderB = b[1][0]?.projectOrderIndex ?? 999999;
                                         return orderA - orderB;
-                                    })
-                                    .map(([projectId, tasks]) => {
-                                        const projectName = tasks[0]?.projectName || 'Без проекта';
+                                    });
 
-                                        // Теперь группируем этапы этого проекта по изделиям
-                                        // Используем productId как ключ, чтобы каждое изделие было уникальным
-                                        const productsMap = new Map<string, KanbanTask[]>();
-                                        tasks.forEach(task => {
-                                            // Пропускаем записи проектов без изделий (project-only-)
-                                            if (task.id && task.id.startsWith('project-only-')) {
-                                                return;
-                                            }
-                                            // Используем productId как ключ для уникальности изделий
-                                            const productKey = task.productId || 'unknown';
-                                            if (!productsMap.has(productKey)) {
-                                                productsMap.set(productKey, []);
-                                            }
-                                            productsMap.get(productKey)?.push(task);
-                                        });
+                                // Обертываем список проектов в DndContext для перетаскивания
+                                return (
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={(e) => handleDragEndProjects(e, sortedProjects)}
+                                    >
+                                        <SortableContext
+                                            items={sortedProjects.map(([projectId]) => `project-${projectId}`)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            {sortedProjects.map(([projectId, tasks]) => {
+                                                const projectName = tasks[0]?.projectName || 'Без проекта';
 
-                                        // Сортируем изделия по productOrderIndex для правильного порядка
-                                        const sortedProducts = Array.from(productsMap.entries())
-                                            .sort((a, b) => {
-                                                const orderA = a[1][0]?.productOrderIndex ?? 999999;
-                                                const orderB = b[1][0]?.productOrderIndex ?? 999999;
-                                                return orderA - orderB;
-                                            });
+                                                // Теперь группируем этапы этого проекта по изделиям
+                                                // Используем productId как ключ, чтобы каждое изделие было уникальным
+                                                const productsMap = new Map<string, KanbanTask[]>();
+                                                tasks.forEach(task => {
+                                                    // Пропускаем записи проектов без изделий (project-only-)
+                                                    if (task.id && task.id.startsWith('project-only-')) {
+                                                        return;
+                                                    }
+                                                    // Используем productId как ключ для уникальности изделий
+                                                    const productKey = task.productId || 'unknown';
+                                                    if (!productsMap.has(productKey)) {
+                                                        productsMap.set(productKey, []);
+                                                    }
+                                                    productsMap.get(productKey)?.push(task);
+                                                });
 
-                                        // Проверяем, все ли изделия в проекте свернуты
-                                        const allProductsCollapsed = sortedProducts.every(([productKey, productTasks]) => {
-                                            const actualStages = productTasks.filter(task =>
-                                                task.id &&
-                                                !task.id.startsWith('product-only-') &&
-                                                task.name &&
-                                                task.name.trim() !== ''
-                                            );
-                                            const hasStages = actualStages.length > 0;
-                                            return collapsedProducts.has(productKey) || !hasStages;
-                                        });
+                                                // Сортируем изделия по productOrderIndex для правильного порядка
+                                                const sortedProducts = Array.from(productsMap.entries())
+                                                    .sort((a, b) => {
+                                                        const orderA = a[1][0]?.productOrderIndex ?? 999999;
+                                                        const orderB = b[1][0]?.productOrderIndex ?? 999999;
+                                                        return orderA - orderB;
+                                                    });
 
-                                        // Определяем, есть ли у проекта изделия
-                                        const hasProducts = productsMap.size > 0;
-                                        // Если нет изделий, карточка должна быть свернута и кнопка неактивна
-                                        const isCollapsed = collapsedProjects.has(projectId) || !hasProducts;
+                                                // Проверяем, все ли изделия в проекте свернуты
+                                                const allProductsCollapsed = sortedProducts.every(([productKey, productTasks]) => {
+                                                    const actualStages = productTasks.filter(task =>
+                                                        task.id &&
+                                                        !task.id.startsWith('product-only-') &&
+                                                        task.name &&
+                                                        task.name.trim() !== ''
+                                                    );
+                                                    const hasStages = actualStages.length > 0;
+                                                    return collapsedProducts.has(productKey) || !hasStages;
+                                                });
 
-                                        return (
-                                            <Box key={projectId} sx={{ mb: 2 }}>
-                                                {/* Контейнер проекта с рамкой */}
-                                                <Paper
-                                                    sx={{
-                                                        border: '2px solid #1976d2',
-                                                        borderRadius: '4px',
-                                                        p: 1
-                                                    }}
-                                                >
-                                                    {/* Заголовок проекта */}
-                                                    <Box
-                                                        sx={{
-                                                            p: '8px',
-                                                            mb: 1,
-                                                            backgroundColor: '#f5f5f5',
-                                                            borderRadius: '2px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 1,
-                                                            flexWrap: 'wrap'
-                                                        }}
-                                                    >
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                            <Tooltip title={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}>
-                                                                <span>
-                                                                    <IconButton
-                                                                        size="small"
-                                                                        onClick={() => hasProducts && toggleProjectCollapse(projectId)}
-                                                                        aria-label={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}
-                                                                        disabled={!hasProducts}
-                                                                        disableRipple
+                                                // Определяем, есть ли у проекта изделия
+                                                const hasProducts = productsMap.size > 0;
+                                                // Если нет изделий, карточка должна быть свернута и кнопка неактивна
+                                                const isCollapsed = collapsedProjects.has(projectId) || !hasProducts;
+
+                                                return (
+                                                    <SortableProjectCard key={projectId} projectId={projectId}>
+                                                        {/* Контейнер проекта с рамкой */}
+                                                        <Paper
+                                                            sx={{
+                                                                border: '2px solid #1976d2',
+                                                                borderRadius: '4px',
+                                                                p: 1
+                                                            }}
+                                                        >
+                                                            {/* Заголовок проекта */}
+                                                            <Box
+                                                                sx={{
+                                                                    p: '8px',
+                                                                    mb: 1,
+                                                                    backgroundColor: '#f5f5f5',
+                                                                    borderRadius: '2px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: 1,
+                                                                    flexWrap: 'wrap'
+                                                                }}
+                                                            >
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                                    <Tooltip title={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}>
+                                                                        <span>
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                onClick={() => hasProducts && toggleProjectCollapse(projectId)}
+                                                                                aria-label={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}
+                                                                                disabled={!hasProducts}
+                                                                                disableRipple
+                                                                                sx={{
+                                                                                    '&:focus': {
+                                                                                        outline: 'none',
+                                                                                        border: 'none'
+                                                                                    },
+                                                                                    '&:focus-visible': {
+                                                                                        outline: 'none',
+                                                                                        border: 'none'
+                                                                                    },
+                                                                                    '&:hover': {
+                                                                                        backgroundColor: 'transparent'
+                                                                                    },
+                                                                                    '&.Mui-disabled': {
+                                                                                        opacity: 0.5
+                                                                                    }
+                                                                                }}
+                                                                            >
+                                                                                {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
+                                                                            </IconButton>
+                                                                        </span>
+                                                                    </Tooltip>
+                                                                    {/* Кнопка добавления изделия - размер 40x40px */}
+                                                                    <VolumeButton
+                                                                        onClick={() => handleAddProduct(projectId)}
+                                                                        color="blue"
                                                                         sx={{
-                                                                            '&:focus': {
-                                                                                outline: 'none',
-                                                                                border: 'none'
-                                                                            },
-                                                                            '&:focus-visible': {
-                                                                                outline: 'none',
-                                                                                border: 'none'
-                                                                            },
-                                                                            '&:hover': {
-                                                                                backgroundColor: 'transparent'
-                                                                            },
-                                                                            '&.Mui-disabled': {
-                                                                                opacity: 0.5
-                                                                            }
+                                                                            width: '30px',
+                                                                            height: '30px',
+                                                                            minWidth: '30px',
+                                                                            minHeight: '30px',
+                                                                            p: 0,
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            fontSize: '20px'
                                                                         }}
                                                                     >
-                                                                        {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
-                                                                    </IconButton>
-                                                                </span>
-                                                            </Tooltip>
-                                                            {/* Кнопка добавления изделия - размер 40x40px */}
-                                                            <VolumeButton
-                                                                onClick={() => handleAddProduct(projectId)}
-                                                                color="blue"
-                                                                sx={{
-                                                                    width: '30px',
-                                                                    height: '30px',
-                                                                    minWidth: '30px',
-                                                                    minHeight: '30px',
-                                                                    p: 0,
+                                                                        +
+                                                                    </VolumeButton>
+                                                                    <Typography
+                                                                        variant="h6"
+                                                                        sx={{
+                                                                            fontWeight: 'bold',
+                                                                            color: '#1976d2',
+                                                                            cursor: 'pointer',
+                                                                            '&:hover': {
+                                                                                textDecoration: 'underline'
+                                                                            }
+                                                                        }}
+                                                                        onDoubleClick={() => {
+                                                                            // Получаем статус проекта из первой задачи
+                                                                            const projectStatus = tasks[0]?.projectStatus || 'InProject';
+                                                                            handleEditProject(projectId, projectName, projectStatus);
+                                                                        }}
+                                                                    >
+                                                                        📋 Проект: {projectName} - Изделий: {productsMap.size}
+                                                                    </Typography>
+                                                                </Box>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', width: '100%' }}>
+                                                                    {/* Чип статуса проекта с выпадающим меню */}
+                                                                    <Chip
+                                                                        label={getStatusLabel(tasks[0]?.projectStatus || 'InProject')}
+                                                                        color={tasks[0]?.projectStatus === 'InProject' ? undefined : getStatusColor(tasks[0]?.projectStatus || 'InProject') as 'primary' | 'success' | 'error' | 'default'}
+                                                                        size="small"
+                                                                        onClick={(e) => handleStatusMenuOpen(e, projectId)}
+                                                                        sx={{
+                                                                            cursor: 'pointer',
+                                                                            borderRadius: '6px',
+                                                                            minWidth: '90px',
+                                                                            ...(tasks[0]?.projectStatus === 'InProject' && {
+                                                                                backgroundColor: '#FFE082',
+                                                                                color: '#000'
+                                                                            }),
+                                                                            '&:hover': {
+                                                                                opacity: 0.8
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <Menu
+                                                                        anchorEl={statusMenuAnchor[projectId]}
+                                                                        open={Boolean(statusMenuAnchor[projectId])}
+                                                                        onClose={() => handleStatusMenuClose(projectId)}
+                                                                    >
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                handleUpdateProjectStatus(projectId, 'InProject');
+                                                                                handleStatusMenuClose(projectId);
+                                                                            }}
+                                                                        >
+                                                                            <Chip
+                                                                                label="В проекте"
+                                                                                size="small"
+                                                                                sx={{
+                                                                                    borderRadius: '6px',
+                                                                                    width: '90px',
+                                                                                    backgroundColor: '#FFE082',
+                                                                                    color: '#000'
+                                                                                }}
+                                                                            />
+                                                                        </MenuItem>
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                handleUpdateProjectStatus(projectId, 'InProgress');
+                                                                                handleStatusMenuClose(projectId);
+                                                                            }}
+                                                                        >
+                                                                            <Chip
+                                                                                label="В работе"
+                                                                                color="primary"
+                                                                                size="small"
+                                                                                sx={{ borderRadius: '6px', width: '90px' }}
+                                                                            />
+                                                                        </MenuItem>
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                handleUpdateProjectStatus(projectId, 'Done');
+                                                                                handleStatusMenuClose(projectId);
+                                                                            }}
+                                                                        >
+                                                                            <Chip
+                                                                                label="Готово"
+                                                                                color="success"
+                                                                                size="small"
+                                                                                sx={{ borderRadius: '6px', width: '90px' }}
+                                                                            />
+                                                                        </MenuItem>
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                handleUpdateProjectStatus(projectId, 'HasProblems');
+                                                                                handleStatusMenuClose(projectId);
+                                                                            }}
+                                                                        >
+                                                                            <Chip
+                                                                                label="Проблемы"
+                                                                                color="error"
+                                                                                size="small"
+                                                                                sx={{ borderRadius: '6px', width: '90px' }}
+                                                                            />
+                                                                        </MenuItem>
+                                                                    </Menu>
+                                                                    {/* Информация о руководителе проекта */}
+                                                                    {tasks[0]?.projectManager && (
+                                                                        <Typography variant="body2" sx={{ color: '#424242', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                                                            РП: {tasks[0].projectManager.name}
+                                                                            {tasks[0].projectManager.phone && (
+                                                                                <>
+                                                                                    <Box component="span">📞</Box>
+                                                                                    <Box component="span">{tasks[0].projectManager.phone}</Box>
+                                                                                </>
+                                                                            )}
+                                                                            {tasks[0].projectManager.email && (
+                                                                                <>
+                                                                                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                                                                                        <img
+                                                                                            src={emailIcon}
+                                                                                            alt="email"
+                                                                                            style={{ width: '18px', height: '18px', verticalAlign: 'middle' }}
+                                                                                        />
+                                                                                    </Box>
+                                                                                    <Box component="span">{tasks[0].projectManager.email}</Box>
+                                                                                </>
+                                                                            )}
+                                                                        </Typography>
+                                                                    )}
+                                                                </Box>
+                                                            </Box>
+
+                                                            {/* Группировка по изделиям (показываем только если проект не свернут и есть изделия) */}
+                                                            {!isCollapsed && hasProducts && (
+                                                                <DndContext
+                                                                    sensors={sensors}
+                                                                    collisionDetection={closestCenter}
+                                                                    onDragEnd={(e) => handleDragEndProducts(e, projectId, sortedProducts)}
+                                                                >
+                                                                    <SortableContext
+                                                                        items={sortedProducts.map(([productKey]) => `product-${productKey}`)}
+                                                                        strategy={rectSortingStrategy}
+                                                                    >
+                                                                        {sortedProducts.map(([productKey, productTasks]) => {
+                                                                            const productName = productTasks[0]?.productName || 'Без изделия';
+                                                                            const productDescription = productTasks[0]?.productDescription; // Описание из Product
+                                                                            const serialNumber = productTasks[0]?.serialNumber;
+                                                                            const productOrderIndex = productTasks[0]?.productOrderIndex || 0;
+                                                                            // Определяем, есть ли этапы у изделия
+                                                                            const actualStages = productTasks.filter(task =>
+                                                                                task.id &&
+                                                                                !task.id.startsWith('product-only-') &&
+                                                                                task.name &&
+                                                                                task.name.trim() !== ''
+                                                                            );
+                                                                            const hasStages = actualStages.length > 0;
+                                                                            return (
+                                                                                <SortableProductCard
+                                                                                    key={productKey}
+                                                                                    productId={productKey}
+                                                                                    productName={productName}
+                                                                                    productOrderIndex={productOrderIndex}
+                                                                                    projectId={projectId}
+                                                                                    allProductsCollapsed={allProductsCollapsed}
+                                                                                >
+                                                                                    {/* Контейнер изделия с рамкой */}
+                                                                                    <Paper
+                                                                                        sx={{
+                                                                                            border: '2px solid #4caf50',
+                                                                                            borderRadius: '4px',
+                                                                                            p: 1
+                                                                                        }}
+                                                                                    >
+                                                                                        {/* Заголовок изделия */}
+                                                                                        <Box
+                                                                                            sx={{
+                                                                                                p: 1,
+                                                                                                mb: 1,
+                                                                                                backgroundColor: '#fafafa',
+                                                                                                borderRadius: '2px'
+                                                                                            }}
+                                                                                        >
+                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                                                                {(() => {
+                                                                                                    // Если нет этапов, карточка должна быть свернута и кнопка неактивна
+                                                                                                    const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
+
+                                                                                                    return (
+                                                                                                        <Tooltip title={isCollapsed ? 'Развернуть изделие' : 'Свернуть изделие'}>
+                                                                                                            <IconButton
+                                                                                                                size="small"
+                                                                                                                onClick={() => hasStages && toggleProductCollapse(productKey)}
+                                                                                                                aria-label={isCollapsed ? 'Развернуть изделие' : 'Свернуть изделие'}
+                                                                                                                disabled={!hasStages}
+                                                                                                                disableRipple
+                                                                                                                sx={{
+                                                                                                                    '&:focus': {
+                                                                                                                        outline: 'none',
+                                                                                                                        border: 'none'
+                                                                                                                    },
+                                                                                                                    '&:focus-visible': {
+                                                                                                                        outline: 'none',
+                                                                                                                        border: 'none'
+                                                                                                                    },
+                                                                                                                    '&:hover': {
+                                                                                                                        backgroundColor: 'transparent'
+                                                                                                                    },
+                                                                                                                    '&.Mui-disabled': {
+                                                                                                                        opacity: 0.5
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
+                                                                                                            </IconButton>
+                                                                                                        </Tooltip>
+                                                                                                    );
+                                                                                                })()}
+                                                                                                {/* Кнопка добавления этапа - размер 40x40px */}
+                                                                                                <VolumeButton
+                                                                                                    onClick={() => handleAddStage(productTasks[0]?.productId || '')}
+                                                                                                    color="green"
+                                                                                                    sx={{
+                                                                                                        width: '30px',
+                                                                                                        height: '30px',
+                                                                                                        minWidth: '30px',
+                                                                                                        minHeight: '30px',
+                                                                                                        p: 0,
+                                                                                                        display: 'flex',
+                                                                                                        alignItems: 'center',
+                                                                                                        justifyContent: 'center',
+                                                                                                        fontSize: '20px'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    +
+                                                                                                </VolumeButton>
+                                                                                                {/* Лампочка статуса изделия с выпадающим меню */}
+                                                                                                {(() => {
+                                                                                                    const productStatus = productTasks[0]?.productStatus || 'InProject';
+                                                                                                    let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
+                                                                                                    let borderColor = '#F9A825'; // Более тёмный желтый для рамки
+                                                                                                    if (productStatus === 'Done') {
+                                                                                                        statusColor = '#81C784'; // Зеленый - готово
+                                                                                                        borderColor = '#4caf50'; // Более тёмный зеленый для рамки
+                                                                                                    } else if (productStatus === 'HasProblems') {
+                                                                                                        statusColor = '#E57373'; // Красный - проблема
+                                                                                                        borderColor = '#f44336'; // Более тёмный красный для рамки
+                                                                                                    } else if (productStatus === 'InProgress') {
+                                                                                                        statusColor = '#64B5F6'; // Синий - в работе
+                                                                                                        borderColor = '#1976d2'; // Более тёмный синий для рамки
+                                                                                                    }
+
+                                                                                                    return (
+                                                                                                        <Tooltip title="Изменить статус изделия">
+                                                                                                            <IconButton
+                                                                                                                onClick={(e) => handleProductStatusMenuOpen(e, productTasks[0]?.productId || '')}
+                                                                                                                size="small"
+                                                                                                                sx={{
+                                                                                                                    width: '30px',
+                                                                                                                    height: '30px',
+                                                                                                                    p: 0,
+                                                                                                                    // mr: '4px',
+                                                                                                                    borderRadius: '7px',
+                                                                                                                    border: '2px solid #616161', // Черная рамка на контейнере
+                                                                                                                    backgroundColor: '#E7E7E7',
+                                                                                                                    '&:focus': {
+                                                                                                                        outline: 'none'
+                                                                                                                    },
+                                                                                                                    '&:focus-visible': {
+                                                                                                                        outline: 'none'
+                                                                                                                    },
+                                                                                                                    '&:active': {
+                                                                                                                        outline: 'none'
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                <Box
+                                                                                                                    sx={{
+                                                                                                                        width: '16px',
+                                                                                                                        height: '16px',
+                                                                                                                        borderRadius: '50%',
+                                                                                                                        backgroundColor: statusColor,
+                                                                                                                        border: `2px solid ${borderColor}` // Цветная рамка на лампочке
+                                                                                                                    }}
+                                                                                                                />
+                                                                                                            </IconButton>
+                                                                                                        </Tooltip>
+                                                                                                    );
+                                                                                                })()}
+                                                                                                <Typography
+                                                                                                    variant="subtitle1"
+                                                                                                    sx={{
+                                                                                                        fontWeight: 'bold',
+                                                                                                        color: '#2e7d32',
+                                                                                                        cursor: 'pointer',
+                                                                                                        '&:hover': {
+                                                                                                            textDecoration: 'underline'
+                                                                                                        }
+                                                                                                    }}
+                                                                                                    onDoubleClick={() => {
+                                                                                                        const projectId = productTasks[0]?.projectId;
+                                                                                                        const productId = productTasks[0]?.productId;
+                                                                                                        if (projectId && productId) {
+                                                                                                            handleEditProduct(projectId, productId);
+                                                                                                        }
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {productName}
+                                                                                                </Typography>
+                                                                                                {productDescription && productDescription.trim() !== '' &&
+                                                                                                    productDescription.toLowerCase() !== '[null]' &&
+                                                                                                    productDescription.toLowerCase() !== 'null' && (
+                                                                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
+                                                                                                            {productDescription}
+                                                                                                        </Typography>
+                                                                                                    )}
+                                                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#2e7d32' : '#d32f2f' }}>
+                                                                                                    {serialNumber ? `(Сер № ${serialNumber})` : '(Сер № ...)'}
+                                                                                                </Typography>
+                                                                                            </Box>
+                                                                                        </Box>
+
+                                                                                        {/* Карточки этапов работ этого изделия */}
+                                                                                        {(() => {
+                                                                                            // Фильтруем только настоящие этапы (не изделия без этапов)
+                                                                                            // Изделия без этапов имеют ID вида "product-only-${productId}" или пустое name
+                                                                                            const actualStages = productTasks.filter(task =>
+                                                                                                task.id &&
+                                                                                                !task.id.startsWith('product-only-') &&
+                                                                                                task.name &&
+                                                                                                task.name.trim() !== ''
+                                                                                            );
+                                                                                            // Если нет этапов, карточка должна быть свернута
+                                                                                            const hasStages = actualStages.length > 0;
+                                                                                            const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
+
+                                                                                            // Показываем этапы только если карточка развернута и есть этапы
+                                                                                            if (isCollapsed || !hasStages) {
+                                                                                                return null;
+                                                                                            }
+
+                                                                                            // Если есть этапы, показываем их с SortableContext
+                                                                                            if (actualStages.length > 0) {
+                                                                                                return (
+                                                                                                    <SortableContext
+                                                                                                        items={actualStages.map(task => task.id)}
+                                                                                                        strategy={rectSortingStrategy}
+                                                                                                    >
+                                                                                                        <Box sx={{
+                                                                                                            display: 'flex',
+                                                                                                            flexWrap: 'wrap',
+                                                                                                            gap: 1,
+                                                                                                            alignItems: 'flex-start',
+                                                                                                            minHeight: '60px', // Минимальная высота для стабильности
+                                                                                                            position: 'relative', // Для правильного позиционирования
+                                                                                                            overflow: 'hidden', // Скрываем карточки, выходящие за границы изделия
+                                                                                                            width: '100%' // Полная ширина контейнера
+                                                                                                        }}>
+                                                                                                            {actualStages.map((task) => (
+                                                                                                                <SortableStageCard
+                                                                                                                    key={task.id}
+                                                                                                                    task={task}
+                                                                                                                    onDoubleClick={handleCardClick}
+                                                                                                                    onContextMenu={handleContextMenu}
+                                                                                                                />
+                                                                                                            ))}
+                                                                                                        </Box>
+                                                                                                    </SortableContext>
+                                                                                                );
+                                                                                            } else {
+                                                                                                // Если нет этапов, показываем сообщение или просто пустой блок
+                                                                                                return (
+                                                                                                    <Box sx={{
+                                                                                                        p: 2,
+                                                                                                        textAlign: 'center',
+                                                                                                        color: 'text.secondary',
+                                                                                                        fontSize: '0.875rem',
+                                                                                                        minHeight: '60px',
+                                                                                                        display: 'flex',
+                                                                                                        alignItems: 'center',
+                                                                                                        justifyContent: 'center'
+                                                                                                    }}>
+                                                                                                        Нет этапов работ. Нажмите +, чтобы добавить этап.
+                                                                                                    </Box>
+                                                                                                );
+                                                                                            }
+                                                                                        })()}
+                                                                                    </Paper>
+                                                                                </SortableProductCard>
+                                                                            );
+                                                                        })}
+                                                                    </SortableContext>
+                                                                </DndContext>
+                                                            )}
+
+                                                            {/* Сообщение для проектов без изделий (показываем только если проект развернут, но нет изделий) */}
+                                                            {!isCollapsed && !hasProducts && (
+                                                                <Box sx={{
+                                                                    p: 2,
+                                                                    textAlign: 'center',
+                                                                    color: 'text.secondary',
+                                                                    fontSize: '0.875rem',
+                                                                    minHeight: '60px',
                                                                     display: 'flex',
                                                                     alignItems: 'center',
                                                                     justifyContent: 'center',
-                                                                    fontSize: '20px'
-                                                                }}
-                                                            >
-                                                                +
-                                                            </VolumeButton>
-                                                            <Typography
-                                                                variant="h6"
-                                                                sx={{
-                                                                    fontWeight: 'bold',
-                                                                    color: '#1976d2',
-                                                                    cursor: 'pointer',
-                                                                    '&:hover': {
-                                                                        textDecoration: 'underline'
-                                                                    }
-                                                                }}
-                                                                onDoubleClick={() => {
-                                                                    // Получаем статус проекта из первой задачи
-                                                                    const projectStatus = tasks[0]?.projectStatus || 'InProject';
-                                                                    handleEditProject(projectId, projectName, projectStatus);
-                                                                }}
-                                                            >
-                                                                📋 Проект: {projectName} - Изделий: {productsMap.size}
-                                                            </Typography>
-                                                        </Box>
-                                                        {tasks[0]?.projectManager && (
-                                                            <Typography variant="body2" sx={{ color: '#424242', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', width: '100%' }}>
-                                                                РП: {tasks[0].projectManager.name}
-                                                                {tasks[0].projectManager.phone && (
-                                                                    <>
-                                                                        <Box component="span">📞</Box>
-                                                                        <Box component="span">{tasks[0].projectManager.phone}</Box>
-                                                                    </>
-                                                                )}
-                                                                {tasks[0].projectManager.email && (
-                                                                    <>
-                                                                        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                                                                            <img
-                                                                                src={emailIcon}
-                                                                                alt="email"
-                                                                                style={{ width: '18px', height: '18px', verticalAlign: 'middle' }}
-                                                                            />
-                                                                        </Box>
-                                                                        <Box component="span">{tasks[0].projectManager.email}</Box>
-                                                                    </>
-                                                                )}
-                                                            </Typography>
-                                                        )}
-                                                    </Box>
-
-                                                    {/* Группировка по изделиям (показываем только если проект не свернут и есть изделия) */}
-                                                    {!isCollapsed && hasProducts && (
-                                                        <DndContext
-                                                            sensors={sensors}
-                                                            collisionDetection={closestCenter}
-                                                            onDragEnd={(e) => handleDragEndProducts(e, projectId, sortedProducts)}
-                                                        >
-                                                            <SortableContext
-                                                                items={sortedProducts.map(([productKey]) => `product-${productKey}`)}
-                                                                strategy={rectSortingStrategy}
-                                                            >
-                                                                {sortedProducts.map(([productKey, productTasks]) => {
-                                                                    const productName = productTasks[0]?.productName || 'Без изделия';
-                                                                    const productDescription = productTasks[0]?.productDescription; // Описание из Product
-                                                                    const serialNumber = productTasks[0]?.serialNumber;
-                                                                    const productOrderIndex = productTasks[0]?.productOrderIndex || 0;
-                                                                    // Определяем, есть ли этапы у изделия
-                                                                    const actualStages = productTasks.filter(task =>
-                                                                        task.id &&
-                                                                        !task.id.startsWith('product-only-') &&
-                                                                        task.name &&
-                                                                        task.name.trim() !== ''
-                                                                    );
-                                                                    const hasStages = actualStages.length > 0;
-                                                                    return (
-                                                                        <SortableProductCard
-                                                                            key={productKey}
-                                                                            productId={productKey}
-                                                                            productName={productName}
-                                                                            productOrderIndex={productOrderIndex}
-                                                                            projectId={projectId}
-                                                                            allProductsCollapsed={allProductsCollapsed}
-                                                                        >
-                                                                            {/* Контейнер изделия с рамкой */}
-                                                                            <Paper
-                                                                                sx={{
-                                                                                    border: '2px solid #4caf50',
-                                                                                    borderRadius: '4px',
-                                                                                    p: 1
-                                                                                }}
-                                                                            >
-                                                                                {/* Заголовок изделия */}
-                                                                                <Box
-                                                                                    sx={{
-                                                                                        p: 1,
-                                                                                        mb: 1,
-                                                                                        backgroundColor: '#fafafa',
-                                                                                        borderRadius: '2px'
-                                                                                    }}
-                                                                                >
-                                                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                                                        {(() => {
-                                                                                            // Если нет этапов, карточка должна быть свернута и кнопка неактивна
-                                                                                            const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
-
-                                                                                            return (
-                                                                                                <Tooltip title={isCollapsed ? 'Развернуть изделие' : 'Свернуть изделие'}>
-                                                                                                    <IconButton
-                                                                                                        size="small"
-                                                                                                        onClick={() => hasStages && toggleProductCollapse(productKey)}
-                                                                                                        aria-label={isCollapsed ? 'Развернуть изделие' : 'Свернуть изделие'}
-                                                                                                        disabled={!hasStages}
-                                                                                                        disableRipple
-                                                                                                        sx={{
-                                                                                                            '&:focus': {
-                                                                                                                outline: 'none',
-                                                                                                                border: 'none'
-                                                                                                            },
-                                                                                                            '&:focus-visible': {
-                                                                                                                outline: 'none',
-                                                                                                                border: 'none'
-                                                                                                            },
-                                                                                                            '&:hover': {
-                                                                                                                backgroundColor: 'transparent'
-                                                                                                            },
-                                                                                                            '&.Mui-disabled': {
-                                                                                                                opacity: 0.5
-                                                                                                            }
-                                                                                                        }}
-                                                                                                    >
-                                                                                                        {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
-                                                                                                    </IconButton>
-                                                                                                </Tooltip>
-                                                                                            );
-                                                                                        })()}
-                                                                                        {/* Кнопка добавления этапа - размер 40x40px */}
-                                                                                        <VolumeButton
-                                                                                            onClick={() => handleAddStage(productTasks[0]?.productId || '')}
-                                                                                            color="green"
-                                                                                            sx={{
-                                                                                                width: '30px',
-                                                                                                height: '30px',
-                                                                                                minWidth: '30px',
-                                                                                                minHeight: '30px',
-                                                                                                p: 0,
-                                                                                                display: 'flex',
-                                                                                                alignItems: 'center',
-                                                                                                justifyContent: 'center',
-                                                                                                fontSize: '20px'
-                                                                                            }}
-                                                                                        >
-                                                                                            +
-                                                                                        </VolumeButton>
-                                                                                        {/* Лампочка статуса изделия с выпадающим меню */}
-                                                                                        {(() => {
-                                                                                            const productStatus = productTasks[0]?.productStatus || 'InProject';
-                                                                                            let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
-                                                                                            let borderColor = '#F9A825'; // Более тёмный желтый для рамки
-                                                                                            if (productStatus === 'Done') {
-                                                                                                statusColor = '#81C784'; // Зеленый - готово
-                                                                                                borderColor = '#4caf50'; // Более тёмный зеленый для рамки
-                                                                                            } else if (productStatus === 'HasProblems') {
-                                                                                                statusColor = '#E57373'; // Красный - проблема
-                                                                                                borderColor = '#f44336'; // Более тёмный красный для рамки
-                                                                                            } else if (productStatus === 'InProgress') {
-                                                                                                statusColor = '#64B5F6'; // Синий - в работе
-                                                                                                borderColor = '#1976d2'; // Более тёмный синий для рамки
-                                                                                            }
-
-                                                                                            return (
-                                                                                                <Tooltip title="Изменить статус изделия">
-                                                                                                    <IconButton
-                                                                                                        onClick={(e) => handleProductStatusMenuOpen(e, productTasks[0]?.productId || '')}
-                                                                                                        size="small"
-                                                                                                        sx={{
-                                                                                                            width: '30px',
-                                                                                                            height: '30px',
-                                                                                                            p: 0,
-                                                                                                            // mr: '4px',
-                                                                                                            borderRadius: '7px',
-                                                                                                            border: '2px solid #616161', // Черная рамка на контейнере
-                                                                                                            backgroundColor: '#E7E7E7',
-                                                                                                            '&:focus': {
-                                                                                                                outline: 'none'
-                                                                                                            },
-                                                                                                            '&:focus-visible': {
-                                                                                                                outline: 'none'
-                                                                                                            },
-                                                                                                            '&:active': {
-                                                                                                                outline: 'none'
-                                                                                                            }
-                                                                                                        }}
-                                                                                                    >
-                                                                                                        <Box
-                                                                                                            sx={{
-                                                                                                                width: '16px',
-                                                                                                                height: '16px',
-                                                                                                                borderRadius: '50%',
-                                                                                                                backgroundColor: statusColor,
-                                                                                                                border: `2px solid ${borderColor}` // Цветная рамка на лампочке
-                                                                                                            }}
-                                                                                                        />
-                                                                                                    </IconButton>
-                                                                                                </Tooltip>
-                                                                                            );
-                                                                                        })()}
-                                                                                        <Typography
-                                                                                            variant="subtitle1"
-                                                                                            sx={{
-                                                                                                fontWeight: 'bold',
-                                                                                                color: '#2e7d32',
-                                                                                                cursor: 'pointer',
-                                                                                                '&:hover': {
-                                                                                                    textDecoration: 'underline'
-                                                                                                }
-                                                                                            }}
-                                                                                            onDoubleClick={() => {
-                                                                                                const projectId = productTasks[0]?.projectId;
-                                                                                                const productId = productTasks[0]?.productId;
-                                                                                                if (projectId && productId) {
-                                                                                                    handleEditProduct(projectId, productId);
-                                                                                                }
-                                                                                            }}
-                                                                                        >
-                                                                                            {productName}
-                                                                                        </Typography>
-                                                                                        {productDescription && productDescription.trim() !== '' &&
-                                                                                            productDescription.toLowerCase() !== '[null]' &&
-                                                                                            productDescription.toLowerCase() !== 'null' && (
-                                                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
-                                                                                                    {productDescription}
-                                                                                                </Typography>
-                                                                                            )}
-                                                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#2e7d32' : '#d32f2f' }}>
-                                                                                            {serialNumber ? `(Сер № ${serialNumber})` : '(Сер № ...)'}
-                                                                                        </Typography>
-                                                                                    </Box>
-                                                                                </Box>
-
-                                                                                {/* Карточки этапов работ этого изделия */}
-                                                                                {(() => {
-                                                                                    // Фильтруем только настоящие этапы (не изделия без этапов)
-                                                                                    // Изделия без этапов имеют ID вида "product-only-${productId}" или пустое name
-                                                                                    const actualStages = productTasks.filter(task =>
-                                                                                        task.id &&
-                                                                                        !task.id.startsWith('product-only-') &&
-                                                                                        task.name &&
-                                                                                        task.name.trim() !== ''
-                                                                                    );
-                                                                                    // Если нет этапов, карточка должна быть свернута
-                                                                                    const hasStages = actualStages.length > 0;
-                                                                                    const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
-
-                                                                                    // Показываем этапы только если карточка развернута и есть этапы
-                                                                                    if (isCollapsed || !hasStages) {
-                                                                                        return null;
-                                                                                    }
-
-                                                                                    // Если есть этапы, показываем их с SortableContext
-                                                                                    if (actualStages.length > 0) {
-                                                                                        return (
-                                                                                            <SortableContext
-                                                                                                items={actualStages.map(task => task.id)}
-                                                                                                strategy={rectSortingStrategy}
-                                                                                            >
-                                                                                                <Box sx={{
-                                                                                                    display: 'flex',
-                                                                                                    flexWrap: 'wrap',
-                                                                                                    gap: 1,
-                                                                                                    alignItems: 'flex-start',
-                                                                                                    minHeight: '60px', // Минимальная высота для стабильности
-                                                                                                    position: 'relative', // Для правильного позиционирования
-                                                                                                    overflow: 'hidden', // Скрываем карточки, выходящие за границы изделия
-                                                                                                    width: '100%' // Полная ширина контейнера
-                                                                                                }}>
-                                                                                                    {actualStages.map((task) => (
-                                                                                                        <SortableStageCard
-                                                                                                            key={task.id}
-                                                                                                            task={task}
-                                                                                                            onDoubleClick={handleCardClick}
-                                                                                                            onContextMenu={handleContextMenu}
-                                                                                                        />
-                                                                                                    ))}
-                                                                                                </Box>
-                                                                                            </SortableContext>
-                                                                                        );
-                                                                                    } else {
-                                                                                        // Если нет этапов, показываем сообщение или просто пустой блок
-                                                                                        return (
-                                                                                            <Box sx={{
-                                                                                                p: 2,
-                                                                                                textAlign: 'center',
-                                                                                                color: 'text.secondary',
-                                                                                                fontSize: '0.875rem',
-                                                                                                minHeight: '60px',
-                                                                                                display: 'flex',
-                                                                                                alignItems: 'center',
-                                                                                                justifyContent: 'center'
-                                                                                            }}>
-                                                                                                Нет этапов работ. Нажмите +, чтобы добавить этап.
-                                                                                            </Box>
-                                                                                        );
-                                                                                    }
-                                                                                })()}
-                                                                            </Paper>
-                                                                        </SortableProductCard>
-                                                                    );
-                                                                })}
-                                                            </SortableContext>
-                                                        </DndContext>
-                                                    )}
-
-                                                    {/* Сообщение для проектов без изделий (показываем только если проект развернут, но нет изделий) */}
-                                                    {!isCollapsed && !hasProducts && (
-                                                        <Box sx={{
-                                                            p: 2,
-                                                            textAlign: 'center',
-                                                            color: 'text.secondary',
-                                                            fontSize: '0.875rem',
-                                                            minHeight: '60px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            ml: 2
-                                                        }}>
-                                                            Нет изделий. Нажмите +, чтобы добавить изделие.
-                                                        </Box>
-                                                    )}
-                                                </Paper>
-                                            </Box>
-                                        );
-                                    });
+                                                                    ml: 2
+                                                                }}>
+                                                                    Нет изделий. Нажмите +, чтобы добавить изделие.
+                                                                </Box>
+                                                            )}
+                                                        </Paper>
+                                                    </SortableProjectCard>
+                                                );
+                                            })}
+                                        </SortableContext>
+                                    </DndContext>
+                                );
                             })()}
                         </Box>
                     ) : (
