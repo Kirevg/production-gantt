@@ -21,7 +21,6 @@ import {
     Paper,
     IconButton,
     LinearProgress,
-    Autocomplete,
 } from '@mui/material';
 import { Build as BuildIcon, Delete as DeleteIcon, DragIndicator } from '@mui/icons-material';
 
@@ -43,6 +42,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import VolumeButton from './VolumeButton';
+import ProductDialog, { type ProductFormData } from './ProductDialog';
 
 
 
@@ -115,7 +115,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     });
     const [managers, setManagers] = useState<any[]>([]);
     const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]); // Каталог изделий для выпадающего списка (только из текущего проекта)
-    const [productForm, setProductForm] = useState({
+    const [productForm, setProductForm] = useState<ProductFormData>({
         productId: '', // ID из справочника (если выбрано)
         productName: '', // Название изделия (ручной ввод или выбор)
         serialNumber: '',
@@ -240,11 +240,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
             if (response.ok) {
                 const data = await response.json();
-                setProjectData({
+                const updatedProjectData = {
                     name: data.name,
                     managerId: data.projectManager?.id || '',
-                    status: data.status || 'InProject'
-                });
+                    status: data.status || 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems'
+                };
+                setProjectData(updatedProjectData);
             }
         } catch (error) {
             console.error('Ошибка загрузки данных проекта:', error);
@@ -614,8 +615,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 }
             } else {
                 // Для создания добавляем orderIndex - максимальный существующий + 1
-                const maxOrderIndex = products.length > 0 
-                    ? Math.max(...products.map(p => p.orderIndex || 0)) 
+                const maxOrderIndex = products.length > 0
+                    ? Math.max(...products.map(p => p.orderIndex || 0))
                     : -1;
                 requestData.orderIndex = maxOrderIndex + 1;
             }
@@ -993,130 +994,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             )}
 
             {/* Диалог создания/редактирования изделия */}
-            <Dialog
+            <ProductDialog
                 open={openProductDialog}
-                onClose={() => { }}
-                disableEscapeKeyDown={true}
-                hideBackdrop={true}
-                disablePortal={true}
-                disableScrollLock={true}
-                keepMounted={false}
-                disableEnforceFocus={true}
-                disableAutoFocus={true}
-                PaperProps={{
-                    sx: {
-                        width: '600px',
-                        maxWidth: '600px'
-                    }
-                }}
-            >
-                <DialogTitle>
-                    {editingProduct ? 'Редактировать изделие' : 'Создать изделие'}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-                        <Autocomplete
-                            freeSolo
-                            options={catalogProducts}
-                            getOptionLabel={(option) => {
-                                if (typeof option === 'string') return option;
-                                return option.name || '';
-                            }}
-                            isOptionEqualToValue={(option, value) => {
-                                if (typeof option === 'string' || typeof value === 'string') return option === value;
-                                return option.id === value.id;
-                            }}
-                            value={productForm.productId ? catalogProducts.find(p => p.id === productForm.productId) || null : productForm.productName}
-                            onChange={(_, newValue) => {
-                                if (typeof newValue === 'string') {
-                                    // Ручной ввод
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: '',
-                                        productName: newValue
-                                    });
-                                } else if (newValue && newValue.id) {
-                                    // Выбор из списка
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: newValue.id,
-                                        productName: newValue.name
-                                    });
-                                } else {
-                                    // Очистка
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: '',
-                                        productName: ''
-                                    });
-                                }
-                            }}
-                            onInputChange={(_, newInputValue) => {
-                                // Обновляем название при ручном вводе
-                                setProductForm({
-                                    ...productForm,
-                                    productName: newInputValue,
-                                    productId: '' // Сбрасываем ID при ручном вводе
-                                });
-                            }}
-                            inputValue={productForm.productName}
-                            renderOption={(props, option) => {
-                                // Явно указываем key на основе id для избежания дубликатов
-                                const key = typeof option === 'string' ? option : option.id;
-                                return (
-                                    <li {...props} key={key}>
-                                        {typeof option === 'string' ? option : option.name}
-                                    </li>
-                                );
-                            }}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Изделие"
-                                    required
-                                    placeholder="Введите или выберите изделие"
-                                    helperText="Выберите из списка или введите название вручную"
-                                />
-                            )}
-                            disabled={loading}
-                        />
-                        <TextField
-                            label="Количество"
-                            type="number"
-                            value={productForm.quantity}
-                            onChange={(e) => setProductForm({ ...productForm, quantity: parseInt(e.target.value) || 1 })}
-                            fullWidth
-                            required
-                            inputProps={{ min: 1 }}
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <TextField
-                            label="Серийный номер"
-                            value={productForm.serialNumber || ''}
-                            onChange={(e) => setProductForm({ ...productForm, serialNumber: e.target.value })}
-                            fullWidth
-                            placeholder="SN123456"
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <TextField
-                            label="Ссылка"
-                            value={productForm.link || ''}
-                            onChange={(e) => setProductForm({ ...productForm, link: e.target.value })}
-                            fullWidth
-                            placeholder="https://example.com"
-                            InputLabelProps={{ shrink: true }}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <VolumeButton onClick={handleSaveProduct} color="blue">
-                        {editingProduct ? 'Сохранить' : 'Создать'}
-                    </VolumeButton>
-                    <VolumeButton onClick={handleCloseProductDialog} color="orange">
-                        Отмена
-                    </VolumeButton>
-                </DialogActions>
-            </Dialog>
+                editing={!!editingProduct}
+                productForm={productForm}
+                catalogProducts={catalogProducts}
+                loading={loading}
+                onClose={handleCloseProductDialog}
+                onSave={handleSaveProduct}
+                onChange={setProductForm}
+            />
 
             {/* Диалог подтверждения удаления изделия */}
             <Dialog

@@ -3,6 +3,8 @@ import { Box, Typography, Paper, IconButton, Tooltip, MenuItem, Menu, ListItemIc
 import { Refresh, Edit, Delete, ExpandLess, ExpandMore, Build } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
+import ProjectDialog, { type ProjectFormData } from './ProjectDialog';
+import ProductDialog, { type ProductFormData } from './ProductDialog';
 import {
     DndContext,
     closestCenter,
@@ -255,6 +257,33 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         productId: string;
     } | null>(null);
 
+    // Состояние для диалога создания/редактирования проекта
+    const [openProjectDialog, setOpenProjectDialog] = useState(false);
+    const [editingProject, setEditingProject] = useState<{ id: string; name: string; managerId: string; status: string } | null>(null);
+    const [projectForm, setProjectForm] = useState<ProjectFormData>({
+        name: '',
+        managerId: '',
+        status: 'InProject'
+    });
+    const [managers, setManagers] = useState<Array<{
+        id: string;
+        lastName: string;
+        firstName: string;
+        middleName?: string | null;
+    }>>([]);
+
+    // Состояние для диалога создания/редактирования изделия
+    const [openProductDialog, setOpenProductDialog] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<{ id: string; projectId: string; productId: string } | null>(null);
+    const [productForm, setProductForm] = useState<ProductFormData>({
+        productId: '',
+        productName: '',
+        serialNumber: '',
+        quantity: 1,
+        link: ''
+    });
+    const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]); // Каталог изделий для выпадающего списка
+
     // Сенсоры для drag-and-drop с ограничениями
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -376,6 +405,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     // Загружаем данные при монтировании компонента
     useEffect(() => {
         fetchKanbanData();
+        fetchManagers(); // Загружаем менеджеров проектов
         fetchWorkTypes();
         fetchContractors();
     }, []);
@@ -677,7 +707,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             await Promise.all(updatePromises);
             // console.log('✅ Все обновления порядка этапов завершены');
-            
+
             // Обновляем данные для синхронизации с сервером
             await fetchKanbanData();
         } catch (error) {
@@ -685,11 +715,280 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         }
     };
 
-    // Обработчик клика по кнопке добавления изделия
-    const handleAddProduct = (_projectId: string) => {
-        // console.log('Добавить изделие в проект:', _projectId);
-        // TODO: Реализовать логику добавления изделия
-        alert('Функция добавления изделия будет реализована');
+    // Загрузка каталога изделий из всех проектов
+    const fetchCatalogProducts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            // Загружаем изделия из всех проектов для выпадающего списка
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Ошибка загрузки проектов для каталога изделий');
+                return;
+            }
+
+            const projects = await response.json();
+
+            // Собираем уникальные изделия из всех проектов
+            const uniqueProductsMap = new Map<string, { id: string, name: string }>();
+
+            for (const project of projects) {
+                try {
+                    const productsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${project.id}/products`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (productsResponse.ok) {
+                        const products = await productsResponse.json();
+                        products.forEach((product: any) => {
+                            if (product.product?.id && product.product?.name) {
+                                const nameKey = product.product.name.trim().toLowerCase();
+                                if (!uniqueProductsMap.has(nameKey)) {
+                                    uniqueProductsMap.set(nameKey, {
+                                        id: product.product.id,
+                                        name: product.product.name
+                                    });
+                                }
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Ошибка загрузки изделий для проекта ${project.id}:`, error);
+                }
+            }
+
+            const uniqueProducts = Array.from(uniqueProductsMap.values());
+            setCatalogProducts(uniqueProducts);
+        } catch (error) {
+            console.error('Ошибка загрузки каталога изделий:', error);
+        }
+    };
+
+    // Обработчик открытия диалога создания изделия
+    const handleAddProduct = async (projectId: string) => {
+        // Загружаем каталог изделий
+        await fetchCatalogProducts();
+
+        // Открываем диалог создания изделия
+        setProductForm({
+            productId: '',
+            productName: '',
+            serialNumber: '',
+            quantity: 1,
+            link: ''
+        });
+        // Сохраняем projectId для создания изделия (id пустой = создание)
+        setEditingProduct({ id: '', projectId, productId: '' });
+        setOpenProductDialog(true);
+    };
+
+    // Обработчик открытия диалога редактирования изделия
+    const handleEditProduct = async (projectId: string, projectProductId: string) => {
+        try {
+            // Загружаем данные изделия (projectProductId - это ID ProjectProduct, не CatalogProduct)
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Токен не найден');
+                return;
+            }
+
+            // Используем эндпоинт /projects/products/:productId для получения ProjectProduct
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/products/${projectProductId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Загружаем каталог изделий
+                await fetchCatalogProducts();
+
+                // Заполняем форму данными изделия
+                // data.productId - это ID CatalogProduct (из справочника)
+                // projectProductId - это ID ProjectProduct (запись в проекте)
+                setEditingProduct({ id: projectProductId, projectId, productId: data.product?.id || '' });
+                setProductForm({
+                    productId: data.product?.id || '',
+                    productName: data.product?.name || '',
+                    serialNumber: data.serialNumber || '',
+                    quantity: data.quantity || 1,
+                    link: data.description || ''
+                });
+                setOpenProductDialog(true);
+            } else {
+                const errorText = await response.text();
+                console.error('Ошибка загрузки данных изделия:', response.status, errorText);
+                alert(`Ошибка загрузки данных изделия: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки данных изделия:', error);
+            alert('Ошибка загрузки данных изделия');
+        }
+    };
+
+    // Обработчик сохранения изделия
+    const handleSaveProduct = async () => {
+        try {
+            // Валидация
+            if (!productForm.productName.trim()) {
+                alert('Пожалуйста, введите или выберите изделие');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Токен не найден');
+                return;
+            }
+
+            if (!editingProduct) {
+                alert('Ошибка: не указан проект для создания изделия');
+                return;
+            }
+
+            const projectId = editingProduct.projectId;
+            if (!projectId) {
+                alert('Ошибка: не указан проект');
+                return;
+            }
+
+            // Если введено вручную, сначала проверяем существование или создаём изделие в справочнике
+            let catalogProductId = productForm.productId;
+
+            if (!catalogProductId && productForm.productName.trim()) {
+                try {
+                    // Сначала проверяем, существует ли изделие с таким названием
+                    const searchResponse = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/catalog-products?query=${encodeURIComponent(productForm.productName.trim())}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        }
+                    );
+
+                    if (searchResponse.ok) {
+                        const existingProducts = await searchResponse.json();
+                        // Ищем точное совпадение (без учета регистра)
+                        const exactMatch = existingProducts.find((p: any) =>
+                            p.name.trim().toLowerCase() === productForm.productName.trim().toLowerCase()
+                        );
+
+                        if (exactMatch) {
+                            catalogProductId = exactMatch.id;
+                        } else {
+                            // Создаём новое изделие в справочнике
+                            const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    name: productForm.productName.trim(),
+                                    isActive: true
+                                })
+                            });
+
+                            if (!createProductResponse.ok) {
+                                throw new Error('Ошибка создания изделия в справочнике');
+                            }
+
+                            const newProduct = await createProductResponse.json();
+                            catalogProductId = newProduct.id;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при создании/поиске изделия в справочнике:', error);
+                    alert('Произошла ошибка при создании изделия в справочнике');
+                    return;
+                }
+            }
+
+            if (!catalogProductId) {
+                alert('Ошибка: не удалось определить ID изделия. Пожалуйста, попробуйте снова.');
+                return;
+            }
+
+            // Создание или обновление изделия в проекте
+            if (editingProduct.id && editingProduct.id.trim() !== '') {
+                // Обновление существующего изделия (editingProduct.id - это ID ProjectProduct)
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products/${editingProduct.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        productId: catalogProductId,
+                        serialNumber: productForm.serialNumber || undefined,
+                        description: productForm.link || undefined,
+                        quantity: productForm.quantity
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Изделие успешно обновлено');
+                    setOpenProductDialog(false);
+                    setEditingProduct(null);
+                    await fetchKanbanData(); // Обновляем данные Kanban
+                } else {
+                    alert('Ошибка при обновлении изделия');
+                }
+            } else {
+                // Создание нового изделия
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        productId: catalogProductId,
+                        serialNumber: productForm.serialNumber || undefined,
+                        description: productForm.link || undefined,
+                        quantity: productForm.quantity
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Изделие успешно создано');
+                    setOpenProductDialog(false);
+                    setEditingProduct(null);
+                    await fetchKanbanData(); // Обновляем данные Kanban
+                } else {
+                    alert('Ошибка при создании изделия');
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения изделия:', error);
+            alert('Ошибка при сохранении изделия');
+        }
+    };
+
+    // Обработчик закрытия диалога изделия
+    const handleCloseProductDialog = () => {
+        setOpenProductDialog(false);
+        setEditingProduct(null);
+        setProductForm({
+            productId: '',
+            productName: '',
+            serialNumber: '',
+            quantity: 1,
+            link: ''
+        });
     };
 
     // Обработчик клика по кнопке добавления этапа работ
@@ -710,7 +1009,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 }
                 return latest;
             }, null as Date | null);
-            
+
             if (latestEndDate) {
                 // Прибавляем 1 день к последней дате окончания
                 const nextStartDate = new Date(latestEndDate);
@@ -794,7 +1093,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             });
             const products = await productsResponse.json();
             const product = products.find((p: any) => p.id === productId);
-            
+
             if (!product) {
                 console.error('Изделие не найдено');
                 return;
@@ -828,6 +1127,147 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
     const handleCloseContextMenu = () => {
         setContextMenu(null);
+    };
+
+    // Загрузка менеджеров проектов
+    const fetchManagers = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/persons?isProjectManager=true`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setManagers(data);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки руководителей:', error);
+        }
+    };
+
+    // Обработчик открытия диалога создания проекта
+    const handleAddProject = () => {
+        setEditingProject(null);
+        setProjectForm({
+            name: '',
+            managerId: '',
+            status: 'InProject'
+        });
+        setOpenProjectDialog(true);
+    };
+
+    // Обработчик открытия диалога редактирования проекта
+    const handleEditProject = async (projectId: string, projectName: string, status: string) => {
+        try {
+            // Загружаем данные проекта для получения managerId
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Токен не найден');
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const managerId = data.projectManager?.id || '';
+                setEditingProject({ id: projectId, name: projectName, managerId, status });
+                setProjectForm({
+                    name: projectName,
+                    managerId: managerId,
+                    status: status as 'InProject' | 'InProgress' | 'Done' | 'HasProblems'
+                });
+                setOpenProjectDialog(true);
+            } else {
+                alert('Ошибка загрузки данных проекта');
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки данных проекта:', error);
+            alert('Ошибка загрузки данных проекта');
+        }
+    };
+
+    // Обработчик сохранения проекта
+    const handleSaveProject = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Токен не найден');
+                return;
+            }
+
+            if (!editingProject) {
+                // Создание нового проекта
+                const userId = getUserId();
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: projectForm.name,
+                        projectManagerId: projectForm.managerId || null,
+                        status: projectForm.status,
+                        ownerId: userId || ''
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Проект успешно создан');
+                    setOpenProjectDialog(false);
+                    await fetchKanbanData(); // Обновляем данные Kanban
+                } else {
+                    alert('Ошибка при создании проекта');
+                }
+            } else {
+                // Обновление существующего проекта
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${editingProject.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: projectForm.name,
+                        projectManagerId: projectForm.managerId || null,
+                        status: projectForm.status
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Проект успешно обновлен');
+                    setOpenProjectDialog(false);
+                    setEditingProject(null);
+                    await fetchKanbanData(); // Обновляем данные Kanban
+                } else {
+                    alert('Ошибка при обновлении проекта');
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка обновления проекта:', error);
+            alert('Ошибка при обновлении проекта');
+        }
+    };
+
+    // Обработчик закрытия диалога проекта
+    const handleCloseProjectDialog = () => {
+        setOpenProjectDialog(false);
+        setEditingProject(null);
+        setProjectForm({
+            name: '',
+            managerId: '',
+            status: 'InProject'
+        });
     };
 
     const handleEditFromContextMenu = () => {
@@ -936,11 +1376,32 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                 <Typography variant="h6">
                                     Проекты, изделия и этапы работ
                                 </Typography>
-                                <Tooltip title="Обновить">
-                                    <IconButton onClick={handleRefresh} size="small">
-                                        <Refresh />
-                                    </IconButton>
-                                </Tooltip>
+                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                    <Tooltip title="Создать проект">
+                                        <VolumeButton
+                                            onClick={handleAddProject}
+                                            color="blue"
+                                            sx={{
+                                                width: '30px',
+                                                height: '30px',
+                                                minWidth: '30px',
+                                                minHeight: '30px',
+                                                p: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '20px'
+                                            }}
+                                        >
+                                            +
+                                        </VolumeButton>
+                                    </Tooltip>
+                                    <Tooltip title="Обновить">
+                                        <IconButton onClick={handleRefresh} size="small">
+                                            <Refresh />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
                             </Box>
                             {/* Группируем задачи по проектам и изделиям */}
                             {(() => {
@@ -1017,31 +1478,33 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     >
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                             <Tooltip title={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}>
-                                                                <IconButton
-                                                                    size="small"
-                                                                    onClick={() => hasProducts && toggleProjectCollapse(projectId)}
-                                                                    aria-label={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}
-                                                                    disabled={!hasProducts}
-                                                                    disableRipple
-                                                                    sx={{
-                                                                        '&:focus': {
-                                                                            outline: 'none',
-                                                                            border: 'none'
-                                                                        },
-                                                                        '&:focus-visible': {
-                                                                            outline: 'none',
-                                                                            border: 'none'
-                                                                        },
-                                                                        '&:hover': {
-                                                                            backgroundColor: 'transparent'
-                                                                        },
-                                                                        '&.Mui-disabled': {
-                                                                            opacity: 0.5
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
-                                                                </IconButton>
+                                                                <span>
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        onClick={() => hasProducts && toggleProjectCollapse(projectId)}
+                                                                        aria-label={isCollapsed ? 'Развернуть проект' : 'Свернуть проект'}
+                                                                        disabled={!hasProducts}
+                                                                        disableRipple
+                                                                        sx={{
+                                                                            '&:focus': {
+                                                                                outline: 'none',
+                                                                                border: 'none'
+                                                                            },
+                                                                            '&:focus-visible': {
+                                                                                outline: 'none',
+                                                                                border: 'none'
+                                                                            },
+                                                                            '&:hover': {
+                                                                                backgroundColor: 'transparent'
+                                                                            },
+                                                                            '&.Mui-disabled': {
+                                                                                opacity: 0.5
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
+                                                                    </IconButton>
+                                                                </span>
                                                             </Tooltip>
                                                             {/* Кнопка добавления изделия - размер 40x40px */}
                                                             <VolumeButton
@@ -1061,7 +1524,22 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             >
                                                                 +
                                                             </VolumeButton>
-                                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                                            <Typography
+                                                                variant="h6"
+                                                                sx={{
+                                                                    fontWeight: 'bold',
+                                                                    color: '#1976d2',
+                                                                    cursor: 'pointer',
+                                                                    '&:hover': {
+                                                                        textDecoration: 'underline'
+                                                                    }
+                                                                }}
+                                                                onDoubleClick={() => {
+                                                                    // Получаем статус проекта из первой задачи
+                                                                    const projectStatus = tasks[0]?.projectStatus || 'InProject';
+                                                                    handleEditProject(projectId, projectName, projectStatus);
+                                                                }}
+                                                            >
                                                                 📋 Проект: {projectName} - Изделий: {productsMap.size}
                                                             </Typography>
                                                         </Box>
@@ -1163,12 +1641,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                             {(() => {
                                                                                 const productStatus = productTasks[0]?.productStatus || 'InProject';
                                                                                 let statusColor = '#FFE082'; // Желтый - по умолчанию (InProject)
+                                                                                let borderColor = '#F9A825'; // Более тёмный желтый для рамки
                                                                                 if (productStatus === 'Done') {
                                                                                     statusColor = '#81C784'; // Зеленый - готово
+                                                                                    borderColor = '#4caf50'; // Более тёмный зеленый для рамки
                                                                                 } else if (productStatus === 'HasProblems') {
                                                                                     statusColor = '#E57373'; // Красный - проблема
+                                                                                    borderColor = '#f44336'; // Более тёмный красный для рамки
                                                                                 } else if (productStatus === 'InProgress') {
                                                                                     statusColor = '#64B5F6'; // Синий - в работе
+                                                                                    borderColor = '#1976d2'; // Более тёмный синий для рамки
                                                                                 }
 
                                                                                 return (
@@ -1177,26 +1659,55 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                             onClick={(e) => handleProductStatusMenuOpen(e, productTasks[0]?.productId || '')}
                                                                                             size="small"
                                                                                             sx={{
-                                                                                                width: '20px',
-                                                                                                height: '20px',
+                                                                                                width: '30px',
+                                                                                                height: '30px',
                                                                                                 p: 0,
-                                                                                                mr: '4px'
+                                                                                                // mr: '4px',
+                                                                                                borderRadius: '7px',
+                                                                                                border: '2px solid #616161', // Черная рамка на контейнере
+                                                                                                backgroundColor: '#E7E7E7',
+                                                                                                '&:focus': {
+                                                                                                    outline: 'none'
+                                                                                                },
+                                                                                                '&:focus-visible': {
+                                                                                                    outline: 'none'
+                                                                                                },
+                                                                                                '&:active': {
+                                                                                                    outline: 'none'
+                                                                                                }
                                                                                             }}
                                                                                         >
                                                                                             <Box
                                                                                                 sx={{
-                                                                                                    width: '12px',
-                                                                                                    height: '12px',
+                                                                                                    width: '16px',
+                                                                                                    height: '16px',
                                                                                                     borderRadius: '50%',
                                                                                                     backgroundColor: statusColor,
-                                                                                                    border: '1px solid rgba(0,0,0,0.2)'
+                                                                                                    border: `2px solid ${borderColor}` // Цветная рамка на лампочке
                                                                                                 }}
                                                                                             />
                                                                                         </IconButton>
                                                                                     </Tooltip>
                                                                                 );
                                                                             })()}
-                                                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                                                                            <Typography
+                                                                                variant="subtitle1"
+                                                                                sx={{
+                                                                                    fontWeight: 'bold',
+                                                                                    color: '#2e7d32',
+                                                                                    cursor: 'pointer',
+                                                                                    '&:hover': {
+                                                                                        textDecoration: 'underline'
+                                                                                    }
+                                                                                }}
+                                                                                onDoubleClick={() => {
+                                                                                    const projectId = productTasks[0]?.projectId;
+                                                                                    const productId = productTasks[0]?.productId;
+                                                                                    if (projectId && productId) {
+                                                                                        handleEditProduct(projectId, productId);
+                                                                                    }
+                                                                                }}
+                                                                            >
                                                                                 {productName}
                                                                             </Typography>
                                                                             {productDescription && productDescription.trim() !== '' &&
@@ -1442,6 +1953,29 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         <ListItemText>Проблема</ListItemText>
                     </MenuItem>
                 </Menu>
+
+                {/* Диалог создания/редактирования проекта */}
+                <ProjectDialog
+                    open={openProjectDialog}
+                    editing={!!editingProject}
+                    projectForm={projectForm}
+                    managers={managers}
+                    onClose={handleCloseProjectDialog}
+                    onSave={handleSaveProject}
+                    onChange={setProjectForm}
+                />
+
+                {/* Диалог создания/редактирования изделия */}
+                <ProductDialog
+                    open={openProductDialog}
+                    editing={!!(editingProduct && editingProduct.id && editingProduct.id.trim() !== '')}
+                    productForm={productForm}
+                    catalogProducts={catalogProducts}
+                    loading={loading}
+                    onClose={handleCloseProductDialog}
+                    onSave={handleSaveProduct}
+                    onChange={setProductForm}
+                />
             </Box>
         </DndContext>
     );
