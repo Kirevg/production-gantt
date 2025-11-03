@@ -304,6 +304,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     endDate: product.endDate,
                     progress: product.progress,
                     productSum: product.productSum,
+                    status: product.status || 'InProject', // Статус изделия из базы данных
                     version: product.version,
                     orderIndex: product.orderIndex,
                     createdAt: product.createdAt,
