@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, IconButton, Tooltip, MenuItem, Menu, ListItemIcon, ListItemText } from '@mui/material';
 import { Refresh, Edit, Delete, ExpandLess, ExpandMore, Build } from '@mui/icons-material';
+import emailIcon from '../assets/e-mail_180.png';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
 import ProjectDialog, { type ProjectFormData } from './ProjectDialog';
@@ -1544,10 +1545,26 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             </Typography>
                                                         </Box>
                                                         {tasks[0]?.projectManager && (
-                                                            <Typography variant="body2" sx={{ color: '#424242' }}>
+                                                            <Typography variant="body2" sx={{ color: '#424242', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                                 РП: {tasks[0].projectManager.name}
-                                                                {tasks[0].projectManager.phone && ` 📞 ${tasks[0].projectManager.phone}`}
-                                                                {tasks[0].projectManager.email && ` 📧 ${tasks[0].projectManager.email}`}
+                                                                {tasks[0].projectManager.phone && (
+                                                                    <>
+                                                                        <Box component="span">📞</Box>
+                                                                        <Box component="span">{tasks[0].projectManager.phone}</Box>
+                                                                    </>
+                                                                )}
+                                                                {tasks[0].projectManager.email && (
+                                                                    <>
+                                                                        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                                                                            <img
+                                                                                src={emailIcon}
+                                                                                alt="email"
+                                                                                style={{ width: '18px', height: '18px', verticalAlign: 'middle' }}
+                                                                            />
+                                                                        </Box>
+                                                                        <Box component="span">{tasks[0].projectManager.email}</Box>
+                                                                    </>
+                                                                )}
                                                             </Typography>
                                                         )}
                                                     </Box>
