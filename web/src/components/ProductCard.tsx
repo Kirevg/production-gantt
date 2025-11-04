@@ -1330,18 +1330,34 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <Box className="page-container">
             {/* Заголовок */}
             <Box className="page-header">
-                <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
-                    Карточка изделия проекта «{projectName}»
-                    <br />
-                    <span
-                        style={{ textDecoration: 'underline', cursor: 'pointer', userSelect: 'none' }}
-                        onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenProductEdit();
-                        }}
-                        title="Двойной клик для редактирования"
-                    >{productData?.product?.name || productName || '...'}</span>
-                </Typography>
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
+                        Карточка изделия проекта «{projectName}»
+                        <br />
+                        <span
+                            style={{ textDecoration: 'underline', cursor: 'pointer', userSelect: 'none' }}
+                            onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenProductEdit();
+                            }}
+                            title="Двойной клик для редактирования"
+                        >{productData?.product?.name || productName || '...'}</span>
+                    </Typography>
+                    {(productData?.product?.description || productData?.serialNumber) && (
+                        <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            {productData?.product?.description && (
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                    Описание: {productData.product.description}
+                                </Typography>
+                            )}
+                            {productData?.serialNumber && (
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                    Сер. №: {productData.serialNumber}
+                                </Typography>
+                            )}
+                        </Box>
+                    )}
+                </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <VolumeButton
                         variant="contained"
@@ -1355,7 +1371,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Вкладки для спецификаций и этапов работ */}
             <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', mb: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', mb: 0.5, mt: 2 }}>
                     <Tabs
                         value={activeTab}
                         onChange={(_, newValue) => setActiveTab(newValue)}
