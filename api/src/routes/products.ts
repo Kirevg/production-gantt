@@ -398,14 +398,14 @@ router.put('/products/reorder', authenticateToken, requireRole(['admin', 'manage
       }
     }
 
-    // Обновляем orderIndex для каждого изделия в транзакции
-    await prisma.$transaction(
-      productOrders.map((item: { id: string; orderIndex: number }) => {
-        return prisma.projectProduct.update({
+    // Обновляем orderIndex для каждого изделия
+    await Promise.all(
+      productOrders.map((item: { id: string; orderIndex: number }) =>
+        prisma.projectProduct.update({
           where: { id: item.id },
           data: { orderIndex: item.orderIndex }
-        });
-      })
+        })
+      )
     );
 
     console.log('Successfully reordered products');
