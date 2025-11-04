@@ -1521,13 +1521,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 key={specification.id}
                                 sx={{ height: '30px !important' }}
                             >
-                                <TableCell sx={{ p: 0.5, textAlign: 'center', width: `${columnWidths.number}px` }}>{index + 1}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
                                 <TableCell sx={{
                                     p: 0.5,
                                     position: 'relative',
                                     wordWrap: 'break-word',
                                     whiteSpace: 'normal',
-                                    width: columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`,
                                     maxWidth: '300px'
                                 }}>
                                     {editingCell === specification.id ? (
@@ -1750,10 +1749,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     )}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal', width: `${columnWidths.article}px`, maxWidth: '300px' }}
+                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}
                                 >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default', width: `${columnWidths.quantity}px`, maxWidth: '300px' }}
+                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
                                     onDoubleClick={() => handleQuantityClick(specification.id, specification.quantity)}
                                 >
                                     {editingQuantity === specification.id ? (
@@ -1783,14 +1782,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     )}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', width: `${columnWidths.unit}px`, maxWidth: '300px' }}
+                                    sx={{ p: 0.5, textAlign: 'center' }}
                                 >
                                     {(specification.nomenclatureItem as any)?.unit?.name ||
                                         (specification.nomenclatureItem as any)?.unit?.code ||
                                         specification.unit || '-'}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default', width: `${columnWidths.price}px`, maxWidth: '300px' }}
+                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
                                     onDoubleClick={() => handlePriceClick(specification.id, specification.price || 0)}
                                 >
                                     {editingPrice === specification.id ? (
@@ -1821,7 +1820,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     )}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', width: `${columnWidths.total}px`, minWidth: '80px', maxWidth: '300px' }}
+                                    sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}
                                 >
                                     {formatCurrency(specification.totalPrice)}
                                 </TableCell>
