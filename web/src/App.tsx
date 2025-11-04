@@ -68,6 +68,7 @@ import VolumeButton from './components/VolumeButton';
 import UsersList from './components/UsersList';
 import ProjectsList from './components/ProjectsList';
 import ProjectCard from './components/ProjectCard';
+import ProductCard from './components/ProductCard';
 import type { User, Project } from './types/common';
 
 // Интерфейс для ответа сервера при авторизации
@@ -154,10 +155,15 @@ export default function App() {
   const [showProjectComposition, setShowProjectComposition] = useState(false);
   // Состояние для хранения проекта, состав которого просматривается
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  // Состояние для показа/скрытия страницы этапов работ (используется только через setter)
-  const [_showStagesPage, setShowStagesPage] = useState(false);
-  // Состояние для хранения ID изделия, этапы которого просматриваются (используется только через setter)
-  const [_selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  // Состояние для показа/скрытия карточки изделия
+  const [showProductCard, setShowProductCard] = useState(false);
+  // Состояние для хранения данных изделия для карточки
+  const [selectedProductCardData, setSelectedProductCardData] = useState<{
+    productId: string;
+    productName: string;
+    projectId: string;
+    projectName: string;
+  } | null>(null);
   // Состояние для показа/скрытия списка спецификаций (используется только через setter)
   const [_showSpecificationsList, setShowSpecificationsList] = useState(false);
   // Состояние для переключения между старой и новой страницей спецификаций (используется только через setter)
@@ -238,12 +244,12 @@ export default function App() {
 
   // Эффект для обработчика переключения на старую страницу спецификаций
   useEffect(() => {
-    const handleSwitchToOldSpecifications = (event: any) => {
-      const { productId, productName } = event.detail;
-      setSelectedProductId(productId);
-      setSelectedProductName(productName);
-      setShowSpecificationsList(true);
-      setShowOldSpecificationsList(true);
+    const handleSwitchToOldSpecifications = (_event: any) => {
+      // Обработчик для переключения на старые спецификации (не используется)
+      // const { productId, productName } = event.detail;
+      // setSelectedProductName(productName);
+      // setShowSpecificationsList(true);
+      // setShowOldSpecificationsList(true);
     };
 
     window.addEventListener('switchToOldSpecifications', handleSwitchToOldSpecifications);
@@ -775,10 +781,10 @@ export default function App() {
       // Закрываем все детальные страницы при переходе на другую вкладку
       setShowSpecificationDetail(false);
       setShowProjectComposition(false);
-      setShowStagesPage(false);
+      setShowProductCard(false);
       setShowSpecificationsList(false);
       setSelectedProject(null);
-      setSelectedProductId(null);
+      setSelectedProductCardData(null);
       setSelectedSpecificationId(null);
       setSelectedSpecificationName(null);
       setCurrentTab(newValue);
@@ -3160,13 +3166,39 @@ export default function App() {
         </Tabs>
 
         {/* Основной контент */}
-        {showProjectComposition && selectedProject ? (
+        {showProductCard && selectedProductCardData ? (
+          <ProductCard
+            projectId={selectedProductCardData.projectId}
+            projectName={selectedProductCardData.projectName}
+            productId={selectedProductCardData.productId}
+            productName={selectedProductCardData.productName}
+            onBack={() => {
+              setShowProductCard(false);
+              setSelectedProductCardData(null);
+            }}
+            onOpenSpecification={(_specificationId: string, _specificationName: string) => {
+              // Обработчик для открытия спецификации (пока не реализовано)
+            }}
+            canEdit={canEdit}
+            canCreate={canCreate}
+            canDelete={canDelete}
+          />
+        ) : showProjectComposition && selectedProject ? (
           <ProjectCard
             projectId={selectedProject.id}
             projectName={selectedProject.name}
             onClose={() => setShowProjectComposition(false)}
-            onOpenSpecifications={(_productId: string, _productName: string) => {
-              // Обработчик для открытия спецификаций (пока не реализовано)
+            onOpenSpecifications={(productId: string, productName: string) => {
+              // Открываем карточку изделия
+              if (selectedProject) {
+                setSelectedProductCardData({
+                  productId,
+                  productName,
+                  projectId: selectedProject.id,
+                  projectName: selectedProject.name
+                });
+                setShowProductCard(true);
+              }
             }}
             canEdit={canEdit}
             canCreate={canCreate}
