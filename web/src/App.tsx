@@ -3141,6 +3141,9 @@ export default function App() {
           variant="scrollable"
           scrollButtons="auto"
           sx={{
+            '& .MuiTabs-indicator': {
+              display: 'none' // Убираем индикатор (нижнюю линию) у активной вкладки
+            },
             '& .MuiTab-root': {
               color: 'white', // Белый цвет для неактивных вкладок
               fontWeight: 500,
@@ -3150,6 +3153,8 @@ export default function App() {
                 color: '#1976d2', // Синий цвет для активной вкладки
                 fontWeight: 600,
                 backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                border: 'none', // Убираем рамку у активной вкладки
+                outline: 'none'
               },
               '&:hover': {
                 color: '#1976d2', // Синий цвет при наведении

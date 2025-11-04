@@ -50,12 +50,17 @@ const ReferencesPage: React.FC<ReferencesPageProps> = ({
                     borderBottom: 1,
                     borderColor: 'divider',
                     backgroundColor: '#f5f5f5',
+                    '& .MuiTabs-indicator': {
+                        display: 'none' // Убираем индикатор (нижнюю линию) у активной вкладки
+                    },
                     '& .MuiTab-root': {
                         color: '#666',
                         fontWeight: 500,
                         '&.Mui-selected': {
                             color: '#1976d2',
                             fontWeight: 600,
+                            border: 'none', // Убираем рамку у активной вкладки
+                            outline: 'none'
                         }
                     }
                 }}
