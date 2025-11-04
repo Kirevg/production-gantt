@@ -727,6 +727,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 sx={{
                     height: '35px',
                     borderTop: '2px solid #e0e0e0',
+                    cursor: (loading || isReordering) ? 'default' : 'pointer',
                     '&:hover': {
                         backgroundColor: (loading || isReordering) ? 'transparent' : '#f5f5f5',
                     },
@@ -752,7 +753,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     <DragIndicator color="action" />
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                <TableCell sx={{ py: 0.5, minWidth: '250px' }}>
+                <TableCell 
+                    onDoubleClick={() => !loading && !isReordering && onOpenSpecifications(product.id, product.product?.name || '')}
+                    sx={{ 
+                        py: 0.5, 
+                        minWidth: '250px',
+                        cursor: (loading || isReordering) ? 'default' : 'pointer'
+                    }}
+                >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {/* Лампочка статуса изделия */}
                         {(() => {
