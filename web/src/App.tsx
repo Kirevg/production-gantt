@@ -168,14 +168,14 @@ export default function App() {
   // Состояние для показа/скрытия списка спецификаций (используется только через setter)
   const [_showSpecificationsList, setShowSpecificationsList] = useState(false);
   // Состояние для переключения между старой и новой страницей спецификаций (используется только через setter)
-  const [_showOldSpecificationsList, setShowOldSpecificationsList] = useState(false);
+  const [_showOldSpecificationsList, _setShowOldSpecificationsList] = useState(false);
   // Состояние для показа/скрытия детальной спецификации
   const [showSpecificationDetail, setShowSpecificationDetail] = useState(false);
   // Состояние для хранения информации об изделии для спецификаций
   const [selectedProductName, setSelectedProductName] = useState<string | null>(null);
   // Состояние для хранения ID и названия спецификации
   const [selectedSpecificationId, setSelectedSpecificationId] = useState<string | null>(null);
-  const [selectedSpecificationName, setSelectedSpecificationName] = useState<string | null>(null);
+  const [_selectedSpecificationName, setSelectedSpecificationName] = useState<string | null>(null);
 
   // Состояние для контекстного меню страницы
   const [pageContextMenu, setPageContextMenu] = useState<{
@@ -3209,7 +3209,7 @@ export default function App() {
             onOpenSpecification={(specificationId: string, specificationName: string) => {
               // Открываем детальную спецификацию
               setSelectedSpecificationId(specificationId);
-              setSelectedSpecificationName(specificationName);
+              setSelectedSpecificationName(specificationName); // Сохраняем для возможного использования
               setSelectedProductName(selectedProductCardData?.productName || '');
               setShowSpecificationDetail(true);
             }}
