@@ -115,21 +115,22 @@ model Product {
 }
 
 model ProjectProduct {
-  id           String        @id @default(uuid())
-  projectId    String
-  serialNumber String?
-  description  String?
-  quantity     Int           @default(1)
-  productSum   Float?
-  status       ProductStatus @default(InProject)
-  orderIndex   Int           @default(0)
-  version      Int           @default(1)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  productId    String
-  product      Product       @relation(fields: [productId], references: [id])
-  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workStages   WorkStage[]
+  id                               String                            @id @default(uuid())
+  projectId                        String
+  serialNumber                     String?
+  description                      String?
+  quantity                         Int                               @default(1)
+  productSum                       Float?
+  status                           ProductStatus                     @default(InProject)
+  orderIndex                       Int                               @default(0)
+  version                          Int                               @default(1)
+  createdAt                        DateTime                          @default(now())
+  updatedAt                        DateTime                          @updatedAt
+  productId                        String
+  product                          Product                           @relation(fields: [productId], references: [id])
+  project                          Project                           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workStages                       WorkStage[]
+  projectProductSpecificationLists ProjectProductSpecificationList[]
 
   @@index([projectId])
   @@index([productId])
@@ -162,18 +163,19 @@ model WorkStage {
 }
 
 model ProjectProductSpecificationList {
-  id             String          @id @default(uuid())
-  productId      String
-  name           String
-  description    String?
-  version        Int             @default(1)
-  isLocked       Boolean         @default(false)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  totalSum       Float?
-  specifications Specification[]
+  id               String          @id @default(uuid())
+  projectProductId String          @map("projectproductId")
+  name             String
+  description      String?
+  version          Int             @default(1)
+  isLocked         Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  totalSum         Float?
+  projectProduct   ProjectProduct  @relation(fields: [projectProductId], references: [id], onDelete: Cascade)
+  specifications   Specification[]
 
-  @@index([productId])
+  @@index([projectProductId])
   @@index([isLocked])
 }
 
