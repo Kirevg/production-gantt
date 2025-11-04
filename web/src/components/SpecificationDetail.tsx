@@ -220,16 +220,19 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             };
 
             // Ждем, пока таблица отрендерится - используем несколько попыток
+            let timeout2: NodeJS.Timeout | null = null;
             const timeout1 = setTimeout(() => {
                 measureWidths();
                 // Повторяем через еще немного времени для надежности
-                const timeout2 = setTimeout(() => {
+                timeout2 = setTimeout(() => {
                     measureWidths();
                 }, 300);
-                return () => clearTimeout(timeout2);
             }, 300);
             
-            return () => clearTimeout(timeout1);
+            return () => {
+                clearTimeout(timeout1);
+                if (timeout2) clearTimeout(timeout2);
+            };
         }
     }, [excelData, showColumnMapping]);
 
