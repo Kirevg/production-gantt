@@ -2269,7 +2269,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     {/* Контейнер изделия с рамкой */}
                                                                                     <Paper
                                                                                         sx={{
-                                                                                            border: '2px solid #9c27b0',
+                                                                                            border: '2px solid #423189',
                                                                                             borderRadius: '4px',
                                                                                             p: 1
                                                                                         }}
@@ -2393,7 +2393,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                     variant="subtitle1"
                                                                                                     sx={{
                                                                                                         fontWeight: 'bold',
-                                                                                                        color: '#9c27b0',
+                                                                                                        color: '#423189',
                                                                                                         cursor: 'pointer',
                                                                                                         '&:hover': {
                                                                                                             textDecoration: 'underline'
@@ -2416,7 +2416,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                             {productDescription}
                                                                                                         </Typography>
                                                                                                     )}
-                                                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#9c27b0' : '#d32f2f' }}>
+                                                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#423189' : '#d32f2f' }}>
                                                                                                     {serialNumber ? `(Сер № ${serialNumber})` : '(Сер № ...)'}
                                                                                                 </Typography>
                                                                                             </Box>

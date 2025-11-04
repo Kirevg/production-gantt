@@ -61,11 +61,11 @@ const VolumeButton: React.FC<VolumeButtonProps> = ({
                 };
             case 'purple':
                 return {
-                    backgroundColor: '#9c27b0',
+                    backgroundColor: '#423189',
                     color: 'white',
-                    border: '2px solid #7b1fa2',
+                    border: '2px solid #2d1f5c',
                     '&:hover': {
-                        backgroundColor: '#7b1fa2'
+                        backgroundColor: '#2d1f5c'
                     }
                 };
             case 'cyan':
