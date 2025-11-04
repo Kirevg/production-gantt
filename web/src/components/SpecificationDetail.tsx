@@ -237,7 +237,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             };
 
             // Ждем, пока таблица отрендерится - используем несколько попыток
-            let timeout2: NodeJS.Timeout | null = null;
+            let timeout2: ReturnType<typeof setTimeout> | null = null;
             const timeout1 = setTimeout(() => {
                 measureWidths();
                 // Повторяем через еще немного времени для надежности
