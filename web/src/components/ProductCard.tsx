@@ -1387,19 +1387,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             }
                         }}
                     >
-                        <Tab label="Список спецификаций" />
                         <Tab label="Этапы работ" />
+                        <Tab label="Список спецификаций" />
                     </Tabs>
-                    {activeTab === 0 && canCreate() && specifications.some(spec => !spec.isLocked) && (
-                        <VolumeButton
-                            variant="contained"
-                            onClick={() => handleOpenSpecificationDialog()}
-                            color="blue"
-                        >
-                            Добавить
-                        </VolumeButton>
-                    )}
-                    {activeTab === 1 && (
+                    {activeTab === 0 && (
                         <VolumeButton
                             variant="contained"
                             onClick={() => handleOpenStageDialog()}
@@ -1408,10 +1399,65 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             Добавить
                         </VolumeButton>
                     )}
+                    {activeTab === 1 && canCreate() && specifications.some(spec => !spec.isLocked) && (
+                        <VolumeButton
+                            variant="contained"
+                            onClick={() => handleOpenSpecificationDialog()}
+                            color="blue"
+                        >
+                            Добавить
+                        </VolumeButton>
+                    )}
                 </Box>
 
-                {/* Секция спецификаций */}
+                {/* Секция этапов работ */}
                 {activeTab === 0 && (
+                    <Box>
+                        {!productId ? (
+                            <Alert severity="info" sx={{ mb: 2 }}>
+                                Для просмотра этапов работ необходимо выбрать изделие
+                            </Alert>
+                        ) : (
+                            <>
+                                {/* Таблица этапов */}
+                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                    <TableContainer component={Paper}>
+                                        <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                                            <TableHead>
+                                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px' }}>
+                                                        <DragIndicator sx={{ color: 'action.main' }} />
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Вид работ</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Исполнитель</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Часов</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Руб/час</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Срок</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
+                                                        <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <SortableContext items={stages.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                                                <TableBody>
+                                                    {stages.map((stage, index) => (
+                                                        <SortableStageRow key={stage.id} stage={stage} index={index} />
+                                                    ))}
+                                                </TableBody>
+                                            </SortableContext>
+                                        </Table>
+                                    </TableContainer>
+                                </DndContext>
+                            </>
+                        )}
+                    </Box>
+                )}
+
+                {/* Секция спецификаций */}
+                {activeTab === 1 && (
                     <Box>
 
                         {/* Таблица спецификаций */}
@@ -1621,52 +1667,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 </TableBody>
                             </Table>
                         </TableContainer>
-                    </Box>
-                )}
-
-                {/* Секция этапов работ */}
-                {activeTab === 1 && (
-                    <Box>
-                        {!productId ? (
-                            <Alert severity="info" sx={{ mb: 2 }}>
-                                Для просмотра этапов работ необходимо выбрать изделие
-                            </Alert>
-                        ) : (
-                            <>
-                                {/* Таблица этапов */}
-                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                    <TableContainer component={Paper}>
-                                        <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
-                                            <TableHead>
-                                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px' }}>
-                                                        <DragIndicator sx={{ color: 'action.main' }} />
-                                                    </TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Вид работ</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Исполнитель</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Часов</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Руб/час</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Срок</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
-                                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px' }}>
-                                                        <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
-                                                    </TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <SortableContext items={stages.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                                                <TableBody>
-                                                    {stages.map((stage, index) => (
-                                                        <SortableStageRow key={stage.id} stage={stage} index={index} />
-                                                    ))}
-                                                </TableBody>
-                                            </SortableContext>
-                                        </Table>
-                                    </TableContainer>
-                                </DndContext>
-                            </>
-                        )}
                     </Box>
                 )}
             </Box>
