@@ -9,7 +9,6 @@ const productCreateSchema = z.object({
   projectId: z.string().uuid(),
   productId: z.string().uuid(), // Ссылка на справочник изделий
   serialNumber: z.string().optional(),
-  description: z.string().optional(),
   quantity: z.number().min(1).default(1),
   productSum: z.number().optional(),
   orderIndex: z.number().min(0).default(0),
@@ -51,7 +50,6 @@ router.get('/:projectId/products', authenticateToken, async (req, res) => {
       select: {
         id: true,
         serialNumber: true,
-        description: true,
         quantity: true,
         productSum: true,
         status: true,
@@ -257,7 +255,6 @@ router.get('/products/:productId', authenticateToken, async (req, res) => {
       select: {
         id: true,
         serialNumber: true,
-        description: true,
         quantity: true,
         productSum: true,
         version: true,
@@ -266,7 +263,6 @@ router.get('/products/:productId', authenticateToken, async (req, res) => {
           select: {
             id: true,
             name: true,
-            description: true,
           }
         }
       }
