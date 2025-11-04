@@ -115,22 +115,21 @@ model Product {
 }
 
 model ProjectProduct {
-  id                    String                 @id @default(uuid())
-  projectId             String
-  serialNumber          String?
-  description           String?
-  quantity              Int                    @default(1)
-  productSum            Float?
-  status                ProductStatus          @default(InProject)
-  orderIndex            Int                    @default(0)
-  version               Int                    @default(1)
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  productId             String
-  projectProductSpecificationLists ProjectProductSpecificationList[]
-  product               Product                @relation(fields: [productId], references: [id])
-  project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workStages            WorkStage[]
+  id           String        @id @default(uuid())
+  projectId    String
+  serialNumber String?
+  description  String?
+  quantity     Int           @default(1)
+  productSum   Float?
+  status       ProductStatus @default(InProject)
+  orderIndex   Int           @default(0)
+  version      Int           @default(1)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  productId    String
+  product      Product       @relation(fields: [productId], references: [id])
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workStages   WorkStage[]
 
   @@index([projectId])
   @@index([productId])
@@ -172,7 +171,6 @@ model ProjectProductSpecificationList {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   totalSum       Float?
-  product        ProjectProduct  @relation(fields: [productId], references: [id], onDelete: Cascade)
   specifications Specification[]
 
   @@index([productId])
@@ -180,20 +178,20 @@ model ProjectProductSpecificationList {
 }
 
 model Specification {
-  id                             String                         @id @default(uuid())
+  id                                String                          @id @default(uuid())
   projectProductSpecificationListId String
-  quantity                       Int                            @default(1)
-  price                          Float?
-  totalPrice                     Float?
-  orderIndex                     Int                            @default(0)
-  version                        Int                            @default(1)
-  createdAt                      DateTime                       @default(now())
-  updatedAt                      DateTime                       @updatedAt
-  nomenclatureItemId             String
-  unitId                         String?
-  nomenclatureItem               NomenclatureItem              @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
-  projectProductSpecificationList ProjectProductSpecificationList @relation(fields: [projectProductSpecificationListId], references: [id], onDelete: Cascade)
-  unit                           Unit?                          @relation(fields: [unitId], references: [id])
+  quantity                          Int                             @default(1)
+  price                             Float?
+  totalPrice                        Float?
+  orderIndex                        Int                             @default(0)
+  version                           Int                             @default(1)
+  createdAt                         DateTime                        @default(now())
+  updatedAt                         DateTime                        @updatedAt
+  nomenclatureItemId                String
+  unitId                            String?
+  nomenclatureItem                  NomenclatureItem                @relation("SpecificationNomenclature", fields: [nomenclatureItemId], references: [id])
+  projectProductSpecificationList   ProjectProductSpecificationList @relation(fields: [projectProductSpecificationListId], references: [id], onDelete: Cascade)
+  unit                              Unit?                           @relation(fields: [unitId], references: [id])
 
   @@index([projectProductSpecificationListId])
   @@index([nomenclatureItemId])
