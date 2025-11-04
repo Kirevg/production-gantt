@@ -1877,9 +1877,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     </span>
                                                 </Tooltip>
                                                 <Tooltip title="Скрыть все">
-                                                    <VolumeButton
-                                                        onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false })}
-                                                        disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
+                                                    <span>
+                                                        <VolumeButton
+                                                            onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false })}
+                                                            disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
                                                         sx={{
                                                             width: '30px',
                                                             height: '30px',
