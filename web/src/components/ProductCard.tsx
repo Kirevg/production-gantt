@@ -26,7 +26,8 @@ import {
     Delete as DeleteIcon,
     Balance as BalanceIcon,
     DragIndicator,
-    Build as BuildIcon
+    Build as BuildIcon,
+    List as ListIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
@@ -1388,12 +1389,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             }
                         }}
                     >
-                        <Tab 
-                            label="Этапы работ" 
+                        <Tab
+                            label="Этапы работ"
                             icon={<BuildIcon sx={{ fontSize: '18px', mb: 0 }} />}
                             iconPosition="start"
                         />
-                        <Tab label="Список спецификаций" />
+                        <Tab
+                            label="Список спецификаций"
+                            icon={<ListIcon sx={{ fontSize: '18px', mb: 0 }} />}
+                            iconPosition="start"
+                        />
                     </Tabs>
                     {activeTab === 0 && (
                         <VolumeButton
