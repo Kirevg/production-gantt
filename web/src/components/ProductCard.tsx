@@ -1363,6 +1363,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             '& .MuiTab-root': {
                                 color: 'white', // Белый цвет для неактивных вкладок (как в шапке)
                                 fontWeight: 500,
+                                minHeight: '16px',
                                 border: 'none !important', // Убираем рамку у всех вкладок
                                 outline: 'none !important',
                                 '&.Mui-selected': {
@@ -1386,6 +1387,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                     border: 'none !important',
                                     outline: 'none !important'
                                 }
+                            },
+                            '& .MuiTabs-indicator': {
+                                bottom: '8px', // Расстояние между кнопкой и индикатором (чем больше значение, тем больше расстояние)
+                                height: '2px', // Толщина индикатора
+                                backgroundColor: '#1976d2' // Цвет индикатора (синий)
                             }
                         }}
                     >
