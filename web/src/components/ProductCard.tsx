@@ -60,6 +60,8 @@ interface ProjectSpecification {
     totalSum?: number; // Общая сумма спецификации
     version?: number; // Версия спецификации
     isLocked?: boolean; // Заблокирована ли спецификация
+    isChild?: boolean; // Является ли дочерней (активной) версией
+    isParent?: boolean; // Является ли родительской (старой) версией
     createdAt: string;
     updatedAt: string;
 }
@@ -141,6 +143,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [isNewProduct, setIsNewProduct] = useState(productId?.startsWith('temp-') || false);
     const [currentProductId, setCurrentProductId] = useState(productId);
+
+    // Синхронизация productId с currentProductId при изменении пропса
+    useEffect(() => {
+        setCurrentProductId(productId);
+        setIsNewProduct(productId?.startsWith('temp-') || false);
+    }, [productId]);
 
     // Принудительное обновление компонента при изменении статуса изделия
     useEffect(() => {
@@ -278,16 +286,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 return;
             }
 
-            // Не загружаем спецификации для временных изделий
-            if (currentProductId?.startsWith('temp-')) {
+            // Используем currentProductId или productId из пропсов
+            const productIdToUse = currentProductId || productId;
+            if (!productIdToUse) {
                 setSpecifications([]);
                 setSpecificationsLoading(false);
                 return;
             }
 
+            // Не загружаем спецификации для временных изделий
+            if (productIdToUse.startsWith('temp-')) {
+                setSpecifications([]);
+                setSpecificationsLoading(false);
+                return;
+            }
 
             // Строим URL для получения спецификаций изделия
-            const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${currentProductId}/specifications`;
+            const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${productIdToUse}/specifications`;
 
             const response = await fetch(url, {
                 headers: {
@@ -650,11 +665,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
+    // Загрузка данных при изменении productId или projectId
     useEffect(() => {
-        fetchSpecifications();
-        fetchProductData();
-        fetchCatalogProducts();
-        if (productId) {
+        if (productId && !productId.startsWith('temp-') && projectId) {
+            fetchProductData();
+            fetchSpecifications(); // Загружаем спецификации при изменении productId
+            fetchCatalogProducts();
             fetchStages();
             fetchWorkTypesAndContractors();
         }
@@ -781,7 +797,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
 
             // API найдет родительскую (версия - 1) и дочернюю (текущая версия) спецификации
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${specification.id}/compare/${specification.version - 1}/${specification.version}`, {
+            const version = specification.version || 1;
+            if (version <= 1) {
+                alert('Нет предыдущей версии для сравнения');
+                setVersionCompareLoading(false);
+                return;
+            }
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${specification.id}/compare/${version - 1}/${version}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
