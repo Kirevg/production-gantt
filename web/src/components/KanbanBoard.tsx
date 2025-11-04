@@ -1906,6 +1906,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     >
                                                         <CheckBoxOutlineBlank fontSize="small" />
                                                     </VolumeButton>
+                                                    </span>
                                                 </Tooltip>
                                             </Box>
                                         );
