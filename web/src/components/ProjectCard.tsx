@@ -194,7 +194,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return [];
             }
 
@@ -223,7 +223,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 assignee: subtask.assignee
             }));
         } catch (error) {
-            console.error('Ошибка загрузки подзадач:', error);
+// console.('Ошибка загрузки подзадач:', error);
             return [];
         }
     }, []);
@@ -248,7 +248,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 setProjectData(updatedProjectData);
             }
         } catch (error) {
-            console.error('Ошибка загрузки данных проекта:', error);
+// console.('Ошибка загрузки данных проекта:', error);
         }
     }, [projectId]);
 
@@ -266,7 +266,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 setManagers(data);
             }
         } catch (error) {
-            console.error('Ошибка загрузки руководителей:', error);
+// console.('Ошибка загрузки руководителей:', error);
         }
     }, []);
 
@@ -274,7 +274,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -332,7 +332,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             const uniqueProducts = Array.from(uniqueProductsMap.values());
             setCatalogProducts(uniqueProducts);
         } catch (error) {
-            console.error('Ошибка загрузки изделий:', error);
+// console.('Ошибка загрузки изделий:', error);
         } finally {
             setLoading(false);
         }
@@ -397,7 +397,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 }
             }
         } catch (error) {
-            console.error('Ошибка обновления проекта:', error);
+// console.('Ошибка обновления проекта:', error);
             alert('Ошибка при обновлении проекта');
         }
     };
@@ -425,7 +425,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
             // Проверяем, что индексы найдены
             if (oldIndex === -1 || newIndex === -1) {
-                console.error('Не удалось найти продукты для переупорядочивания');
+// console.('Не удалось найти продукты для переупорядочивания');
                 return;
             }
 
@@ -468,12 +468,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 if (!response.ok) {
                     // Если обновление не удалось, возвращаем исходный порядок
                     setProducts(originalProducts);
-                    console.error('Ошибка обновления порядка продуктов');
+// console.('Ошибка обновления порядка продуктов');
                 }
             } catch (error) {
                 // При ошибке возвращаем исходный порядок
                 setProducts(originalProducts);
-                console.error('Ошибка сети при обновлении порядка:', error);
+// console.('Ошибка сети при обновлении порядка:', error);
             } finally {
                 setIsReordering(false);
             }
@@ -502,7 +502,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -531,7 +531,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         if (exactMatch) {
                             // Используем существующий ID
                             productId = exactMatch.id;
-                            console.log(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
+// console.(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
                         } else {
                             // Создаём новое изделие только если не найдено точное совпадение
                             const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
@@ -552,7 +552,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
                             const newProduct = await createProductResponse.json();
                             productId = newProduct.id;
-                            console.log(`Создано новое изделие: ${newProduct.name} (ID: ${newProduct.id})`);
+// console.(`Создано новое изделие: ${newProduct.name} (ID: ${newProduct.id})`);
                         }
                     } else {
                         // Если поиск не удался, пробуем создать новое
@@ -576,7 +576,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         productId = newProduct.id;
                     }
                 } catch (error) {
-                    console.error('Ошибка при создании/поиске изделия в справочнике:', error);
+// console.('Ошибка при создании/поиске изделия в справочнике:', error);
                     alert('Произошла ошибка при создании изделия в справочнике');
                     return;
                 }
@@ -634,10 +634,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('API Error:', errorData);
-                console.error('Response status:', response.status);
-                console.error('Request data:', requestData);
-                console.error('Error details:', JSON.stringify(errorData.details, null, 2));
+// console.('API Error:', errorData);
+// console.('Response status:', response.status);
+// console.('Request data:', requestData);
+// console.('Error details:', JSON.stringify(errorData.details, null, 2));
 
                 // Если конфликт версий, обновляем данные и повторяем запрос
                 if (response.status === 409 && errorData.error === 'Version conflict') {
@@ -654,7 +654,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             await fetchProducts();
             handleCloseProductDialog();
         } catch (error) {
-            console.error('Ошибка сохранения изделия:', error);
+// console.('Ошибка сохранения изделия:', error);
             const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
             alert(`Произошла ошибка при сохранении: ${errorMessage}\n\nПроверьте консоль браузера для подробностей.`);
         }
@@ -671,7 +671,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -691,7 +691,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
             setOpenDeleteDialog(false);
             setProductToDelete(null);
         } catch (error) {
-            console.error('Ошибка удаления изделия:', error);
+// console.('Ошибка удаления изделия:', error);
             alert('Ошибка при удалении изделия. Проверьте консоль для подробностей.');
         }
     };

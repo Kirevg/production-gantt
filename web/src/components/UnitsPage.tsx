@@ -56,7 +56,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
             setLoading(true);
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -71,7 +71,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
                 setUnits(data);
             }
         } catch (error) {
-            console.error('Ошибка загрузки единиц измерения:', error);
+// console.('Ошибка загрузки единиц измерения:', error);
         } finally {
             setLoading(false);
         }
@@ -117,7 +117,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -145,7 +145,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
             await fetchUnits();
             handleCloseDialog();
         } catch (error) {
-            console.error('Ошибка сохранения единицы измерения:', error);
+// console.('Ошибка сохранения единицы измерения:', error);
         }
     };
 
@@ -157,7 +157,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -174,7 +174,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
 
             await fetchUnits();
         } catch (error) {
-            console.error('Ошибка удаления единицы измерения:', error);
+// console.('Ошибка удаления единицы измерения:', error);
         }
     };
 

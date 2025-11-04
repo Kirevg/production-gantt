@@ -77,7 +77,7 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
             const data = await response.json();
             setProducts(data);
         } catch (error) {
-            console.error('Ошибка загрузки изделий:', error);
+// console.('Ошибка загрузки изделий:', error);
             setError('Не удалось загрузить список изделий');
         } finally {
             setLoading(false);
@@ -144,7 +144,7 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
             await fetchProducts();
             handleCloseDialog();
         } catch (error) {
-            console.error('Ошибка сохранения:', error);
+// console.('Ошибка сохранения:', error);
             setError('Не удалось сохранить изделие');
         }
     };
@@ -173,7 +173,7 @@ const ProductsCatalogPage: React.FC<ProductsCatalogPageProps> = ({
 
             await fetchProducts();
         } catch (error: any) {
-            console.error('Ошибка удаления:', error);
+// console.('Ошибка удаления:', error);
             setError(error.message || 'Не удалось удалить изделие');
         }
     };

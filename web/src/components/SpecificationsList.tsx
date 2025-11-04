@@ -101,7 +101,7 @@ const SpecificationsList: React.FC<SpecificationsListProps> = ({
             const data = await response.json();
             setSpecifications(data);
         } catch (error) {
-            console.error('Ошибка загрузки спецификаций:', error);
+// console.('Ошибка загрузки спецификаций:', error);
             setError('Ошибка загрузки спецификаций');
         } finally {
             setLoading(false);
@@ -164,7 +164,7 @@ const SpecificationsList: React.FC<SpecificationsListProps> = ({
             await fetchSpecifications();
             handleCloseDialog();
         } catch (error) {
-            console.error('Ошибка сохранения спецификации:', error);
+// console.('Ошибка сохранения спецификации:', error);
             alert('Произошла ошибка при сохранении. Попробуйте еще раз.');
         }
     };
@@ -195,7 +195,7 @@ const SpecificationsList: React.FC<SpecificationsListProps> = ({
 
             await fetchSpecifications();
         } catch (error) {
-            console.error('Ошибка удаления спецификации:', error);
+// console.('Ошибка удаления спецификации:', error);
             alert('Произошла ошибка при удалении. Попробуйте еще раз.');
         }
     };

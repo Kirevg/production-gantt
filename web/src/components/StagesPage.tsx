@@ -141,7 +141,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             if (isNaN(date.getTime())) return '-';
             return date.toLocaleDateString('ru-RU');
         } catch (error) {
-            console.error('Error formatting date:', dateString, error);
+// console.('Error formatting date:', dateString, error);
             return '-';
         }
     };
@@ -150,7 +150,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -165,10 +165,10 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 const data = await response.json();
                 setStages(data);
             } else {
-                console.error('Ошибка загрузки этапов работ');
+// console.('Ошибка загрузки этапов работ');
             }
         } catch (error) {
-            console.error('Ошибка загрузки этапов работ:', error);
+// console.('Ошибка загрузки этапов работ:', error);
         } finally {
             setLoading(false);
         }
@@ -178,7 +178,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -195,7 +195,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 setProductName(product.name);
             }
         } catch (error) {
-            console.error('Ошибка загрузки информации об изделии:', error);
+// console.('Ошибка загрузки информации об изделии:', error);
         }
     }, [productId]);
 
@@ -203,7 +203,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -233,7 +233,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 name: workType.name
             })));
         } catch (error) {
-            console.error('Ошибка загрузки видов работ:', error);
+// console.('Ошибка загрузки видов работ:', error);
         }
     }, []);
 
@@ -241,7 +241,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -271,7 +271,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
                 name: contractor.name
             })));
         } catch (error) {
-            console.error('Ошибка загрузки контрагентов:', error);
+// console.('Ошибка загрузки контрагентов:', error);
         }
     }, []);
 
@@ -354,7 +354,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -403,7 +403,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('API Error:', errorData);
+// console.('API Error:', errorData);
 
                 // Если токен недействителен, перенаправляем на страницу входа
                 if (response.status === 403 && errorData.error === 'Invalid or expired token') {
@@ -418,7 +418,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             await fetchStages();
             handleCloseStageDialog();
         } catch (error) {
-            console.error('Ошибка сохранения этапа:', error);
+// console.('Ошибка сохранения этапа:', error);
             const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
             alert(`Произошла ошибка при сохранении: ${errorMessage}\n\nПроверьте консоль браузера для подробностей.`);
         }
@@ -432,7 +432,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -459,7 +459,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
 
             await fetchStages();
         } catch (error) {
-            console.error('Ошибка удаления этапа:', error);
+// console.('Ошибка удаления этапа:', error);
         }
     };
 
@@ -486,7 +486,7 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -508,12 +508,12 @@ const StagesPage: React.FC<StagesPageProps> = ({ productId, onBack, canEdit = ()
             );
 
             if (!response.ok) {
-                console.error('Ошибка сохранения порядка этапов');
+// console.('Ошибка сохранения порядка этапов');
                 // Откатываем изменения в UI
                 await fetchStages();
             }
         } catch (error) {
-            console.error('Ошибка сохранения порядка этапов:', error);
+// console.('Ошибка сохранения порядка этапов:', error);
             // Откатываем изменения в UI
             await fetchStages();
         }

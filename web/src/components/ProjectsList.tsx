@@ -121,7 +121,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
 
             // Проверяем, что индексы найдены
             if (oldIndex === -1 || newIndex === -1) {
-                console.error('Не удалось найти проекты для переупорядочивания');
+// console.('Не удалось найти проекты для переупорядочивания');
                 return;
             }
 
@@ -173,7 +173,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                     setProjects(originalProjects);
                     const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
                     setError(`Ошибка обновления порядка проектов: ${errorData.error}`);
-                    console.error('Ошибка API:', response.status, errorData);
+// console.('Ошибка API:', response.status, errorData);
                 } else {
                     // Очищаем ошибки при успешном обновлении
                     setError(null);
@@ -182,7 +182,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                 // При ошибке возвращаем исходный порядок
                 setProjects(originalProjects);
                 setError(`Ошибка сети при обновлении порядка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
-                console.error('Ошибка сети:', error);
+// console.('Ошибка сети:', error);
             } finally {
                 setIsReordering(false);
             }
@@ -246,10 +246,10 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                 }));
             } else {
                 const errorData = await response.json();
-                console.error(`Ошибка загрузки задач для проекта ${projectId}:`, errorData);
+// console.(`Ошибка загрузки задач для проекта ${projectId}:`, errorData);
             }
         } catch (err) {
-            console.error('Ошибка загрузки задач проекта:', err);
+// console.('Ошибка загрузки задач проекта:', err);
         }
     };
 
@@ -329,7 +329,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен авторизации не найден');
+// console.('Токен авторизации не найден');
                 return;
             }
 
@@ -344,10 +344,10 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                 setManagers(data);
             } else {
                 const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
-                console.error('Ошибка загрузки руководителей:', errorData.error);
+// console.('Ошибка загрузки руководителей:', errorData.error);
             }
         } catch (error) {
-            console.error('Ошибка сети при загрузке руководителей:', error);
+// console.('Ошибка сети при загрузке руководителей:', error);
         }
     };
 

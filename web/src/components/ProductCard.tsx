@@ -274,7 +274,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             setSpecificationsLoading(true);
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -306,7 +306,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const specificationsWithStatus = determineSpecificationStatus(data);
             setSpecifications(specificationsWithStatus);
         } catch (error) {
-            // console.error('Ошибка загрузки спецификаций:', error);
+            //// console.('Ошибка загрузки спецификаций:', error);
         } finally {
             setSpecificationsLoading(false);
         }
@@ -319,7 +319,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                // console.error('Токен не найден');
+                //// console.('Токен не найден');
                 return;
             }
 
@@ -337,7 +337,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const data = await response.json();
             setStages(data);
         } catch (error) {
-            // console.error('Ошибка загрузки этапов:', error);
+            //// console.('Ошибка загрузки этапов:', error);
         }
     };
 
@@ -368,7 +368,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setContractors(contractorsData);
             }
         } catch (error) {
-            // console.error('Ошибка загрузки справочников:', error);
+            //// console.('Ошибка загрузки справочников:', error);
         }
     };
 
@@ -393,10 +393,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 const data = await response.json();
                 setProductData(data);
             } else {
-                // console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
+                //// console.(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
-            // console.error('Ошибка загрузки данных изделия:', error);
+            //// console.('Ошибка загрузки данных изделия:', error);
         }
     };
 
@@ -439,7 +439,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setCatalogProducts(uniqueProducts);
             }
         } catch (error) {
-            // console.error('Ошибка загрузки изделий проекта:', error);
+            //// console.('Ошибка загрузки изделий проекта:', error);
         } finally {
             setLoadingProducts(false);
         }
@@ -463,10 +463,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     currentProductData = await response.json();
                     setProductData(currentProductData);
                 } else {
-                    // console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
+                    //// console.(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
                 }
             } catch (error) {
-                // console.error('Ошибка загрузки данных изделия:', error);
+                //// console.('Ошибка загрузки данных изделия:', error);
             }
         }
 
@@ -488,7 +488,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             // Проверяем, что есть либо выбранное изделие, либо введено название вручную
             if (!productForm.productId && !productForm.productName) {
-                console.error('Validation failed: both productId and productName are empty');
+// console.('Validation failed: both productId and productName are empty');
                 alert('Пожалуйста, выберите изделие из справочника или введите название вручную');
                 return;
             }
@@ -519,7 +519,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         if (exactMatch) {
                             // Используем существующий ID
                             finalProductId = exactMatch.id;
-                            console.log(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
+// console.(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
                         } else {
                             // Создаём новое изделие только если не найдено точное совпадение
                             const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
@@ -537,10 +537,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             if (createProductResponse.ok) {
                                 const newProduct = await createProductResponse.json();
                                 finalProductId = newProduct.id;
-                                console.log(`Создано новое изделие: ${newProduct.name} (ID: ${newProduct.id})`);
+// console.(`Создано новое изделие: ${newProduct.name} (ID: ${newProduct.id})`);
                             } else {
                                 const errorData = await createProductResponse.json().catch(() => ({ error: 'Unknown error' }));
-                                console.error('Ошибка создания изделия в справочнике:', errorData);
+// console.('Ошибка создания изделия в справочнике:', errorData);
                                 alert(`Ошибка при создании изделия в справочнике: ${JSON.stringify(errorData)}`);
                                 return;
                             }
@@ -564,13 +564,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             finalProductId = newProduct.id;
                         } else {
                             const errorData = await createProductResponse.json().catch(() => ({ error: 'Unknown error' }));
-                            console.error('Ошибка создания изделия в справочнике:', errorData);
+// console.('Ошибка создания изделия в справочнике:', errorData);
                             alert(`Ошибка при создании изделия в справочнике: ${JSON.stringify(errorData)}`);
                             return;
                         }
                     }
                 } catch (error) {
-                    console.error('Ошибка при создании/поиске изделия в справочнике:', error);
+// console.('Ошибка при создании/поиске изделия в справочнике:', error);
                     alert('Произошла ошибка при создании изделия в справочнике');
                     return;
                 }
@@ -641,11 +641,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 }
             } else {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('API Error:', errorData);
+// console.('API Error:', errorData);
                 alert(`Ошибка при сохранении изделия: ${JSON.stringify(errorData)}`);
             }
         } catch (error) {
-            console.error('Ошибка сохранения изделия:', error);
+// console.('Ошибка сохранения изделия:', error);
             alert('Произошла ошибка при сохранении');
         }
     };
@@ -698,13 +698,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
             // Проверяем, что продукт уже создан (не temp-*)
             if (!editingSpecification && currentProductId?.startsWith('temp-')) {
-                console.error('Нельзя создать спецификацию для временного изделия, currentProductId:', currentProductId);
+// console.('Нельзя создать спецификацию для временного изделия, currentProductId:', currentProductId);
                 alert('Сначала сохраните изделие, а затем создавайте спецификации');
                 return;
             }
@@ -735,7 +735,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             await fetchSpecifications();
             handleCloseSpecificationDialog();
         } catch (error) {
-            console.error('Ошибка сохранения спецификации:', error);
+// console.('Ошибка сохранения спецификации:', error);
         }
     };
 
@@ -766,7 +766,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             await fetchSpecifications();
         } catch (error) {
-            console.error('Ошибка удаления спецификации:', error);
+// console.('Ошибка удаления спецификации:', error);
         }
     };
 
@@ -776,7 +776,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             setVersionCompareLoading(true);
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -794,7 +794,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const data = await response.json();
             setVersionCompareData(data);
         } catch (error) {
-            console.error('Ошибка загрузки сравнения версий:', error);
+// console.('Ошибка загрузки сравнения версий:', error);
             alert('Ошибка при загрузке данных сравнения');
         } finally {
             setVersionCompareLoading(false);
@@ -828,7 +828,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     const handleDescriptionSave = async (specificationId: string) => {
         if (!canEdit()) {
-            console.log('Нет прав на редактирование');
+// console.('Нет прав на редактирование');
             setEditingDescription(null);
             return;
         }
@@ -836,7 +836,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         // Проверяем, не заблокирована ли спецификация
         const specification = specifications.find(spec => spec.id === specificationId);
         if (specification?.isLocked) {
-            console.log('Спецификация заблокирована');
+// console.('Спецификация заблокирована');
             setEditingDescription(null);
             return;
         }
@@ -862,12 +862,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         description: updatedSpecification.description
                     } : spec
                 ));
-                console.log('Описание обновлено:', updatedSpecification);
+// console.('Описание обновлено:', updatedSpecification);
             } else {
-                console.error('Ошибка обновления описания');
+// console.('Ошибка обновления описания');
             }
         } catch (error) {
-            console.error('Ошибка обновления описания:', error);
+// console.('Ошибка обновления описания:', error);
         }
 
         setEditingDescription(null);
@@ -891,7 +891,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -907,13 +907,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('Ошибка копирования спецификации:', errorData);
+// console.('Ошибка копирования спецификации:', errorData);
                 alert(`Ошибка при копировании спецификации: ${errorData.error || 'Неизвестная ошибка'}`);
                 return;
             }
 
             const newSpecification = await response.json();
-            console.log('Копия спецификации создана с содержимым:', newSpecification);
+// console.('Копия спецификации создана с содержимым:', newSpecification);
 
             // Обновляем список спецификаций
             await fetchSpecifications();
@@ -922,7 +922,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             onOpenSpecification(newSpecification.id, newSpecification.name);
 
         } catch (error) {
-            console.error('Ошибка создания копии спецификации:', error);
+// console.('Ошибка создания копии спецификации:', error);
             alert('Произошла ошибка при копировании спецификации');
         }
     };
@@ -1005,7 +1005,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -1048,14 +1048,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('❌ API Error:', errorData);
+// console.('❌ API Error:', errorData);
                 throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
             }
 
             await fetchStages();
             handleCloseStageDialog();
         } catch (error) {
-            console.error('Ошибка сохранения этапа:', error);
+// console.('Ошибка сохранения этапа:', error);
             alert(`Произошла ошибка при сохранении: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
         }
     };
@@ -1068,7 +1068,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -1085,7 +1085,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             await fetchStages();
         } catch (error) {
-            console.error('Ошибка удаления этапа:', error);
+// console.('Ошибка удаления этапа:', error);
         }
     };
 
@@ -1112,7 +1112,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -1134,12 +1134,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
             );
 
             if (!response.ok) {
-                console.error('Ошибка сохранения порядка этапов');
+// console.('Ошибка сохранения порядка этапов');
                 // Откатываем изменения в UI
                 await fetchStages();
             }
         } catch (error) {
-            console.error('Ошибка сохранения порядка этапов:', error);
+// console.('Ошибка сохранения порядка этапов:', error);
             // Откатываем изменения в UI
             await fetchStages();
         }

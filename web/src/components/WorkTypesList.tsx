@@ -49,7 +49,7 @@ const WorkTypesList: React.FC<WorkTypesListProps> = ({ canEdit, canCreate, canDe
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -67,7 +67,7 @@ const WorkTypesList: React.FC<WorkTypesListProps> = ({ canEdit, canCreate, canDe
             const data = await response.json();
             setWorkTypes(data);
         } catch (error) {
-            console.error('Ошибка загрузки видов работ:', error);
+// console.('Ошибка загрузки видов работ:', error);
         } finally {
             setLoading(false);
         }
@@ -107,7 +107,7 @@ const WorkTypesList: React.FC<WorkTypesListProps> = ({ canEdit, canCreate, canDe
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -136,7 +136,7 @@ const WorkTypesList: React.FC<WorkTypesListProps> = ({ canEdit, canCreate, canDe
             await fetchWorkTypes();
             handleCloseDialog();
         } catch (error) {
-            console.error('Ошибка сохранения вида работ:', error);
+// console.('Ошибка сохранения вида работ:', error);
             alert('Произошла ошибка при сохранении. Попробуйте еще раз.');
         }
     };
@@ -149,7 +149,7 @@ const WorkTypesList: React.FC<WorkTypesListProps> = ({ canEdit, canCreate, canDe
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+// console.('Токен не найден');
                 return;
             }
 
@@ -172,7 +172,7 @@ const WorkTypesList: React.FC<WorkTypesListProps> = ({ canEdit, canCreate, canDe
 
             await fetchWorkTypes();
         } catch (error) {
-            console.error('Ошибка удаления вида работ:', error);
+// console.('Ошибка удаления вида работ:', error);
             alert('Произошла ошибка при удалении. Попробуйте еще раз.');
         }
     };

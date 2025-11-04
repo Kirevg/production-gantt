@@ -226,19 +226,19 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     const handleQuantitySave = async (specificationId: string) => {
         if (!canEdit() || isSpecificationLocked) {
-            console.log('Нет прав на редактирование или спецификация заблокирована');
+// console.('Нет прав на редактирование или спецификация заблокирована');
             setEditingQuantity(null);
             return;
         }
 
         const newQuantity = parseFloat(quantityValue);
         if (isNaN(newQuantity) || newQuantity < 0) {
-            console.log('Некорректное значение количества:', quantityValue);
+// console.('Некорректное значение количества:', quantityValue);
             setEditingQuantity(null);
             return;
         }
 
-        console.log('Сохранение количества:', newQuantity, 'для спецификации:', specificationId);
+// console.('Сохранение количества:', newQuantity, 'для спецификации:', specificationId);
 
         try {
             // Проверяем, является ли ID временным (начинается с 'temp-')
@@ -264,7 +264,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 body: JSON.stringify({ quantity: newQuantity })
             });
 
-            console.log('Ответ сервера:', response.status);
+// console.('Ответ сервера:', response.status);
 
             if (response.ok) {
                 // Обновляем локальное состояние
@@ -273,12 +273,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         ? { ...spec, quantity: newQuantity, totalPrice: newQuantity * (spec.price || 0) }
                         : spec
                 ));
-                console.log('Количество успешно обновлено');
+// console.('Количество успешно обновлено');
             } else {
-                console.error('Ошибка сервера:', response.status, response.statusText);
+// console.('Ошибка сервера:', response.status, response.statusText);
             }
         } catch (error) {
-            console.error('Ошибка обновления количества:', error);
+// console.('Ошибка обновления количества:', error);
         }
 
         setEditingQuantity(null);
@@ -303,14 +303,14 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     const handlePriceSave = async (specificationId: string) => {
         if (!canEdit() || isSpecificationLocked) {
-            console.log('Нет прав на редактирование или спецификация заблокирована');
+// console.('Нет прав на редактирование или спецификация заблокирована');
             setEditingPrice(null);
             return;
         }
 
         const newPrice = parseFloat(priceValue);
         if (isNaN(newPrice) || newPrice < 0) {
-            console.log('Некорректное значение цены:', priceValue);
+// console.('Некорректное значение цены:', priceValue);
             setEditingPrice(null);
             return;
         }
@@ -350,12 +350,12 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         totalPrice: updatedSpecification.price * spec.quantity // Пересчитываем сумму: цена * количество
                     } : spec
                 ));
-                console.log('Цена обновлена:', updatedSpecification);
+// console.('Цена обновлена:', updatedSpecification);
             } else {
-                console.error('Ошибка обновления цены');
+// console.('Ошибка обновления цены');
             }
         } catch (error) {
-            console.error('Ошибка обновления цены:', error);
+// console.('Ошибка обновления цены:', error);
         }
 
         setEditingPrice(null);
@@ -456,7 +456,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен авторизации не найден');
+// console.('Токен авторизации не найден');
                 return;
             }
 
@@ -471,7 +471,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 setIsSpecificationLocked(data.isLocked || false);
             }
         } catch (error) {
-            console.error('Ошибка загрузки информации о спецификации:', error);
+// console.('Ошибка загрузки информации о спецификации:', error);
         }
     };
 
@@ -480,7 +480,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             setNomenclatureLoading(true);
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен авторизации не найден');
+// console.('Токен авторизации не найден');
                 return;
             }
 
@@ -505,7 +505,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 setGroups(groupsData);
             }
         } catch (error) {
-            console.error('Ошибка загрузки номенклатуры:', error);
+// console.('Ошибка загрузки номенклатуры:', error);
         } finally {
             setNomenclatureLoading(false);
         }
@@ -726,9 +726,9 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
             // Сохраняем данные и показываем диалог сопоставления
-            console.log('Excel data:', jsonData);
-            console.log('Number of rows:', jsonData.length);
-            console.log('Number of columns in first row:', (jsonData[0] as any[])?.length || 0);
+// console.('Excel data:', jsonData);
+// console.('Number of rows:', jsonData.length);
+// console.('Number of columns in first row:', (jsonData[0] as any[])?.length || 0);
             setExcelData(jsonData as any[][]);
 
             // Инициализируем сопоставление колонок по умолчанию
@@ -765,7 +765,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             setShowColumnMapping(true);
 
         } catch (error) {
-            console.error('Ошибка парсинга файла:', error);
+// console.('Ошибка парсинга файла:', error);
             setError('Ошибка при чтении файла Excel');
         } finally {
             setLoading(false);
@@ -850,7 +850,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                     }
 
                 } catch (error) {
-                    console.error('Ошибка анализа строки:', error);
+// console.('Ошибка анализа строки:', error);
                 }
             }
 
@@ -863,7 +863,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             });
 
         } catch (error) {
-            console.error('Ошибка анализа данных:', error);
+// console.('Ошибка анализа данных:', error);
             setError('Ошибка при анализе данных');
         } finally {
             setLoading(false);
@@ -904,7 +904,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
                     // Проверяем, что у нас есть nomenclatureItemId (позиция должна быть в номенклатуре)
                     if (!nomenclatureItemId) {
-                        console.warn(`Позиция "${item.name}" не найдена в номенклатуре и не была создана`);
+// console.(`Позиция "${item.name}" не найдена в номенклатуре и не была создана`);
                         skippedCount++;
                         continue;
                     }
@@ -919,7 +919,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         totalPrice: item.originalData.totalPrice && !isNaN(parseFloat(item.originalData.totalPrice)) ? parseFloat(item.originalData.totalPrice) : null
                     };
 
-                    console.log('Отправляемые данные:', requestData);
+// console.('Отправляемые данные:', requestData);
 
                     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productSpecificationId}/specifications`, {
                         method: 'POST',
@@ -935,10 +935,10 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                     } else {
                         errorCount++;
                         const errorText = await response.text();
-                        console.error('Ошибка API:', response.status, errorText);
+// console.('Ошибка API:', response.status, errorText);
                     }
                 } catch (error) {
-                    console.error('Ошибка импорта позиции:', error);
+// console.('Ошибка импорта позиции:', error);
                     errorCount++;
                 }
             }
@@ -961,7 +961,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             alert(message);
 
         } catch (error) {
-            console.error('Ошибка импорта:', error);
+// console.('Ошибка импорта:', error);
             setError('Ошибка при импорте файла');
         } finally {
             setLoading(false);
@@ -1027,13 +1027,13 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             // Загружаем полный список номенклатуры для поиска и фильтрации (асинхронно)
             await fetchNomenclature();
 
-            console.log('Окно выбора номенклатуры открыто:', {
+// console.('Окно выбора номенклатуры открыто:', {
                 editingCell: specification.id,
                 windowPosition,
                 allNomenclatureItems: allNomenclatureItems.length
             });
         } catch (error) {
-            console.error('Ошибка при открытии окна выбора номенклатуры:', error);
+// console.('Ошибка при открытии окна выбора номенклатуры:', error);
         }
     };
 
@@ -1131,7 +1131,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             setCellFilteredItems([]);
 
         } catch (error) {
-            console.error('Ошибка обновления позиции:', error);
+// console.('Ошибка обновления позиции:', error);
             setError('Ошибка при обновлении позиции');
         }
     };
@@ -1169,7 +1169,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
     // Функция для сохранения временной спецификации в базу данных
     const saveTemporarySpecification = async (tempSpec: any) => {
         try {
-            console.log('Сохранение временной спецификации в базу:', tempSpec);
+// console.('Сохранение временной спецификации в базу:', tempSpec);
 
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product-specifications/${productSpecificationId}/specifications`, {
                 method: 'POST',
@@ -1194,12 +1194,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Ошибка сервера:', response.status, errorText);
+// console.('Ошибка сервера:', response.status, errorText);
                 throw new Error(`Ошибка сервера: ${response.status}`);
             }
 
             const newSpecification = await response.json();
-            console.log('Спецификация успешно сохранена:', newSpecification);
+// console.('Спецификация успешно сохранена:', newSpecification);
 
             // Заменяем временную спецификацию на реальную
             setSpecifications(prev =>
@@ -1212,7 +1212,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
             return newSpecification;
         } catch (error) {
-            console.error('Ошибка при сохранении спецификации:', error);
+// console.('Ошибка при сохранении спецификации:', error);
             alert('Ошибка при сохранении спецификации: ' + (error as Error).message);
             return null;
         }
@@ -1232,14 +1232,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             if (response.ok) {
                 // Обновляем список спецификаций
                 await fetchSpecifications();
-                console.log('Спецификация успешно скопирована');
+// console.('Спецификация успешно скопирована');
             } else {
                 const errorData = await response.json();
-                console.error('Ошибка копирования спецификации:', errorData.error);
+// console.('Ошибка копирования спецификации:', errorData.error);
                 alert(`Ошибка копирования: ${errorData.error}`);
             }
         } catch (error) {
-            console.error('Ошибка копирования спецификации:', error);
+// console.('Ошибка копирования спецификации:', error);
             alert('Ошибка копирования спецификации');
         }
     };
