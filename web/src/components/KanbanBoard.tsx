@@ -2423,6 +2423,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#531a50' }}>
                                                                                                                 {productDescription}
                                                                                                             </Typography>
+                                                                                                            <Box sx={{ 
+                                                                                                                width: '6px', 
+                                                                                                                height: '6px', 
+                                                                                                                borderRadius: '50%', 
+                                                                                                                backgroundColor: '#531a50',
+                                                                                                                flexShrink: 0
+                                                                                                            }} />
                                                                                                         </Box>
                                                                                                     )}
                                                                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#423189' : '#d32f2f' }}>
