@@ -211,6 +211,34 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         }
     }, [excelData, showColumnMapping]);
 
+    // Синхронизация ширины колонок между таблицами (для основной таблицы спецификации)
+    useEffect(() => {
+        if (excelData.length > 0 && showColumnMapping) {
+            // Получаем ширину колонок из второй таблицы
+            const secondTable = document.querySelector('[data-table="second"]');
+            if (secondTable) {
+                const cells = secondTable.querySelectorAll('td');
+                const widths: number[] = [];
+                cells.forEach((cell, index) => {
+                    if (index < excelData[0].length) {
+                        widths.push(cell.getBoundingClientRect().width);
+                    }
+                });
+                // Преобразуем массив в объект с правильными ключами
+                const newWidths = {
+                    number: widths[0] || 40,
+                    name: (widths[1] || 'auto') as string, // Приводим к строке
+                    article: widths[2] || 100,
+                    quantity: widths[3] || 80,
+                    unit: widths[4] || 80,
+                    price: widths[5] || 100,
+                    total: widths[6] || 100
+                };
+                setColumnWidths(newWidths);
+            }
+        }
+    }, [excelData, showColumnMapping]);
+
 
 
     // Функции для inline редактирования количества
