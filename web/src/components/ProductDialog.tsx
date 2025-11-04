@@ -153,16 +153,6 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
                         placeholder="SN123456"
                         InputLabelProps={{ shrink: true }}
                     />
-
-                    {/* Поле ссылки */}
-                    <TextField
-                        label="Ссылка"
-                        value={productForm.link || ''}
-                        onChange={(e) => onChange({ ...productForm, link: e.target.value })}
-                        fullWidth
-                        placeholder="https://example.com"
-                        InputLabelProps={{ shrink: true }}
-                    />
                 </Box>
             </DialogContent>
             <DialogActions sx={{ p: 2, gap: 1 }}>

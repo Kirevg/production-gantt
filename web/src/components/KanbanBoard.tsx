@@ -2413,20 +2413,20 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                     productDescription.toLowerCase() !== '[null]' &&
                                                                                                     productDescription.toLowerCase() !== 'null' && (
                                                                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                                                            <Box sx={{ 
-                                                                                                                width: '6px', 
-                                                                                                                height: '6px', 
-                                                                                                                borderRadius: '50%', 
+                                                                                                            <Box sx={{
+                                                                                                                width: '6px',
+                                                                                                                height: '6px',
+                                                                                                                borderRadius: '50%',
                                                                                                                 backgroundColor: '#531a50',
                                                                                                                 flexShrink: 0
                                                                                                             }} />
                                                                                                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#531a50' }}>
                                                                                                                 {productDescription}
                                                                                                             </Typography>
-                                                                                                            <Box sx={{ 
-                                                                                                                width: '6px', 
-                                                                                                                height: '6px', 
-                                                                                                                borderRadius: '50%', 
+                                                                                                            <Box sx={{
+                                                                                                                width: '6px',
+                                                                                                                height: '6px',
+                                                                                                                borderRadius: '50%',
                                                                                                                 backgroundColor: '#531a50',
                                                                                                                 flexShrink: 0
                                                                                                             }} />
