@@ -29,9 +29,9 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
 
     try {
         const projectProductSpecificationLists = await prisma.projectProductSpecificationList.findMany({
-            where: { productId },
+            where: { projectProductId: productId },
             include: {
-                product: {
+                projectProduct: {
                     select: {
                         id: true,
                         project: {
@@ -56,7 +56,7 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
 
         // Проверяем права доступа
         const userSpecifications = projectProductSpecificationLists.filter(ps =>
-            ps.productId === productId
+            ps.projectProductId === productId
         );
 
         res.json(userSpecifications);
@@ -94,7 +94,7 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
                 name: validatedData.name,
                 description: validatedData.description,
                 version: validatedData.version || 1,
-                product: {
+                projectProduct: {
                     connect: { id: productId }
                 }
             },
@@ -181,7 +181,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         // Разблокируем предыдущую версию (если есть)
         const previousSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
-                productId: existingSpec.productId,
+                projectProductId: existingSpec.projectProductId,
                 name: existingSpec.name,
                 version: existingSpec.version - 1,
                 isLocked: true
@@ -311,7 +311,7 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
                 name: originalSpec.name, // Название копируется БЕЗ добавления "(копия)"
                 description: '', // Описание НЕ копируется - остается пустым
                 version: (originalSpec.version || 1) + 1, // Увеличиваем версию на 1
-                productId: originalSpec.productId,
+                projectProductId: originalSpec.projectProductId,
                 isLocked: false, // Новая спецификация не заблокирована
                 totalSum: originalSpec.totalSum
             }
@@ -465,7 +465,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             // Родительская спецификация (версия = текущая - 1)
             prisma.projectProductSpecificationList.findFirst({
                 where: {
-                    productId: currentSpec.productId,
+                    projectProductId: currentSpec.projectProductId,
                     name: currentSpec.name,
                     version: parentVersion
                 }
@@ -473,7 +473,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
             // Дочерняя спецификация (версия = текущая)
             prisma.projectProductSpecificationList.findFirst({
                 where: {
-                    productId: currentSpec.productId,
+                    projectProductId: currentSpec.projectProductId,
                     name: currentSpec.name,
                     version: childVersion
                 }
