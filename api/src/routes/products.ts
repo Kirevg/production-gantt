@@ -377,12 +377,29 @@ router.put('/products/reorder', authenticateToken, requireRole(['admin', 'manage
   try {
     const { productOrders } = req.body;
 
+    console.log('=== REORDER PRODUCTS ===');
+    console.log('Received productOrders:', JSON.stringify(productOrders, null, 2));
+
     if (!Array.isArray(productOrders)) {
       return res.status(400).json({ error: 'productOrders must be an array' });
     }
 
-    // Обновляем orderIndex для каждого изделия
-    await Promise.all(
+    if (productOrders.length === 0) {
+      return res.status(400).json({ error: 'productOrders array is empty' });
+    }
+
+    // Валидация данных
+    for (const item of productOrders) {
+      if (!item.id || typeof item.id !== 'string') {
+        return res.status(400).json({ error: `Invalid product ID: ${item.id}` });
+      }
+      if (typeof item.orderIndex !== 'number' || item.orderIndex < 0) {
+        return res.status(400).json({ error: `Invalid orderIndex for product ${item.id}: ${item.orderIndex}` });
+      }
+    }
+
+    // Обновляем orderIndex для каждого изделия в транзакции
+    await prisma.$transaction(
       productOrders.map((item: { id: string; orderIndex: number }) =>
         prisma.projectProduct.update({
           where: { id: item.id },
@@ -391,9 +408,14 @@ router.put('/products/reorder', authenticateToken, requireRole(['admin', 'manage
       )
     );
 
+    console.log('Successfully reordered products');
     res.json({ success: true });
   } catch (error) {
     console.error('Ошибка переупорядочивания изделий:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     res.status(500).json({ error: 'Failed to reorder products', details: error instanceof Error ? error.message : String(error) });
   }
 });
