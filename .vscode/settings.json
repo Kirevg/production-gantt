@@ -66,7 +66,6 @@
     "terminal.integrated.windowsEnableConpty": true,
     // Автоматическое определение директории для новых терминалов
     "terminal.integrated.cwd": "${workspaceFolder}",
-    
     // ===== TERMINAL BASICS - базовые функции =====
     // Автоматическое определение ссылок в выводе терминала (файлы, URL, номера строк)
     "terminal.integrated.enableMultiLinePasteWarning": true,
@@ -75,7 +74,6 @@
     // Открывать файлы по клику на ссылку в терминале
     "terminal.integrated.enablePersistentSessions": true,
     // Сохранять историю терминала между сессиями
-    
     // ===== TERMINAL APPEARANCE - внешний вид =====
     // Размер шрифта терминала
     "terminal.integrated.fontSize": 14,
@@ -84,7 +82,6 @@
     // Показывать иконки в терминале (для лучшей читаемости)
     "terminal.integrated.showExitAlert": false,
     // Не показывать предупреждение при выходе
-    
     // ===== TERMINAL ADVANCED - продвинутые настройки =====
     // Таймаут для определения завершения команды (в миллисекундах) - помогает избежать зависаний
     "terminal.integrated.persistentSessionReviveProcess": "never",
@@ -103,7 +100,6 @@
     // Автоматический скролл к новому выводу
     "terminal.integrated.smoothScrolling": true,
     // Плавная прокрутка терминала
-    
     // ===== TERMINAL PROFILES - профили терминалов =====
     // Настройка профилей для разных сценариев
     "terminal.integrated.profiles.windows": {
@@ -125,7 +121,23 @@
             "icon": "terminal-bash"
         }
     },
-    
+    // ===== ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ ДЛЯ ОПРЕДЕЛЕНИЯ ЗАВЕРШЕНИЯ КОМАНД =====
+    // Улучшенное определение завершения команд для PowerShell
+    "terminal.integrated.shellIntegration.history": 1000,
+    // Количество команд в истории Shell Integration
+    "terminal.integrated.shellIntegration.showDecorations": true,
+    // Показывать декорации команд всегда
+    // Таймаут для ожидания завершения команды (в миллисекундах)
+    "terminal.integrated.shellIntegration.decorationIcon": true,
+    // Показывать иконки декораций
+    // Автоматическое определение приглашения командной строки PowerShell
+    "terminal.integrated.automationProfile.windows": {
+        "path": "powershell.exe",
+        "args": [
+            "-NoLogo",
+            "-Command"
+        ]
+    },
     // ===== КОДИРОВКА - для правильного отображения русского текста =====
     "files.encoding": "utf8",
     "git.terminalEncoding": "utf8",
