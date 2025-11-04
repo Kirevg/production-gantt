@@ -1988,7 +1988,7 @@ export default function App() {
         return (
           <>
             {user && <UsersList currentUser={user} canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />}
-            
+
             {/* Управление базами данных */}
             <Box className="page-container">
               <Box className="page-header">

@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import prisma from '../lib/prisma';
+import fs from 'fs/promises';
+import path from 'path';
 
 const router = express.Router();
 
@@ -12,8 +14,46 @@ interface AuthenticatedRequest extends Request {
 }
 
 // POST /api/backup/create - Создать резервную копию базы данных
+// Включает:
+// - Все данные из таблиц БД
+// - Схему Prisma (schema.prisma) - для восстановления структуры БД
+// - Информацию о примененных миграциях - для понимания состояния структуры БД
 router.post('/create', authenticateToken, requireRole(['admin']), async (req, res: Response) => {
     try {
+        // Читаем схему Prisma для сохранения структуры БД
+        // Используем process.cwd() для определения корневой директории проекта
+        const schemaPath = path.join(process.cwd(), 'api/prisma/schema.prisma');
+        let prismaSchema = '';
+        try {
+            prismaSchema = await fs.readFile(schemaPath, 'utf-8');
+        } catch (error) {
+            // Если не удалось прочитать схему, пробуем альтернативный путь
+            try {
+                const altSchemaPath = path.join(__dirname, '../../prisma/schema.prisma');
+                prismaSchema = await fs.readFile(altSchemaPath, 'utf-8');
+            } catch (altError) {
+                // Если не удалось прочитать схему, продолжаем без неё
+                // console.error('⚠️ Не удалось прочитать schema.prisma:', error);
+            }
+        }
+
+        // Получаем информацию о примененных миграциях из таблицы _prisma_migrations
+        let migrations = [];
+        try {
+            migrations = await prisma.$queryRaw`
+                SELECT 
+                    migration_name,
+                    finished_at,
+                    started_at,
+                    applied_steps_count
+                FROM _prisma_migrations
+                WHERE finished_at IS NOT NULL
+                ORDER BY finished_at DESC
+            ` as any[];
+        } catch (error) {
+            // Если таблица миграций не существует или ошибка, продолжаем без неё
+            // console.error('⚠️ Не удалось прочитать информацию о миграциях:', error);
+        }
 
         // Получаем все данные из всех таблиц
         const [
@@ -48,10 +88,16 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
             prisma.refreshToken.findMany()
         ]);
 
-        // Формируем объект с данными
+        // Формируем объект с данными, включая схему БД и информацию о миграциях
         const backup = {
             timestamp: new Date().toISOString(),
-            version: '1.0',
+            version: '2.0', // Увеличиваем версию, так как добавляем схему и миграции
+            // Метаданные о структуре БД
+            schema: {
+                prismaSchema: prismaSchema, // Полная схема Prisma
+                migrations: migrations // Информация о примененных миграциях
+            },
+            // Данные из таблиц
             data: {
                 users,
                 persons,
@@ -92,10 +138,23 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
 // POST /api/backup/restore - Восстановить базу данных из резервной копии
 router.post('/restore', authenticateToken, requireRole(['admin']), async (req, res: Response) => {
     try {
-        const { data } = req.body;
+        // Поддерживаем оба формата: старый (v1.0) и новый (v2.0)
+        const backupData = req.body;
+        const backupVersion = backupData.version || '1.0';
+        
+        // Определяем данные для восстановления
+        // В новом формате данные находятся в backupData.data, в старом - прямо в backupData.data
+        const data = backupData.data || backupData;
 
         if (!data) {
             return res.status(400).json({ error: 'Данные для восстановления не предоставлены' });
+        }
+
+        // Если это новый формат с информацией о схеме, выводим информацию
+        if (backupVersion === '2.0' && backupData.schema) {
+            // Информация о схеме сохранена в бэкапе, но для восстановления структуры БД
+            // необходимо сначала применить миграции через админ-панель (кнопка "Применить миграции")
+            // Это сделано для безопасности - чтобы случайно не перезаписать структуру БД
         }
 
 
@@ -132,8 +191,9 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
         if (data.refreshTokens?.length) await prisma.refreshToken.createMany({ data: data.refreshTokens });
 
 
-        res.json({
+        const response: any = {
             message: 'База данных успешно восстановлена',
+            backupVersion: backupVersion,
             restored: {
                 users: data.users?.length || 0,
                 persons: data.persons?.length || 0,
@@ -148,7 +208,18 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
                 projectProductSpecificationLists: data.projectProductSpecificationLists?.length || 0,
                 specifications: data.specifications?.length || 0
             }
-        });
+        };
+
+        // Добавляем информацию о схеме, если она была в бэкапе
+        if (backupVersion === '2.0' && backupData.schema) {
+            response.schemaInfo = {
+                hasSchema: !!backupData.schema.prismaSchema,
+                migrationsCount: backupData.schema.migrations?.length || 0,
+                note: 'Для восстановления структуры БД примените миграции через админ-панель'
+            };
+        }
+
+        res.json(response);
 
     } catch (error) {
         // console.error('❌ Ошибка восстановления базы данных:', error);
