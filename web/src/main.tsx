@@ -87,7 +87,7 @@ window.addEventListener('unhandledrejection', (event) => {
   ]);
 });
 
-console.log('🔍 Удалённое логирование консоли включено');
+// console.log('🔍 Удалённое логирование консоли включено');
 // ============= КОНЕЦ УДАЛЁННОГО ЛОГИРОВАНИЯ =============
 
 // Предотвращаем применение aria-hidden к элементам с фокусом
@@ -132,7 +132,7 @@ if (rootElement) {
             // Показываем предупреждение не чаще чем раз в 15 секунд
             const now = Date.now();
             if (now - lastWarningTime > WARNING_COOLDOWN) {
-              console.warn(`✅ ARIA Protection: Removed aria-hidden from ${target.className} because it contains focused element`);
+              // console.warn(`✅ ARIA Protection: Removed aria-hidden from ${target.className} because it contains focused element`);
               lastWarningTime = now;
             }
           }
