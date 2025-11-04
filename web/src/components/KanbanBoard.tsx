@@ -432,7 +432,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
     // Состояние для диалога создания/редактирования изделия
     const [openProductDialog, setOpenProductDialog] = useState(false);
-    const [editingProduct, setEditingProduct] = useState<{ id: string; projectId: string; productId: string } | null>(null);
+    const [editingProduct, setEditingProduct] = useState<{ id: string; projectId: string; productId: string; version?: number } | null>(null);
     const [productForm, setProductForm] = useState<ProductFormData>({
         productId: '',
         productName: '',
@@ -1189,7 +1189,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 // Заполняем форму данными изделия
                 // data.productId - это ID CatalogProduct (из справочника)
                 // projectProductId - это ID ProjectProduct (запись в проекте)
-                setEditingProduct({ id: projectProductId, projectId, productId: data.product?.id || '' });
+                setEditingProduct({ 
+                    id: projectProductId, 
+                    projectId, 
+                    productId: data.product?.id || '',
+                    version: data.version || 1
+                });
                 setProductForm({
                     productId: data.product?.id || '',
                     productName: data.product?.name || '',
@@ -1325,8 +1330,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     body: JSON.stringify({
                         productId: catalogProductId,
                         serialNumber: productForm.serialNumber || undefined,
-                        description: productForm.link || undefined,
-                        quantity: productForm.quantity
+                        quantity: productForm.quantity,
+                        version: editingProduct.version || 1
                     })
                 });
 
@@ -1354,7 +1359,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     setEditingProduct(null);
                     await fetchKanbanData(); // Обновляем данные Kanban
                 } else {
-                    alert('Ошибка при обновлении изделия');
+                    const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
+                    alert(`Ошибка при обновлении изделия: ${JSON.stringify(errorData)}`);
                 }
             } else {
                 // Создание нового изделия
@@ -1367,7 +1373,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     body: JSON.stringify({
                         productId: catalogProductId,
                         serialNumber: productForm.serialNumber || undefined,
-                        description: productForm.link || undefined,
                         quantity: productForm.quantity
                     })
                 });
@@ -1396,7 +1401,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     setEditingProduct(null);
                     await fetchKanbanData(); // Обновляем данные Kanban
                 } else {
-                    alert('Ошибка при создании изделия');
+                    const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
+                    alert(`Ошибка при создании изделия: ${JSON.stringify(errorData)}`);
                 }
             }
         } catch (error) {

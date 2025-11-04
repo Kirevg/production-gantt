@@ -139,8 +139,6 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
                         value={productForm.description || ''}
                         onChange={(e) => onChange({ ...productForm, description: e.target.value })}
                         fullWidth
-                        multiline
-                        rows={3}
                         placeholder="Введите описание изделия"
                         InputLabelProps={{ shrink: true }}
                     />
