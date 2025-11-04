@@ -404,19 +404,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         return width === 'auto' ? 'auto' : `${width}px`;
     };
 
-    // Выводим ширины колонок в консоль
-    useEffect(() => {
-        console.log('📏 Ширины колонок в спецификации:');
-        console.log('   № (number):', columnWidths.number, 'px');
-        console.log('   Наименование (name):', columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`);
-        console.log('   Артикул (article):', columnWidths.article, 'px');
-        console.log('   Кол-во (quantity):', columnWidths.quantity, 'px');
-        console.log('   Ед. изм. (unit):', columnWidths.unit, 'px');
-        console.log('   Цена за ед. (price):', columnWidths.price, 'px');
-        console.log('   Сумма (total):', columnWidths.total, 'px');
-        console.log('   Всего ширин:', [columnWidths.number, columnWidths.name, columnWidths.article, columnWidths.quantity, columnWidths.unit, columnWidths.price, columnWidths.total].map((w, i) => `[${i}]: ${w === 'auto' ? 'auto' : `${w}px`}`).join(', '));
-    }, [columnWidths]);
-
     // Фиксированные ширины колонок (без возможности изменения)
 
     const [specificationForm, setSpecificationForm] = useState({
