@@ -27,12 +27,20 @@ router.post('/login', async (req, res) => {
       where: { email },
     });
 
-    if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+    // Проверяем существование пользователя
+    if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Проверяем активность аккаунта
     if (!user.isActive) {
       return res.status(401).json({ error: 'Account disabled' });
+    }
+
+    // Проверяем пароль асинхронно
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const token = jwt.sign(

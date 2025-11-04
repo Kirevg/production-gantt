@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireRole } from '../middleware/auth';
 import prisma from '../lib/prisma';
 
 const router = Router();
@@ -81,7 +81,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // POST /persons - создать физическое лицо
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
     try {
         const validatedData = personCreateSchema.parse(req.body);
 
@@ -100,7 +100,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // PUT /persons/:id - обновить физическое лицо
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
     const { id } = req.params;
     try {
         const validatedData = personUpdateSchema.parse(req.body);
@@ -121,7 +121,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE /persons/:id - удалить физическое лицо
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
     const { id } = req.params;
     try {
         await prisma.person.delete({

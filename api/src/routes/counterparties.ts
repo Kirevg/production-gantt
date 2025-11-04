@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireRole } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -91,7 +91,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // POST /counterparties - создать контрагента
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
     try {
         const validatedData = counterpartyCreateSchema.parse(req.body);
 
@@ -110,7 +110,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // PUT /counterparties/:id - обновить контрагента
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, requireRole(['admin', 'manager']), async (req, res) => {
     const { id } = req.params;
     try {
         const validatedData = counterpartyUpdateSchema.parse(req.body);
@@ -131,7 +131,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE /counterparties/:id - удалить контрагента
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
     const { id } = req.params;
     try {
         await prisma.counterparty.delete({

@@ -24,7 +24,8 @@ import {
   MenuItem,     // Элемент контекстного меню
   ToggleButtonGroup, // Группа переключателей
   ToggleButton, // Переключатель
-  Tooltip       // Подсказка при наведении
+  Tooltip,      // Подсказка при наведении
+  CircularProgress // Индикатор загрузки
 } from '@mui/material';
 
 // Импорт иконок из Material-UI
@@ -121,7 +122,12 @@ export default function App() {
   const [loading, setLoading] = useState(false); // Индикатор загрузки
   const [error, setError] = useState('');        // Ошибка авторизации
   const [user, setUser] = useState<User | null>(null); // Данные авторизованного пользователя
-  const [currentTab, setCurrentTab] = useState(0);    // Текущая активная вкладка
+  // Инициализируем текущую вкладку из localStorage или используем значение по умолчанию (0)
+  const [currentTab, setCurrentTab] = useState(() => {
+    const savedTab = localStorage.getItem('currentTab');
+    return savedTab ? parseInt(savedTab, 10) : 0;
+  });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Проверка токена при загрузке
 
   // Состояние для календаря
   const [calendarView, setCalendarView] = useState<'month' | 'quarter' | 'halfyear' | 'year'>('month'); // Вид календаря
@@ -302,6 +308,7 @@ export default function App() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
+        // Показываем сообщение об успешном создании только после успешного ответа от сервера
         alert('Резервная копия успешно создана и скачана!');
       } else {
         const errorData = await response.json();
@@ -667,8 +674,8 @@ export default function App() {
         setUser(data.user); // Сохраняем данные пользователя
         localStorage.setItem('token', data.accessToken); // Сохраняем токен в localStorage
 
-        // Сбрасываем текущую вкладку на главную при входе
-        setCurrentTab(0);
+        // Вкладка восстанавливается автоматически из localStorage при монтировании компонента
+        // Эффект проверки доступа обработает случай, если у пользователя нет доступа к сохраненной вкладке
       } else {
         // Если произошла ошибка авторизации
         const errorData = await response.json();
@@ -688,6 +695,7 @@ export default function App() {
     setUser(null); // Очищаем данные пользователя
     localStorage.removeItem('token'); // Удаляем токен из localStorage
     setCurrentTab(0); // Сбрасываем вкладку на главную
+    localStorage.setItem('currentTab', '0'); // Сохраняем сброс вкладки
   };
 
   // Обработчик смены вкладки
@@ -704,6 +712,8 @@ export default function App() {
       setSelectedSpecificationId(null);
       setSelectedSpecificationName(null);
       setCurrentTab(newValue);
+      // Сохраняем выбранную вкладку в localStorage
+      localStorage.setItem('currentTab', newValue.toString());
     }
   };
 
@@ -749,11 +759,27 @@ export default function App() {
 
   // Эффект для проверки доступа к текущей вкладке при изменении пользователя
   useEffect(() => {
-    if (!user || !canAccessTab(currentTab)) {
-      // Если пользователь вышел или у него нет доступа к текущей вкладке, переключаем на главную
-      setCurrentTab(0);
+    // Не выполняем проверку, пока идет проверка токена
+    if (isCheckingAuth) {
+      return;
     }
-  }, [user, currentTab, canAccessTab]);
+
+    if (user) {
+      // Если пользователь авторизован, проверяем доступ к текущей вкладке
+      if (!canAccessTab(currentTab)) {
+        // Если нет доступа к текущей вкладке, переключаем на главную
+        setCurrentTab(0);
+        localStorage.setItem('currentTab', '0');
+      } else {
+        // Если доступ есть, сохраняем текущую вкладку в localStorage
+        localStorage.setItem('currentTab', currentTab.toString());
+      }
+    } else {
+      // Если пользователь вышел (и проверка токена завершена), сбрасываем вкладку на главную
+      setCurrentTab(0);
+      localStorage.setItem('currentTab', '0');
+    }
+  }, [user, currentTab, canAccessTab, isCheckingAuth]);
 
   // Эффект для загрузки данных пользователя при монтировании компонента
   useEffect(() => {
@@ -778,9 +804,31 @@ export default function App() {
         })
         .catch(() => {
           setUser(null);
+        })
+        .finally(() => {
+          // Завершаем проверку аутентификации
+          setIsCheckingAuth(false);
         });
+    } else {
+      // Если токена нет, сразу завершаем проверку
+      setIsCheckingAuth(false);
     }
   }, []);
+
+  // Пока проверяется токен, показываем индикатор загрузки
+  if (isCheckingAuth) {
+    return (
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        width: '100%'
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   // Если пользователь не авторизован, показываем форму входа
   if (!user) {
