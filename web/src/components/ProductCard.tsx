@@ -1344,7 +1344,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         >{productData?.product?.name || productName || '...'}</span>
                     </Typography>
                     {(productData?.product?.description || productData?.serialNumber) && (
-                        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'row', gap: '40px' }}>
                             {productData?.product?.description && (
                                 <Typography variant="body2" sx={{ fontSize: '20px' }}>
                                     Описание: {productData.product.description}
@@ -1371,7 +1371,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Вкладки для спецификаций и этапов работ */}
             <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', mb: 0.5, mt: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', mb: 0.5, mt: 1 }}>
                     <Tabs
                         value={activeTab}
                         onChange={(_, newValue) => setActiveTab(newValue)}
