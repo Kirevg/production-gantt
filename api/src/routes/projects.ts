@@ -96,7 +96,14 @@ router.get('/gantt', authenticateToken, async (req, res) => {
     const workStages = await prisma.workStage.findMany({
       include: {
         product: {
-          include: {
+          select: {
+            id: true,
+            serialNumber: true,
+            quantity: true,
+            productSum: true,
+            status: true,
+            orderIndex: true,
+            version: true,
             project: {
               include: {
                 projectManager: {
@@ -110,7 +117,13 @@ router.get('/gantt', authenticateToken, async (req, res) => {
                 }
               }
             },
-            product: true // Добавляем справочник изделий
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true
+              }
+            }
           }
         },
         nomenclatureItem: true,
@@ -138,8 +151,21 @@ router.get('/gantt', authenticateToken, async (req, res) => {
           }
         },
         products: {
-          include: {
-            product: true // Справочник изделий
+          select: {
+            id: true,
+            serialNumber: true,
+            quantity: true,
+            productSum: true,
+            status: true,
+            orderIndex: true,
+            version: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true
+              }
+            }
           },
           orderBy: {
             orderIndex: 'asc'
