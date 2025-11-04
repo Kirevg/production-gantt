@@ -1360,13 +1360,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         borderBottom: 1,
                         borderColor: 'divider',
                         mb: 2,
-                        '& .MuiTabs-indicator': {
-                            display: 'none' // Убираем индикатор (нижнюю линию) у активной вкладки
-                        },
                         '& .MuiTab-root': {
+                            border: 'none !important', // Убираем рамку у всех вкладок
+                            outline: 'none !important',
                             '&.Mui-selected': {
-                                border: 'none', // Убираем рамку у активной вкладки
-                                outline: 'none'
+                                border: 'none !important', // Убираем рамку (белые линии сверху, справа и слева) у активной вкладки
+                                outline: 'none !important'
+                            },
+                            '&:focus': {
+                                border: 'none !important',
+                                outline: 'none !important'
+                            },
+                            '&:active': {
+                                border: 'none !important',
+                                outline: 'none !important'
+                            },
+                            '&:focus-visible': {
+                                border: 'none !important',
+                                outline: 'none !important'
                             }
                         }
                     }}

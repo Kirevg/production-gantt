@@ -3141,24 +3141,35 @@ export default function App() {
           variant="scrollable"
           scrollButtons="auto"
           sx={{
-            '& .MuiTabs-indicator': {
-              display: 'none' // Убираем индикатор (нижнюю линию) у активной вкладки
-            },
             '& .MuiTab-root': {
               color: 'white', // Белый цвет для неактивных вкладок
               fontWeight: 500,
               minHeight: '48px',
               padding: '8px 16px',
+              border: 'none !important', // Убираем рамку у всех вкладок
+              outline: 'none !important',
               '&.Mui-selected': {
                 color: '#1976d2', // Синий цвет для активной вкладки
                 fontWeight: 600,
                 backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                border: 'none', // Убираем рамку у активной вкладки
-                outline: 'none'
+                border: 'none !important', // Убираем рамку (белые линии сверху, справа и слева) у активной вкладки
+                outline: 'none !important'
               },
               '&:hover': {
                 color: '#1976d2', // Синий цвет при наведении
                 backgroundColor: 'rgba(25, 118, 210, 0.05)',
+              },
+              '&:focus': {
+                border: 'none !important',
+                outline: 'none !important'
+              },
+              '&:active': {
+                border: 'none !important',
+                outline: 'none !important'
+              },
+              '&:focus-visible': {
+                border: 'none !important',
+                outline: 'none !important'
               }
             }
           }}
