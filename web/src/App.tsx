@@ -39,7 +39,12 @@ import {
   ChevronRight as ChevronRightIcon,
   ViewAgenda as ViewAgendaIcon,
   CalendarToday as CalendarTodayIcon,
-  Event as EventIcon
+  Event as EventIcon,
+  Backup as BackupIcon,
+  Restore as RestoreIcon,
+  Update as UpdateIcon,
+  Refresh as RefreshIcon,
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 
 
@@ -265,6 +270,197 @@ export default function App() {
     if (!user) return false;
     return user.role === 'admin';
   }, [user]);
+
+  // Функция для создания резервной копии базы данных
+  const handleCreateBackup = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Токен авторизации не найден. Пожалуйста, войдите в систему заново.');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/backup/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Получаем JSON данные и создаем blob для скачивания
+        const backupData = await response.json();
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        alert('Резервная копия успешно создана и скачана!');
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}: Ошибка создания резервной копии`);
+      }
+    } catch (error) {
+      // console.error('Ошибка создания резервной копии:', error);
+      alert(`Ошибка создания резервной копии: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Функция для восстановления из резервной копии
+  const handleRestoreBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+
+      // Читаем файл
+      const text = await file.text();
+      const backupData = JSON.parse(text);
+
+      // Отправляем данные на сервер (API ожидает { data: ... })
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/backup/restore`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: backupData.data }),
+      });
+
+      if (response.ok) {
+        alert('База данных успешно восстановлена из резервной копии!');
+        // Обновляем страницу для отображения восстановленных данных
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка восстановления');
+      }
+    } catch (error) {
+      // console.error('Ошибка восстановления:', error);
+      alert(`Ошибка восстановления: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } finally {
+      setLoading(false);
+      // Очищаем поле input
+      event.target.value = '';
+    }
+  };
+
+  // Функция для применения миграций
+  const handleDeployMigrations = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/migrations/deploy`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Миграции применены успешно!\n\n${result.message}`);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка применения миграций');
+      }
+    } catch (error) {
+      // console.error('Ошибка применения миграций:', error);
+      alert(`Ошибка применения миграций: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Функция для сброса миграций
+  const handleResetMigrations = async () => {
+    const confirmed = window.confirm(
+      '⚠️ ВНИМАНИЕ! ⚠️\n\n' +
+      'Сброс миграций УДАЛИТ ВСЕ ДАННЫЕ из базы данных!\n' +
+      'Эта операция необратима!\n\n' +
+      'Убедитесь, что у вас есть резервная копия!\n\n' +
+      'Вы действительно хотите продолжить?'
+    );
+
+    if (!confirmed) return;
+
+    const doubleConfirmed = window.confirm(
+      'Последнее предупреждение!\n\n' +
+      'ВСЕ ДАННЫЕ БУДУТ УДАЛЕНЫ!\n' +
+      'Напишите "ДА" в следующем окне для подтверждения.'
+    );
+
+    if (!doubleConfirmed) return;
+
+    const finalConfirm = window.prompt('Для подтверждения введите: ДА');
+    if (finalConfirm !== 'ДА') {
+      alert('Операция отменена.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/migrations/reset`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ confirm: true }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Миграции сброшены успешно!\n\n${result.message}\n\nОбновите страницу для применения изменений.`);
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка сброса миграций');
+      }
+    } catch (error) {
+      // console.error('Ошибка сброса миграций:', error);
+      alert(`Ошибка сброса миграций: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Функция для проверки статуса миграций
+  const handleCheckMigrationStatus = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/migrations/status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Статус миграций:\n\n${result.status}`);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка проверки статуса');
+      }
+    } catch (error) {
+      // console.error('Ошибка проверки статуса миграций:', error);
+      alert(`Ошибка проверки статуса: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Функция для загрузки проектов для календаря
   const fetchCalendarProjects = useCallback(async () => {
@@ -1792,7 +1988,83 @@ export default function App() {
         return (
           <>
             {user && <UsersList currentUser={user} canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />}
-            {/* Остальной код для case 4 будет добавлен ниже */}
+            
+            {/* Управление базами данных */}
+            <Box className="page-container">
+              <Box className="page-header">
+                <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
+                  Управление базами данных
+                </Typography>
+              </Box>
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'medium', mb: 2 }}>
+                  Резервное копирование
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Создайте резервную копию базы данных перед важными изменениями
+                </Typography>
+                <Button
+                  startIcon={<BackupIcon />}
+                  sx={{ mr: 2 }}
+                  onClick={handleCreateBackup}
+                  disabled={loading}
+                  className="system-button system-button-blue"
+                >
+                  Создать резервную копию
+                </Button>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleRestoreBackup}
+                  style={{ display: 'none' }}
+                  id="restore-backup-input"
+                />
+                <Button
+                  startIcon={<RestoreIcon />}
+                  component="label"
+                  htmlFor="restore-backup-input"
+                  disabled={loading}
+                  className="system-button system-button-purple"
+                >
+                  Восстановить из копии
+                </Button>
+              </Paper>
+
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'medium', mb: 2 }}>
+                  Миграции базы данных
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Управление схемой базы данных и миграциями
+                </Typography>
+                <Button
+                  startIcon={<UpdateIcon />}
+                  sx={{ mr: 2 }}
+                  onClick={handleDeployMigrations}
+                  disabled={loading}
+                  className="system-button system-button-cyan"
+                >
+                  Применить миграции
+                </Button>
+                <Button
+                  startIcon={<RefreshIcon />}
+                  sx={{ mr: 2 }}
+                  onClick={handleResetMigrations}
+                  disabled={loading}
+                  className="system-button system-button-orange"
+                >
+                  Сбросить миграции
+                </Button>
+                <Button
+                  startIcon={<CheckCircleIcon />}
+                  onClick={handleCheckMigrationStatus}
+                  disabled={loading}
+                  className="system-button system-button-green"
+                >
+                  Проверить статус
+                </Button>
+              </Paper>
+            </Box>
           </>
         );
       default:
