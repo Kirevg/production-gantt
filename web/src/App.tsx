@@ -25,7 +25,18 @@ import {
   ToggleButtonGroup, // Группа переключателей
   ToggleButton, // Переключатель
   Tooltip,      // Подсказка при наведении
-  CircularProgress // Индикатор загрузки
+  CircularProgress, // Индикатор загрузки
+  Table,        // Таблица
+  TableBody,    // Тело таблицы
+  TableCell,    // Ячейка таблицы
+  TableContainer, // Контейнер для таблицы
+  TableHead,    // Заголовок таблицы
+  TableRow,     // Строка таблицы
+  Chip,         // Чип для отображения меток
+  Accordion,    // Аккордеон для сворачиваемых разделов
+  AccordionSummary, // Заголовок аккордеона
+  AccordionDetails,  // Содержимое аккордеона
+  Checkbox      // Чекбокс для выбора опций
 } from '@mui/material';
 
 // Импорт иконок из Material-UI
@@ -45,7 +56,8 @@ import {
   Restore as RestoreIcon,
   Update as UpdateIcon,
   Refresh as RefreshIcon,
-  CheckCircle as CheckCircleIcon
+  CheckCircle as CheckCircleIcon,
+  ExpandMore as ExpandMoreIcon // Иконка для сворачивания/разворачивания
 } from '@mui/icons-material';
 
 
@@ -162,6 +174,64 @@ export default function App() {
     mouseX: number;
     mouseY: number;
   } | null>(null);
+
+  // Состояние для управления правами доступа ролей "Менеджер" и "Пользователь"
+  const [rolePermissions, setRolePermissions] = useState<Record<string, { manager: boolean; user: boolean }>>({
+    'main-page': { manager: true, user: true }, // Главная страница (Календарь)
+    'kanban': { manager: true, user: true }, // Канбан-доска
+    'projects-view': { manager: true, user: true }, // Проекты (просмотр)
+    'projects-edit': { manager: true, user: false }, // Проекты: Создание / Редактирование
+    'projects-delete': { manager: false, user: false }, // Проекты: Удаление
+    'references-edit': { manager: true, user: false }, // Справочники: Создание / Редактирование
+    'references-delete': { manager: false, user: false }, // Справочники: Удаление
+    'nomenclature-view': { manager: true, user: true }, // Справочник Номенклатура
+    'counterparties-view': { manager: true, user: true }, // Справочник Контрагенты
+    'persons-view': { manager: true, user: true }, // Справочник Физические лица
+    'units-view': { manager: true, user: true }, // Справочник Единицы измерения
+    'nomenclature-types-view': { manager: true, user: true }, // Справочник Виды номенклатуры
+    'products-view': { manager: true, user: true }, // Изделия в проектах
+    'products-edit': { manager: true, user: false }, // Изделия: Создание / Редактирование
+    'products-delete': { manager: true, user: false }, // Изделия: Удаление
+    'stages-view': { manager: true, user: true }, // Этапы работ
+    'stages-edit': { manager: true, user: false }, // Этапы: Создание / Редактирование
+    'stages-delete': { manager: false, user: false }, // Этапы: Удаление
+    'specifications-view': { manager: true, user: true }, // Спецификации (просмотр)
+    'specifications-edit': { manager: true, user: false }, // Спецификации: Создание / Редактирование
+    'specifications-delete': { manager: false, user: false } // Спецификации: Удаление
+  });
+
+  // Функция для изменения прав доступа
+  const handlePermissionChange = (permissionKey: string, role: 'manager' | 'user') => {
+    setRolePermissions(prev => ({
+      ...prev,
+      [permissionKey]: {
+        ...prev[permissionKey],
+        [role]: !prev[permissionKey][role]
+      }
+    }));
+  };
+
+  // Функция для изменения объединенных прав доступа (Создание/Редактирование/Удаление)
+  const handleCombinedPermissionChange = (editKey: string, deleteKey: string, role: 'manager' | 'user') => {
+    setRolePermissions(prev => {
+      // Определяем новое значение: если оба разрешены, то запрещаем оба, иначе разрешаем оба
+      const currentEdit = prev[editKey]?.[role] ?? false;
+      const currentDelete = prev[deleteKey]?.[role] ?? false;
+      const newValue = currentEdit && currentDelete ? false : true;
+
+      return {
+        ...prev,
+        [editKey]: {
+          ...prev[editKey],
+          [role]: newValue
+        },
+        [deleteKey]: {
+          ...prev[deleteKey],
+          [role]: newValue
+        }
+      };
+    });
+  };
 
   // Эффект для обработчика переключения на старую страницу спецификаций
   useEffect(() => {
@@ -307,9 +377,6 @@ export default function App() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-
-        // Показываем сообщение об успешном создании только после успешного ответа от сервера
-        alert('Резервная копия успешно создана и скачана!');
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || `HTTP ${response.status}: Ошибка создания резервной копии`);
@@ -2037,8 +2104,791 @@ export default function App() {
           <>
             {user && <UsersList currentUser={user} canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />}
 
+            {/* Управление правами доступа */}
+            <Box className="page-container" sx={{ mt: 3 }}>
+              <Box className="page-header">
+                <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
+                  Управление правами доступа
+                </Typography>
+              </Box>
+              <Paper sx={{ p: 3, mb: 3 }}>
+                {/* Аккордеон для сворачивания раздела прав доступа */}
+                <Accordion defaultExpanded>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="rights-accordion-content"
+                    id="rights-accordion-header"
+                    sx={{
+                      flexDirection: 'row-reverse',
+                      '& .MuiAccordionSummary-expandIconWrapper': {
+                        marginLeft: 0,
+                        marginRight: 'auto'
+                      },
+                      '& .MuiAccordionSummary-content': {
+                        marginLeft: 'auto',
+                        marginRight: 0
+                      }
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+                      Права доступа по ролям
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      Ниже представлена таблица прав доступа для каждой роли в системе
+                    </Typography>
+
+                    {/* Таблица прав доступа */}
+                    <TableContainer component={Paper} variant="outlined">
+                      <Table sx={{
+                        '& .MuiTableCell-root': {
+                          padding: '2px 8px', // Минимальный padding для уменьшения высоты строк
+                          height: '20px',
+                          minHeight: 'unset', // Убираем минимальную высоту
+                          lineHeight: '1.2', // Уменьшаем межстрочный интервал
+                          verticalAlign: 'middle' // Выравнивание по вертикали по центру
+                        },
+                        '& .MuiCheckbox-root': {
+                          padding: '0px' // Уменьшаем padding у чекбоксов
+                        },
+                        '& .MuiSvgIcon-root': {
+                          verticalAlign: 'middle'
+                        }
+                      }}>
+                        <TableHead>
+                          <TableRow sx={{ backgroundColor: '#f5f5f5', height: '30px' }}>
+                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '200px' }}>Раздел / Действие</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', backgroundColor: '#ffebee' }}>
+                              <Chip label="Администратор" color="error" size="small" sx={{ width: '120px', borderRadius: '6px', fontWeight: 'normal' }} />
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', backgroundColor: '#f3e5f5' }}>
+                              <Chip label="Менеджер" color="secondary" size="small" sx={{ width: '120px', borderRadius: '6px', fontWeight: 'normal' }} />
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', backgroundColor: '#e3f2fd' }}>
+                              <Chip label="Пользователь" color="primary" size="small" sx={{ width: '120px', borderRadius: '6px', fontWeight: 'normal' }} />
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody sx={{ '& .MuiTableRow-root': { height: '30px' } }}>
+                          {/* Группировка: Страницы */}
+                          <TableRow sx={{ backgroundColor: '#f0f0f0' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.95rem' }} colSpan={4}>
+                              Страницы (только просмотр)
+                            </TableCell>
+                          </TableRow>
+                          {/* Главная страница */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Главная страница (Календарь)</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['main-page'].manager}
+                                onChange={() => handlePermissionChange('main-page', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['main-page'].user}
+                                onChange={() => handlePermissionChange('main-page', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Канбан */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Канбан-доска</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['kanban'].manager}
+                                onChange={() => handlePermissionChange('kanban', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['kanban'].user}
+                                onChange={() => handlePermissionChange('kanban', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Проекты */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Проекты</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['projects-view'].manager}
+                                onChange={() => handlePermissionChange('projects-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['projects-view'].user}
+                                onChange={() => handlePermissionChange('projects-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Справочник Номенклатура */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Справочник Номенклатура</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-view'].manager}
+                                onChange={() => handlePermissionChange('nomenclature-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-view'].user}
+                                onChange={() => handlePermissionChange('nomenclature-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Справочник Контрагенты */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Справочник Контрагенты</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['counterparties-view'].manager}
+                                onChange={() => handlePermissionChange('counterparties-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['counterparties-view'].user}
+                                onChange={() => handlePermissionChange('counterparties-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Справочник Физические лица */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Справочник Физические лица</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['persons-view'].manager}
+                                onChange={() => handlePermissionChange('persons-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['persons-view'].user}
+                                onChange={() => handlePermissionChange('persons-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Справочник Единицы измерения */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Справочник Единицы измерения</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['units-view'].manager}
+                                onChange={() => handlePermissionChange('units-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['units-view'].user}
+                                onChange={() => handlePermissionChange('units-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Справочник Виды номенклатуры */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Справочник Виды номенклатуры</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-types-view'].manager}
+                                onChange={() => handlePermissionChange('nomenclature-types-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-types-view'].user}
+                                onChange={() => handlePermissionChange('nomenclature-types-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Админ панель */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Админ панель</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Управление пользователями</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Резервное копирование</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Миграции базы данных</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>-</TableCell>
+                          </TableRow>
+                          {/* Группировка: Элементы */}
+                          <TableRow sx={{ backgroundColor: '#f0f0f0' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.95rem' }} colSpan={4}>
+                              Элементы
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Проект */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Проект
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['projects-view'].manager}
+                                onChange={() => handlePermissionChange('projects-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['projects-view'].user}
+                                onChange={() => handlePermissionChange('projects-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['projects-edit'].manager && rolePermissions['projects-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('projects-edit', 'projects-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['projects-edit'].user && rolePermissions['projects-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('projects-edit', 'projects-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Изделие */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Изделие
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['products-view'].manager}
+                                onChange={() => handlePermissionChange('products-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['products-view'].user}
+                                onChange={() => handlePermissionChange('products-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['products-edit'].manager && rolePermissions['products-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('products-edit', 'products-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['products-edit'].user && rolePermissions['products-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('products-edit', 'products-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Этап работ */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Этап работ
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['stages-view'].manager}
+                                onChange={() => handlePermissionChange('stages-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['stages-view'].user}
+                                onChange={() => handlePermissionChange('stages-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['stages-edit'].manager && rolePermissions['stages-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('stages-edit', 'stages-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['stages-edit'].user && rolePermissions['stages-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('stages-edit', 'stages-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Спецификация */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Спецификация
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['specifications-view'].manager}
+                                onChange={() => handlePermissionChange('specifications-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['specifications-view'].user}
+                                onChange={() => handlePermissionChange('specifications-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['specifications-edit'].manager && rolePermissions['specifications-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('specifications-edit', 'specifications-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['specifications-edit'].user && rolePermissions['specifications-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('specifications-edit', 'specifications-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Номенклатура */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Номенклатура
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-view'].manager}
+                                onChange={() => handlePermissionChange('nomenclature-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-view'].user}
+                                onChange={() => handlePermissionChange('nomenclature-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].manager && rolePermissions['references-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].user && rolePermissions['references-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Контрагенты */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Контрагенты
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['counterparties-view'].manager}
+                                onChange={() => handlePermissionChange('counterparties-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['counterparties-view'].user}
+                                onChange={() => handlePermissionChange('counterparties-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].manager && rolePermissions['references-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].user && rolePermissions['references-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Физ лица */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Физ лица
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['persons-view'].manager}
+                                onChange={() => handlePermissionChange('persons-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['persons-view'].user}
+                                onChange={() => handlePermissionChange('persons-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].manager && rolePermissions['references-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].user && rolePermissions['references-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Единицы измерения */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Единицы измерения
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['units-view'].manager}
+                                onChange={() => handlePermissionChange('units-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['units-view'].user}
+                                onChange={() => handlePermissionChange('units-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].manager && rolePermissions['references-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].user && rolePermissions['references-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Подзаголовок: Виды номенклатуры */}
+                          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem', pl: 2 }} colSpan={4}>
+                              Виды номенклатуры
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Просмотр</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-types-view'].manager}
+                                onChange={() => handlePermissionChange('nomenclature-types-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['nomenclature-types-view'].user}
+                                onChange={() => handlePermissionChange('nomenclature-types-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell sx={{ pl: 4 }}>Создание / Редактирование / Удаление</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].manager && rolePermissions['references-delete'].manager}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['references-edit'].user && rolePermissions['references-delete'].user}
+                                onChange={() => handleCombinedPermissionChange('references-edit', 'references-delete', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+
+                    {/* Информационная справка */}
+                    <Alert severity="info" sx={{ mt: 3 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        📋 Справка по правам доступа:
+                      </Typography>
+                      <Box component="ul" sx={{ m: 0, pl: 3, '& li': { mb: 0.5 } }}>
+                        <li>
+                          <strong>Администратор:</strong> Полный доступ ко всем разделам системы, включая управление пользователями и настройки базы данных
+                        </li>
+                        <li>
+                          <strong>Менеджер:</strong> Может создавать и редактировать проекты, изделия, справочники. Не может удалять проекты и некоторые справочники, не имеет доступа к админ панели
+                        </li>
+                        <li>
+                          <strong>Пользователь:</strong> Имеет доступ только на просмотр информации. Не может создавать, редактировать или удалять данные
+                        </li>
+                        <li>
+                          <strong>Важно:</strong> Права доступа проверяются как на фронтенде, так и на бэкенде для обеспечения безопасности
+                        </li>
+                      </Box>
+                    </Alert>
+                  </AccordionDetails>
+                </Accordion>
+              </Paper>
+            </Box>
+
             {/* Управление базами данных */}
-            <Box className="page-container">
+            <Box className="page-container" sx={{ mt: 3 }}>
               <Box className="page-header">
                 <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                   Управление базами данных
@@ -2053,45 +2903,65 @@ export default function App() {
                 </Typography>
 
                 {/* Информационная памятка о бэкапах */}
-                <Alert
-                  severity="info"
-                  sx={{
-                    mb: 3,
-                    '& .MuiAlert-message': {
-                      width: '100%'
-                    }
-                  }}
-                >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    📋 Памятка по резервному копированию:
-                  </Typography>
-                  <Box component="ul" sx={{ m: 0, pl: 3, '& li': { mb: 0.5 } }}>
-                    <li>
-                      <strong>Что сохраняется в бэкапе:</strong>
-                      <ul style={{ marginTop: '4px', marginBottom: '8px', paddingLeft: '20px' }}>
-                        <li>Все данные из таблиц базы данных</li>
-                        <li>Схема базы данных (Prisma schema) - для восстановления структуры</li>
-                        <li>Информация о примененных миграциях</li>
-                      </ul>
-                    </li>
-                    <li>
-                      <strong>Перед важными операциями:</strong> всегда создавайте бэкап перед применением миграций, сбросом данных или другими критическими действиями
-                    </li>
-                    <li>
-                      <strong>Для полного восстановления после краха:</strong>
-                      <ol style={{ marginTop: '4px', marginBottom: '8px', paddingLeft: '20px' }}>
-                        <li>Сначала примените миграции (кнопка "Применить миграции") - это восстановит структуру БД</li>
-                        <li>Затем восстановите данные (кнопка "Восстановить из копии") - это восстановит все данные</li>
-                      </ol>
-                    </li>
-                    <li>
-                      <strong>Хранение бэкапов:</strong> сохраняйте файлы бэкапов в безопасном месте вне сервера, желательно на внешнем носителе или облачном хранилище
-                    </li>
-                    <li>
-                      <strong>Регулярность:</strong> рекомендуется создавать бэкапы регулярно (например, ежедневно или перед каждым релизом)
-                    </li>
-                  </Box>
-                </Alert>
+                <Accordion sx={{ mb: 3 }}>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="backup-memo-accordion-content"
+                    id="backup-memo-accordion-header"
+                    sx={{
+                      flexDirection: 'row-reverse',
+                      '& .MuiAccordionSummary-expandIconWrapper': {
+                        marginLeft: 0,
+                        marginRight: 'auto'
+                      },
+                      '& .MuiAccordionSummary-content': {
+                        marginLeft: 'auto',
+                        marginRight: 0
+                      }
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                      📋 Памятка по резервному копированию:
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Alert
+                      severity="info"
+                      sx={{
+                        '& .MuiAlert-message': {
+                          width: '100%'
+                        }
+                      }}
+                    >
+                      <Box component="ul" sx={{ m: 0, pl: 3, '& li': { mb: 0.5 } }}>
+                        <li>
+                          <strong>Что сохраняется в бэкапе:</strong>
+                          <ul style={{ marginTop: '4px', marginBottom: '8px', paddingLeft: '20px' }}>
+                            <li>Все данные из таблиц базы данных</li>
+                            <li>Схема базы данных (Prisma schema) - для восстановления структуры</li>
+                            <li>Информация о примененных миграциях</li>
+                          </ul>
+                        </li>
+                        <li>
+                          <strong>Перед важными операциями:</strong> всегда создавайте бэкап перед применением миграций, сбросом данных или другими критическими действиями
+                        </li>
+                        <li>
+                          <strong>Для полного восстановления после краха:</strong>
+                          <ol style={{ marginTop: '4px', marginBottom: '8px', paddingLeft: '20px' }}>
+                            <li>Сначала примените миграции (кнопка "Применить миграции") - это восстановит структуру БД</li>
+                            <li>Затем восстановите данные (кнопка "Восстановить из копии") - это восстановит все данные</li>
+                          </ol>
+                        </li>
+                        <li>
+                          <strong>Хранение бэкапов:</strong> сохраняйте файлы бэкапов в безопасном месте вне сервера, желательно на внешнем носителе или облачном хранилище
+                        </li>
+                        <li>
+                          <strong>Регулярность:</strong> рекомендуется создавать бэкапы регулярно (например, ежедневно или перед каждым релизом)
+                        </li>
+                      </Box>
+                    </Alert>
+                  </AccordionDetails>
+                </Accordion>
 
                 <Button
                   startIcon={<BackupIcon />}
