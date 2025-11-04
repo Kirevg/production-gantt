@@ -30,7 +30,7 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
     try {
         console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
         console.log('Product ID (projectProductId):', productId);
-        
+
         // Проверяем, существует ли ProjectProduct с таким ID
         const projectProduct = await prisma.projectProduct.findUnique({
             where: { id: productId },
@@ -43,7 +43,7 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
         }
 
         console.log('✅ ProjectProduct found:', projectProduct.id, 'Project:', projectProduct.projectId);
-        
+
         const projectProductSpecificationLists = await prisma.projectProductSpecificationList.findMany({
             where: { projectProductId: productId },
             include: {
@@ -130,7 +130,7 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
         console.log('Specification ID:', id);
         console.log('User ID:', (req as AuthenticatedRequest).user.id);
         console.log('Request body:', req.body);
-        
+
         // Проверяем права доступа
         const existingSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
@@ -164,7 +164,7 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
             }
             return res.status(404).json({ error: 'Спецификация не найдена' });
         }
-        
+
         console.log('✅ Specification found:', existingSpec.name);
 
         // Проверяем, не заблокирована ли спецификация

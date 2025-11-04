@@ -1027,11 +1027,11 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             // Загружаем полный список номенклатуры для поиска и фильтрации (асинхронно)
             await fetchNomenclature();
 
-            // console.('Окно выбора номенклатуры открыто:', {
-            editingCell: specification.id,
-                windowPosition,
-                allNomenclatureItems: allNomenclatureItems.length
-        });
+            // console.log('Окно выбора номенклатуры открыто:', {
+            //     editingCell: specification.id,
+            //     windowPosition,
+            //     allNomenclatureItems: allNomenclatureItems.length
+            // });
     } catch (error) {
         // console.('Ошибка при открытии окна выбора номенклатуры:', error);
     }
