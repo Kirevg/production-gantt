@@ -293,6 +293,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     // const stagesKey = `kanban-${userId ?? 'anon'}-collapsed-stages`;
     const projectsKey = `kanban-${userId ?? 'anon'}-collapsed-projects`;
     const productsKey = `kanban-${userId ?? 'anon'}-collapsed-products`;
+    const statusFiltersKey = `kanban-${userId ?? 'anon'}-status-filters`;
     // Свернутость карточек этапов отключена
     // Свернутые проекты (по projectId) с ленивой инициализацией из localStorage
     const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(() => {
@@ -316,13 +317,45 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     // Состояние для якорей меню статусов проектов
     const [statusMenuAnchor, setStatusMenuAnchor] = useState<{ [key: string]: HTMLElement | null }>({});
 
-    // Состояние для фильтров статусов проектов
-    const [statusFilters, setStatusFilters] = useState({
-        InProject: true,
-        InProgress: true,
-        Done: true,
-        HasProblems: true
+    // Состояние для фильтров статусов проектов с загрузкой из localStorage
+    const [statusFilters, setStatusFilters] = useState<{
+        InProject: boolean;
+        InProgress: boolean;
+        Done: boolean;
+        HasProblems: boolean;
+    }>(() => {
+        try {
+            const raw = localStorage.getItem(statusFiltersKey);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                // Проверяем, что все необходимые поля присутствуют
+                return {
+                    InProject: parsed.InProject !== undefined ? parsed.InProject : true,
+                    InProgress: parsed.InProgress !== undefined ? parsed.InProgress : true,
+                    Done: parsed.Done !== undefined ? parsed.Done : true,
+                    HasProblems: parsed.HasProblems !== undefined ? parsed.HasProblems : true
+                };
+            }
+        } catch {
+            // Игнорируем ошибки парсинга
+        }
+        // Значения по умолчанию
+        return {
+            InProject: true,
+            InProgress: true,
+            Done: true,
+            HasProblems: true
+        };
     });
+
+    // Сохранение фильтров статусов в localStorage при изменении
+    useEffect(() => {
+        try {
+            localStorage.setItem(statusFiltersKey, JSON.stringify(statusFilters));
+        } catch {
+            // Игнорируем ошибки сохранения
+        }
+    }, [statusFilters, statusFiltersKey]);
 
     // Обработчик изменения фильтров статусов
     const handleStatusFilterChange = (status: keyof typeof statusFilters) => {
@@ -370,7 +403,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         setCollapsedProjects((prev) => {
             const next = new Set(prev);
             if (next.has(projectId)) next.delete(projectId); else next.add(projectId);
-            try { localStorage.setItem(projectsKey, JSON.stringify(Array.from(next))); } catch { }
+            try { localStorage.setItem(projectsKey, JSON.stringify(Array.from(next))); } catch {
+                // Игнорируем ошибки сохранения в localStorage
+            }
             return next;
         });
     };
@@ -379,7 +414,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         setCollapsedProducts((prev) => {
             const next = new Set(prev);
             if (next.has(productKeyStr)) next.delete(productKeyStr); else next.add(productKeyStr);
-            try { localStorage.setItem(productsKey, JSON.stringify(Array.from(next))); } catch { }
+            try { localStorage.setItem(productsKey, JSON.stringify(Array.from(next))); } catch {
+                // Игнорируем ошибки сохранения в localStorage
+            }
             return next;
         });
     };
@@ -1189,9 +1226,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 // Заполняем форму данными изделия
                 // data.productId - это ID CatalogProduct (из справочника)
                 // projectProductId - это ID ProjectProduct (запись в проекте)
-                setEditingProduct({ 
-                    id: projectProductId, 
-                    projectId, 
+                setEditingProduct({
+                    id: projectProductId,
+                    projectId,
                     productId: data.product?.id || '',
                     version: data.version || 1
                 });
