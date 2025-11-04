@@ -19,15 +19,10 @@ import {
     LinearProgress,
     Alert,
     Chip,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Autocomplete
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
-    CalendarToday as CalendarIcon,
     Balance as BalanceIcon,
     DragIndicator
 } from '@mui/icons-material';
@@ -251,7 +246,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         // Для каждой группы определяем статус
         const result = [];
-        for (const [name, specs] of Object.entries(groupedByNames)) {
+        for (const [_name, specs] of Object.entries(groupedByNames)) {
             const specsArray = specs as any[];
 
             if (specsArray.length === 1) {
@@ -1177,7 +1172,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     // Компонент для перетаскиваемой строки таблицы этапов
-    function SortableStageRow({ stage, index }: { stage: Stage; index: number }) {
+    function SortableStageRow({ stage, index: _index }: { stage: Stage; index: number }) {
         const {
             attributes,
             listeners,
