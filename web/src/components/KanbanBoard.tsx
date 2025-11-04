@@ -2412,9 +2412,18 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                 {productDescription && productDescription.trim() !== '' &&
                                                                                                     productDescription.toLowerCase() !== '[null]' &&
                                                                                                     productDescription.toLowerCase() !== 'null' && (
-                                                                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#62639b' }}>
-                                                                                                            {productDescription}
-                                                                                                        </Typography>
+                                                                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                                            <Box sx={{ 
+                                                                                                                width: '6px', 
+                                                                                                                height: '6px', 
+                                                                                                                borderRadius: '50%', 
+                                                                                                                backgroundColor: '#531a50',
+                                                                                                                flexShrink: 0
+                                                                                                            }} />
+                                                                                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#531a50' }}>
+                                                                                                                {productDescription}
+                                                                                                            </Typography>
+                                                                                                        </Box>
                                                                                                     )}
                                                                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#423189' : '#d32f2f' }}>
                                                                                                     {serialNumber ? `(Сер № ${serialNumber})` : '(Сер № ...)'}
