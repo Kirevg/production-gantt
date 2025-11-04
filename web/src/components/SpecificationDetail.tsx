@@ -198,8 +198,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         const widths: number[] = [];
                         cells.forEach((cell) => {
                             const width = cell.getBoundingClientRect().width;
-                            // Ограничиваем максимальной шириной 350px
-                            widths.push(Math.min(width, 350));
+                            // Ограничиваем максимальной шириной 400px
+                            widths.push(Math.min(width, 400));
                         });
                         if (widths.length > 0 && widths.length === excelData[0].length) {
                             setExcelColumnWidths(widths);
@@ -2344,7 +2344,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 textAlign: 'center',
                                                 padding: '4px !important',
                                                 width: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : 'auto',
-                                                maxWidth: '350px',
+                                                maxWidth: '400px',
                                                 minWidth: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : undefined
                                             }}>
                                                 <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
@@ -2391,7 +2391,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 textAlign: 'center',
                                                 padding: '4px !important',
                                                 width: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : 'auto',
-                                                maxWidth: '350px',
+                                                maxWidth: '400px',
                                                 minWidth: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : undefined,
                                                 border: '2px solid #333',
                                                 borderTop: '2px solid #333',
@@ -2451,7 +2451,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         padding: '2px 4px !important',
                                                         whiteSpace: 'normal',
                                                         width: excelColumnWidths[cellIndex] ? `${excelColumnWidths[cellIndex]}px` : 'auto',
-                                                        maxWidth: '350px',
+                                                        maxWidth: '400px',
                                                         border: '2px solid #333',
                                                         borderTop: '1px solid #e0e0e0',
                                                         borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
