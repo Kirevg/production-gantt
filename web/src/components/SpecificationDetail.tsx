@@ -152,6 +152,23 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             maximumFractionDigits: 2
         });
     };
+
+    // Функция для форматирования чисел в маску 0 000,00
+    const formatNumber = (value: string | number | null | undefined): string => {
+        if (!value && value !== 0) return '';
+        const numValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : value;
+        if (isNaN(numValue)) return String(value || '');
+        return numValue.toLocaleString('ru-RU', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    };
+
+    // Функция для проверки, является ли колонка числовой
+    const isNumericColumn = (cellIndex: number): boolean => {
+        const mappedField = columnMapping[cellIndex.toString()];
+        return mappedField === 'quantity' || mappedField === 'price' || mappedField === 'totalPrice';
+    };
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -196,7 +213,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                     if (rows.length > 0) {
                         const columnCount = excelData[0].length;
                         const maxWidths: number[] = new Array(columnCount).fill(0);
-                        
+
                         // Проходим по всем строкам и находим максимальную ширину для каждой колонки
                         rows.forEach((row) => {
                             const cells = row.querySelectorAll('td');
@@ -208,10 +225,10 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                                 }
                             });
                         });
-                        
+
                         // Ограничиваем максимальной шириной 400px для каждой колонки
                         const widths = maxWidths.map(width => Math.min(width, 400));
-                        
+
                         if (widths.length > 0 && widths.length === excelData[0].length) {
                             setExcelColumnWidths(widths);
                         }
@@ -228,7 +245,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                     measureWidths();
                 }, 300);
             }, 300);
-            
+
             return () => {
                 clearTimeout(timeout1);
                 if (timeout2) clearTimeout(timeout2);
@@ -2470,22 +2487,27 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         {/* Превью данных */}
                                         {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
                                             <TableRow key={rowIndex}>
-                                                {row.map((cell: any, cellIndex: number) => (
-                                                    <TableCell key={cellIndex} className="excel-table-cell" sx={{
-                                                        fontSize: '12px !important',
-                                                        padding: '2px 4px !important',
-                                                        whiteSpace: 'normal',
-                                                        width: excelColumnWidths[cellIndex] ? `${excelColumnWidths[cellIndex]}px` : 'auto',
-                                                        maxWidth: '400px',
-                                                        border: '2px solid #333',
-                                                        borderTop: '1px solid #e0e0e0',
-                                                        borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                        borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                        borderBottom: '1px solid #e0e0e0'
-                                                    }}>
-                                                        {cell || ''}
-                                                    </TableCell>
-                                                ))}
+                                                {row.map((cell: any, cellIndex: number) => {
+                                                    const isNumeric = isNumericColumn(cellIndex);
+                                                    const cellValue = isNumeric ? formatNumber(cell) : (cell || '');
+                                                    return (
+                                                        <TableCell key={cellIndex} className="excel-table-cell" sx={{
+                                                            fontSize: '12px !important',
+                                                            padding: '2px 4px !important',
+                                                            whiteSpace: 'normal',
+                                                            width: excelColumnWidths[cellIndex] ? `${excelColumnWidths[cellIndex]}px` : 'auto',
+                                                            maxWidth: '400px',
+                                                            textAlign: isNumeric ? 'right' : 'left',
+                                                            border: '2px solid #333',
+                                                            borderTop: '1px solid #e0e0e0',
+                                                            borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                            borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                            borderBottom: '1px solid #e0e0e0'
+                                                        }}>
+                                                            {cellValue}
+                                                        </TableCell>
+                                                    );
+                                                })}
                                             </TableRow>
                                         ))}
                                     </TableBody>
