@@ -819,6 +819,10 @@ export default function App() {
 
   // Функция для открытия состава проекта
   const handleOpenProjectComposition = (project: Project) => {
+    // Закрываем карточку изделия, если она была открыта
+    setShowProductCard(false);
+    setSelectedProductCardData(null);
+    // Открываем карточку проекта
     setSelectedProject(project);
     setShowProjectComposition(true);
   };
@@ -3173,8 +3177,10 @@ export default function App() {
             productId={selectedProductCardData.productId}
             productName={selectedProductCardData.productName}
             onBack={() => {
+              // Возвращаемся к карточке проекта
               setShowProductCard(false);
               setSelectedProductCardData(null);
+              // Не закрываем ProjectCard, чтобы остаться на карточке проекта
             }}
             onOpenSpecification={(_specificationId: string, _specificationName: string) => {
               // Обработчик для открытия спецификации (пока не реализовано)
