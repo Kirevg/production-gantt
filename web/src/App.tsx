@@ -3170,6 +3170,12 @@ export default function App() {
         </Tabs>
 
         {/* Основной контент */}
+        {/* 
+          ЛОГИКА НАВИГАЦИИ:
+          1. Страница "Проекты" (ProjectsList) → двойной клик на проекте → открывается ProjectCard
+          2. ProjectCard (список изделий) → двойной клик на изделии → открывается ProductCard
+          3. ProductCard → кнопка "Назад" → возврат к ProjectCard
+        */}
         {showProductCard && selectedProductCardData ? (
           <ProductCard
             projectId={selectedProductCardData.projectId}
