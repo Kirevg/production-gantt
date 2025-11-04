@@ -1573,9 +1573,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                             <Box
                                                                 onClick={() => handleOpenVersionCompare(specification)}
                                                                 sx={{
-                                                                    width: '20px',
-                                                                    height: '20px',
-                                                                    p: '2px 4px',
+                                                                    width: '28px',
+                                                                    height: '28px',
+                                                                    p: '4px',
                                                                     cursor: 'pointer',
                                                                     backgroundColor: '#e3f2fd',
                                                                     border: '1px solid #2196f3',
@@ -1594,7 +1594,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                                 }}
                                                                 title="Сравнить с предыдущей версией"
                                                             >
-                                                                <BalanceIcon sx={{ fontSize: '12px', color: '#1976d2' }} />
+                                                                <BalanceIcon sx={{ fontSize: '18px', color: '#1976d2' }} />
                                                             </Box>
                                                         )}
 
