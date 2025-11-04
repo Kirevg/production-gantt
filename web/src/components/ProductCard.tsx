@@ -1359,11 +1359,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         onChange={(_, newValue) => setActiveTab(newValue)}
                         sx={{
                             '& .MuiTab-root': {
+                                color: 'white', // Белый цвет для неактивных вкладок (как в шапке)
+                                fontWeight: 500,
                                 border: 'none !important', // Убираем рамку у всех вкладок
                                 outline: 'none !important',
                                 '&.Mui-selected': {
+                                    color: '#1976d2', // Синий цвет для активной вкладки
+                                    fontWeight: 600,
                                     border: 'none !important', // Убираем рамку (белые линии сверху, справа и слева) у активной вкладки
                                     outline: 'none !important'
+                                },
+                                '&:hover': {
+                                    color: '#1976d2', // Синий цвет при наведении
                                 },
                                 '&:focus': {
                                     border: 'none !important',
