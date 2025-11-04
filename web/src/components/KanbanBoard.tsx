@@ -1855,10 +1855,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     }
                                                 />
                                                 <Tooltip title="Показать все">
-                                                    <VolumeButton
-                                                        onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true })}
-                                                        disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
-                                                        color="green"
+                                                    <span>
+                                                        <VolumeButton
+                                                            onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true })}
+                                                            disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
+                                                            color="green"
                                                         sx={{
                                                             width: '30px',
                                                             height: '30px',
@@ -1873,6 +1874,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     >
                                                         <CheckBox fontSize="small" />
                                                     </VolumeButton>
+                                                    </span>
                                                 </Tooltip>
                                                 <Tooltip title="Скрыть все">
                                                     <VolumeButton

@@ -53,7 +53,7 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
         const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }
@@ -143,7 +143,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
         const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }
@@ -235,7 +235,7 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
             where: {
                 id,
                 projectProductSpecificationList: {
-                    product: {
+                    projectProduct: {
                         project: {
                             ownerId: (req as AuthenticatedRequest).user.id
                         }
@@ -300,7 +300,7 @@ router.delete('/specifications/:id', authenticateToken, async (req, res) => {
             where: {
                 id,
                 projectProductSpecificationList: {
-                    product: {
+                    projectProduct: {
                         project: {
                             ownerId: (req as AuthenticatedRequest).user.id
                         }
