@@ -263,6 +263,7 @@ router.get('/products/:productId', authenticateToken, async (req, res) => {
           select: {
             id: true,
             name: true,
+            description: true,
           }
         }
       }

@@ -1200,8 +1200,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 });
                 setOpenProductDialog(true);
             } else {
-                const errorText = await response.text();
-                // console.error('Ошибка загрузки данных изделия:', response.status, errorText);
+                await response.text();
+                // console.error('Ошибка загрузки данных изделия:', response.status);
                 alert(`Ошибка загрузки данных изделия: ${response.status}`);
             }
         } catch (error) {
@@ -1919,20 +1919,20 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true })}
                                                             disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
                                                             color="green"
-                                                        sx={{
-                                                            width: '30px',
-                                                            height: '30px',
-                                                            minWidth: '30px',
-                                                            minHeight: '30px',
-                                                            p: 0,
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontSize: '20px'
-                                                        }}
-                                                    >
-                                                        <CheckBox fontSize="small" />
-                                                    </VolumeButton>
+                                                            sx={{
+                                                                width: '30px',
+                                                                height: '30px',
+                                                                minWidth: '30px',
+                                                                minHeight: '30px',
+                                                                p: 0,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '20px'
+                                                            }}
+                                                        >
+                                                            <CheckBox fontSize="small" />
+                                                        </VolumeButton>
                                                     </span>
                                                 </Tooltip>
                                                 <Tooltip title="Скрыть все">
@@ -1940,31 +1940,31 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                         <VolumeButton
                                                             onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false })}
                                                             disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
-                                                        sx={{
-                                                            width: '30px',
-                                                            height: '30px',
-                                                            minWidth: '30px',
-                                                            minHeight: '30px',
-                                                            p: 0,
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontSize: '20px',
-                                                            backgroundColor: '#9e9e9e',
-                                                            color: 'white',
-                                                            border: '2px solid #757575',
-                                                            '&:hover': {
-                                                                backgroundColor: '#757575'
-                                                            },
-                                                            '&.Mui-disabled': {
+                                                            sx={{
+                                                                width: '30px',
+                                                                height: '30px',
+                                                                minWidth: '30px',
+                                                                minHeight: '30px',
+                                                                p: 0,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '20px',
                                                                 backgroundColor: '#9e9e9e',
                                                                 color: 'white',
-                                                                opacity: 0.6
-                                                            }
-                                                        }}
-                                                    >
-                                                        <CheckBoxOutlineBlank fontSize="small" />
-                                                    </VolumeButton>
+                                                                border: '2px solid #757575',
+                                                                '&:hover': {
+                                                                    backgroundColor: '#757575'
+                                                                },
+                                                                '&.Mui-disabled': {
+                                                                    backgroundColor: '#9e9e9e',
+                                                                    color: 'white',
+                                                                    opacity: 0.6
+                                                                }
+                                                            }}
+                                                        >
+                                                            <CheckBoxOutlineBlank fontSize="small" />
+                                                        </VolumeButton>
                                                     </span>
                                                 </Tooltip>
                                             </Box>
