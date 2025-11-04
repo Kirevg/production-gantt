@@ -24,5 +24,46 @@
         "MD009": false,
         "MD034": false,
         "MD025": false
-    }
+    },
+    // Shell Integration - улучшенная интеграция терминала для предотвращения зависаний
+    // Включает визуальные индикаторы завершения команд (галочка ✓ для успешных, ✗ для неудачных)
+    "terminal.integrated.shellIntegration.enabled": true,
+    // Показывать декорации команд (визуальные индикаторы завершения)
+    "terminal.integrated.shellIntegration.decorationsEnabled": "both",
+    // Автоматически определять рабочую директорию
+    "terminal.integrated.shellIntegration.showWelcome": false,
+    // Навигация по командам (Ctrl+Up/Down для перехода между командами)
+    "terminal.integrated.commandNavigationStyle": "navigateWithShellIntegration",
+    // PowerShell настройки для улучшенной интеграции
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    // Таймаут для определения завершения команды (в миллисекундах)
+    "terminal.integrated.shellIntegration.suggestEnabled": true,
+    // Автодополнение в терминале (Preview функция)
+    "terminal.integrated.suggest.enabled": true,
+    // Показывать статус-бар с подсказками при автодополнении
+    "terminal.integrated.suggest.showStatusBar": true,
+    // Автоматически вставлять предложение при нажатии Tab
+    "terminal.integrated.suggest.selectionMode": "always",
+    // Выполнять команду сразу после вставки автодополнения (опционально)
+    "terminal.integrated.suggest.runOnEnter": false,
+    // Команды, которые пропускают shell (выполняются напрямую VS Code)
+    "terminal.integrated.commandsToSkipShell": [
+        "workbench.action.terminal.clear",
+        "workbench.action.terminal.new"
+    ],
+    // Таймаут для операций терминала (помогает избежать зависаний)
+    "terminal.integrated.localEchoExcludePrograms": [
+        "vim",
+        "vi",
+        "nano",
+        "tmux"
+    ],
+    // Быстрое исправление проблем (Quick fixes) - показывает кнопки исправления ошибок
+    "terminal.integrated.shellIntegration.showExitConfirmation": false,
+    // Не показывать подтверждение при закрытии терминала с активным процессом
+    "terminal.integrated.confirmOnExit": false,
+    // Улучшенное определение завершения команд на Windows (ConPTY)
+    "terminal.integrated.windowsEnableConpty": true,
+    // Автоматическое определение директории для новых терминалов
+    "terminal.integrated.cwd": "${workspaceFolder}"
 }
