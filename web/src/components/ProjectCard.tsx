@@ -741,10 +741,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                     <DragIndicator color="action" />
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
-                <TableCell 
+                <TableCell
                     onDoubleClick={() => !loading && !isReordering && onOpenSpecifications(product.id, product.product?.name || '')}
-                    sx={{ 
-                        py: 0.5, 
+                    sx={{
+                        py: 0.5,
                         minWidth: '250px',
                         cursor: (loading || isReordering) ? 'default' : 'pointer'
                     }}
@@ -937,7 +937,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                         </TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '250px', fontSize: '12px' }}>Изделие</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. номер</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. №</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
