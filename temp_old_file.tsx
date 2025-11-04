@@ -404,19 +404,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         return width === 'auto' ? 'auto' : `${width}px`;
     };
 
-    // Выводим ширины колонок в консоль
-    useEffect(() => {
-        console.log('📏 Ширины колонок в спецификации:');
-        console.log('   № (number):', columnWidths.number, 'px');
-        console.log('   Наименование (name):', columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`);
-        console.log('   Артикул (article):', columnWidths.article, 'px');
-        console.log('   Кол-во (quantity):', columnWidths.quantity, 'px');
-        console.log('   Ед. изм. (unit):', columnWidths.unit, 'px');
-        console.log('   Цена за ед. (price):', columnWidths.price, 'px');
-        console.log('   Сумма (total):', columnWidths.total, 'px');
-        console.log('   Всего ширин:', [columnWidths.number, columnWidths.name, columnWidths.article, columnWidths.quantity, columnWidths.unit, columnWidths.price, columnWidths.total].map((w, i) => `[${i}]: ${w === 'auto' ? 'auto' : `${w}px`}`).join(', '));
-    }, [columnWidths]);
-
     // Фиксированные ширины колонок (без возможности изменения)
 
     const [specificationForm, setSpecificationForm] = useState({
@@ -1459,6 +1446,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     textAlign: 'center',
                                     fontSize: '12px',
                                     width: columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`,
+                                    maxWidth: '300px',
                                     position: 'relative'
                                 }}
                             >Наименование</TableCell>
@@ -1538,7 +1526,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     p: 0.5,
                                     position: 'relative',
                                     wordWrap: 'break-word',
-                                    whiteSpace: 'normal'
+                                    whiteSpace: 'normal',
+                                    maxWidth: '300px'
                                 }}>
                                     {editingCell === specification.id ? (
                                         <Box
@@ -2355,7 +2344,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                             <TableCell key={index} sx={{
                                                 textAlign: 'center',
                                                 padding: '4px !important',
-                                                width: getColumnWidth(index)
+                                                width: getColumnWidth(index),
+                                                maxWidth: '300px'
                                             }}>
                                                 <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
                                                     <Select
@@ -2401,6 +2391,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 textAlign: 'center',
                                                 padding: '4px !important',
                                                 width: getColumnWidth(index),
+                                                maxWidth: '300px',
                                                 border: '2px solid #333',
                                                 borderTop: '2px solid #333',
                                                 borderLeft: '2px solid #333',
@@ -2441,34 +2432,42 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     tableLayout: 'fixed',
                                     width: '100%',
                                     '& .MuiTableCell-root': {
-                                        maxWidth: 'none',
+                                        maxWidth: '300px',
                                         fontSize: '12px !important'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(1)': {
-                                        width: getColumnWidth(0)
+                                        width: getColumnWidth(0),
+                                        maxWidth: '300px'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
                                         width: getColumnWidth(1),
+                                        maxWidth: '300px',
                                         paddingLeft: '4px !important',
                                         paddingRight: '4px !important'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(3)': {
-                                        width: getColumnWidth(2)
+                                        width: getColumnWidth(2),
+                                        maxWidth: '300px'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(4)': {
-                                        width: getColumnWidth(3)
+                                        width: getColumnWidth(3),
+                                        maxWidth: '300px'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)': {
-                                        width: getColumnWidth(4)
+                                        width: getColumnWidth(4),
+                                        maxWidth: '300px'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(6)': {
-                                        width: getColumnWidth(5)
+                                        width: getColumnWidth(5),
+                                        maxWidth: '300px'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)': {
-                                        width: getColumnWidth(6)
+                                        width: getColumnWidth(6),
+                                        maxWidth: '300px'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(n+8)': {
-                                        width: getColumnWidth(6)
+                                        width: getColumnWidth(6),
+                                        maxWidth: '300px'
                                     }
                                 }}>
                                     <TableBody>
@@ -2481,6 +2480,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         padding: '2px 4px !important',
                                                         whiteSpace: 'normal',
                                                         width: getColumnWidth(cellIndex),
+                                                        maxWidth: '300px',
                                                         border: '2px solid #333',
                                                         borderTop: '1px solid #e0e0e0',
                                                         borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
