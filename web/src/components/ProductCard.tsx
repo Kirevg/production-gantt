@@ -1389,7 +1389,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 {/* Секция спецификаций */}
                 {activeTab === 0 && (
                     <Box>
-                        <Box className="page-header" sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Box className="page-header" sx={{ mb: 2, display: 'flex !important', justifyContent: 'flex-end !important' }}>
                             {canCreate() && specifications.some(spec => !spec.isLocked) && (
                                 <VolumeButton
                                     variant="contained"
