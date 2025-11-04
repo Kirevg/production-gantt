@@ -187,8 +187,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     // Синхронизация ширины колонок Excel между заголовками и данными (только для таблицы Excel)
     useEffect(() => {
         if (excelData.length > 0 && dataTableRef.current && showColumnMapping) {
-            // Ждем, пока таблица отрендерится
-            const timeout = setTimeout(() => {
+            // Функция измерения ширин
+            const measureWidths = () => {
                 const table = dataTableRef.current;
                 if (table) {
                     // Берем все строки данных для измерения максимальных ширин
@@ -217,8 +217,19 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         }
                     }
                 }
-            }, 200); // Увеличиваем таймаут для полного рендера всех строк
-            return () => clearTimeout(timeout);
+            };
+
+            // Ждем, пока таблица отрендерится - используем несколько попыток
+            const timeout1 = setTimeout(() => {
+                measureWidths();
+                // Повторяем через еще немного времени для надежности
+                const timeout2 = setTimeout(() => {
+                    measureWidths();
+                }, 300);
+                return () => clearTimeout(timeout2);
+            }, 300);
+            
+            return () => clearTimeout(timeout1);
         }
     }, [excelData, showColumnMapping]);
 
@@ -2444,7 +2455,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     tableLayout: excelColumnWidths.length > 0 ? 'fixed' : 'auto',
                                     width: '100%',
                                     '& .MuiTableCell-root': {
-                                        maxWidth: '350px',
+                                        maxWidth: '400px',
                                         fontSize: '12px !important'
                                     },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
