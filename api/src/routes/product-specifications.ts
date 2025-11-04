@@ -130,7 +130,7 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
         const existingSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }
@@ -172,7 +172,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         const existingSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }
@@ -227,7 +227,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
         const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }
@@ -254,7 +254,7 @@ router.get('/:id/specifications', authenticateToken, async (req, res) => {
         const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }
@@ -441,7 +441,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
         const projectProductSpecificationList = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }
