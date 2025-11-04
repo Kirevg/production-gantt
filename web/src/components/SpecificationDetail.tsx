@@ -2328,10 +2328,11 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             </Box>
                             {/* Закрепленные первые две строки */}
                             <Table size="small" sx={{
-                                tableLayout: 'fixed',
+                                tableLayout: 'auto',
                                 width: '100%',
                                 '& .MuiTableCell-root': {
-                                    maxWidth: 'none',
+                                    width: 'auto',
+                                    maxWidth: '350px',
                                     fontSize: '12px !important'
                                 }
                             }}>
@@ -2342,7 +2343,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                             <TableCell key={index} sx={{
                                                 textAlign: 'center',
                                                 padding: '4px !important',
-                                                width: getColumnWidth(index)
+                                                width: 'auto',
+                                                maxWidth: '350px'
                                             }}>
                                                 <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
                                                     <Select
@@ -2387,7 +2389,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 fontSize: '12px !important',
                                                 textAlign: 'center',
                                                 padding: '4px !important',
-                                                width: getColumnWidth(index),
+                                                width: 'auto',
+                                                maxWidth: '350px',
                                                 border: '2px solid #333',
                                                 borderTop: '2px solid #333',
                                                 borderLeft: '2px solid #333',
@@ -2425,37 +2428,16 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 }
                             }}>
                                 <Table size="small" data-table="second" sx={{
-                                    tableLayout: 'fixed',
+                                    tableLayout: 'auto',
                                     width: '100%',
                                     '& .MuiTableCell-root': {
-                                        maxWidth: 'none',
+                                        width: 'auto',
+                                        maxWidth: '350px',
                                         fontSize: '12px !important'
                                     },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(1)': {
-                                        width: getColumnWidth(0)
-                                    },
                                     '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
-                                        width: getColumnWidth(1),
                                         paddingLeft: '4px !important',
                                         paddingRight: '4px !important'
-                                    },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(3)': {
-                                        width: getColumnWidth(2)
-                                    },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(4)': {
-                                        width: getColumnWidth(3)
-                                    },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)': {
-                                        width: getColumnWidth(4)
-                                    },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(6)': {
-                                        width: getColumnWidth(5)
-                                    },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)': {
-                                        width: getColumnWidth(6)
-                                    },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(n+8)': {
-                                        width: getColumnWidth(6)
                                     }
                                 }}>
                                     <TableBody>
@@ -2463,12 +2445,13 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
                                             <TableRow key={rowIndex}>
                                                 {row.map((cell: any, cellIndex: number) => (
-                                                    <TableCell key={cellIndex} className="excel-table-cell" sx={{
-                                                        fontSize: '12px !important',
-                                                        padding: '2px 4px !important',
-                                                        whiteSpace: 'normal',
-                                                        width: getColumnWidth(cellIndex),
-                                                        border: '2px solid #333',
+                                                <TableCell key={cellIndex} className="excel-table-cell" sx={{
+                                                    fontSize: '12px !important',
+                                                    padding: '2px 4px !important',
+                                                    whiteSpace: 'normal',
+                                                    width: 'auto',
+                                                    maxWidth: '350px',
+                                                    border: '2px solid #333',
                                                         borderTop: '1px solid #e0e0e0',
                                                         borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
                                                         borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
