@@ -2033,7 +2033,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                         {/* Контейнер проекта с рамкой */}
                                                         <Paper
                                                             sx={{
-                                                                border: '2px solid #1976d2',
+                                                                border: '2px solid #3e5f8a',
                                                                 borderRadius: '4px',
                                                                 p: 1
                                                             }}
@@ -2084,7 +2084,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                     {/* Кнопка добавления изделия - размер 40x40px */}
                                                                     <VolumeButton
                                                                         onClick={() => handleAddProduct(projectId)}
-                                                                        color="blue"
                                                                         sx={{
                                                                             width: '30px',
                                                                             height: '30px',
@@ -2094,7 +2093,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                             display: 'flex',
                                                                             alignItems: 'center',
                                                                             justifyContent: 'center',
-                                                                            fontSize: '20px'
+                                                                            fontSize: '20px',
+                                                                            backgroundColor: '#3e5f8a',
+                                                                            color: 'white',
+                                                                            border: '2px solid #2d4563',
+                                                                            '&:hover': {
+                                                                                backgroundColor: '#2d4563'
+                                                                            }
                                                                         }}
                                                                     >
                                                                         +
@@ -2103,8 +2108,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                         variant="h6"
                                                                         sx={{
                                                                             fontWeight: 'bold',
-                                                                            color: '#1976d2',
+                                                                            color: '#3e5f8a',
                                                                             cursor: 'pointer',
+                                                                            ml: 2,
                                                                             '&:hover': {
                                                                                 textDecoration: 'underline'
                                                                             }
@@ -2115,7 +2121,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                             handleEditProject(projectId, projectName, projectStatus);
                                                                         }}
                                                                     >
-                                                                        📋 Проект: {projectName} - Изделий: {productsMap.size}
+                                                                        Проект: {projectName} - Изделий: {productsMap.size}
                                                                     </Typography>
                                                                 </Box>
                                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', width: '100%' }}>
@@ -2263,7 +2269,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     {/* Контейнер изделия с рамкой */}
                                                                                     <Paper
                                                                                         sx={{
-                                                                                            border: '2px solid #4caf50',
+                                                                                            border: '2px solid #9c27b0',
                                                                                             borderRadius: '4px',
                                                                                             p: 1
                                                                                         }}
@@ -2315,7 +2321,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                 {/* Кнопка добавления этапа - размер 40x40px */}
                                                                                                 <VolumeButton
                                                                                                     onClick={() => handleAddStage(productTasks[0]?.productId || '')}
-                                                                                                    color="green"
+                                                                                                    color="purple"
                                                                                                     sx={{
                                                                                                         width: '30px',
                                                                                                         height: '30px',
@@ -2387,7 +2393,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                     variant="subtitle1"
                                                                                                     sx={{
                                                                                                         fontWeight: 'bold',
-                                                                                                        color: '#2e7d32',
+                                                                                                        color: '#9c27b0',
                                                                                                         cursor: 'pointer',
                                                                                                         '&:hover': {
                                                                                                             textDecoration: 'underline'
@@ -2406,11 +2412,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                 {productDescription && productDescription.trim() !== '' &&
                                                                                                     productDescription.toLowerCase() !== '[null]' &&
                                                                                                     productDescription.toLowerCase() !== 'null' && (
-                                                                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
+                                                                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#62639b' }}>
                                                                                                             {productDescription}
                                                                                                         </Typography>
                                                                                                     )}
-                                                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#2e7d32' : '#d32f2f' }}>
+                                                                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#9c27b0' : '#d32f2f' }}>
                                                                                                     {serialNumber ? `(Сер № ${serialNumber})` : '(Сер № ...)'}
                                                                                                 </Typography>
                                                                                             </Box>

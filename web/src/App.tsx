@@ -67,6 +67,7 @@ import ReferencesPage from './components/ReferencesPage';
 import VolumeButton from './components/VolumeButton';
 import UsersList from './components/UsersList';
 import ProjectsList from './components/ProjectsList';
+import ProjectCard from './components/ProjectCard';
 import type { User, Project } from './types/common';
 
 // Интерфейс для ответа сервера при авторизации
@@ -149,10 +150,10 @@ export default function App() {
   const [holidays, setHolidays] = useState<Map<string, boolean>>(new Map()); // Праздничные дни из производственного календаря РФ
   const [_shortDays, setShortDays] = useState<Map<string, boolean>>(new Map()); // Сокращенные дни из производственного календаря РФ
 
-  // Состояние для показа/скрытия состава проекта (используется только через setter)
-  const [_showProjectComposition, setShowProjectComposition] = useState(false);
-  // Состояние для хранения проекта, состав которого просматривается (используется только через setter)
-  const [_selectedProject, setSelectedProject] = useState<Project | null>(null);
+  // Состояние для показа/скрытия состава проекта
+  const [showProjectComposition, setShowProjectComposition] = useState(false);
+  // Состояние для хранения проекта, состав которого просматривается
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   // Состояние для показа/скрытия страницы этапов работ (используется только через setter)
   const [_showStagesPage, setShowStagesPage] = useState(false);
   // Состояние для хранения ID изделия, этапы которого просматриваются (используется только через setter)
@@ -180,6 +181,8 @@ export default function App() {
     'main-page': { manager: true, user: true }, // Главная страница (Календарь)
     'kanban': { manager: true, user: true }, // Канбан-доска
     'projects-view': { manager: true, user: true }, // Проекты (просмотр)
+    'project-card-view': { manager: true, user: true }, // Карточка проекта
+    'product-card-view': { manager: true, user: true }, // Карточка изделия
     'projects-edit': { manager: true, user: false }, // Проекты: Создание / Редактирование
     'projects-delete': { manager: false, user: false }, // Проекты: Удаление
     'references-edit': { manager: true, user: false }, // Справочники: Создание / Редактирование
@@ -2246,6 +2249,52 @@ export default function App() {
                               />
                             </TableCell>
                           </TableRow>
+                          {/* Карточка проекта */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Карточка проекта</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['project-card-view'].manager}
+                                onChange={() => handlePermissionChange('project-card-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['project-card-view'].user}
+                                onChange={() => handlePermissionChange('project-card-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
+                          {/* Карточка изделия */}
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'medium' }}>Карточка изделия</TableCell>
+                            <TableCell sx={{ textAlign: 'center', opacity: 0.6, cursor: 'not-allowed' }}>
+                              <Tooltip title="Администратор всегда имеет полный доступ">
+                                <CheckCircleIcon color="success" />
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['product-card-view'].manager}
+                                onChange={() => handlePermissionChange('product-card-view', 'manager')}
+                                color="secondary"
+                              />
+                            </TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={rolePermissions['product-card-view'].user}
+                                onChange={() => handlePermissionChange('product-card-view', 'user')}
+                                color="primary"
+                              />
+                            </TableCell>
+                          </TableRow>
                           {/* Справочник Номенклатура */}
                           <TableRow>
                             <TableCell sx={{ fontWeight: 'medium' }}>Справочник Номенклатура</TableCell>
@@ -3111,7 +3160,22 @@ export default function App() {
         </Tabs>
 
         {/* Основной контент */}
-        {renderTabContent()}
+        {showProjectComposition && selectedProject ? (
+          <ProjectCard
+            projectId={selectedProject.id}
+            projectName={selectedProject.name}
+            onClose={() => setShowProjectComposition(false)}
+            onOpenSpecifications={(_productId: string, _productName: string) => {
+              // Обработчик для открытия спецификаций (пока не реализовано)
+            }}
+            canEdit={canEdit}
+            canCreate={canCreate}
+            canDelete={canDelete}
+            user={user}
+          />
+        ) : (
+          renderTabContent()
+        )}
 
         {/* Контекстное меню страницы */}
         <Menu

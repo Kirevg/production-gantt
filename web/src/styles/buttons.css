@@ -692,9 +692,9 @@ p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
 }
 
 /* Центровка для всех input элементов */
-input[type="text"], 
-input[type="number"], 
-input[type="email"], 
+input[type="text"],
+input[type="number"],
+input[type="email"],
 input[type="password"],
 textarea {
     display: flex !important;
