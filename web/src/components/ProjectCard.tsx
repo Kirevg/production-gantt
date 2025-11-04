@@ -178,18 +178,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         return latestDate.toISOString().split('T')[0];
     };
 
-    const formatLinkDate = (createdAt: string, updatedAt: string): string => {
-        const created = new Date(createdAt);
-        const updated = new Date(updatedAt);
-
-        // Если ссылка была обновлена после создания (разница больше 1 секунды)
-        if (updated.getTime() - created.getTime() > 1000) {
-            return updated.toLocaleDateString('ru-RU');
-        } else {
-            return created.toLocaleDateString('ru-RU');
-        }
-    };
-
     const fetchWorkStages = useCallback(async (taskId: string): Promise<Subtask[]> => {
         try {
             const token = localStorage.getItem('token');
@@ -797,22 +785,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         {product.serialNumber || '-'}
                     </Typography>
                 </TableCell>
-                <TableCell sx={{ py: 0.5, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                    <VolumeButton
-                        variant="contained"
-                        size="small"
-                        onClick={() => product.description && window.open(product.description, '_blank', 'noopener,noreferrer')}
-                        color="blue"
-                        sx={{
-                            fontSize: '14px',
-                            height: '36px',
-                            minWidth: 'auto',
-                            textTransform: 'none'
-                        }}
-                    >
-                        {product.description ? formatLinkDate(product.createdAt, product.updatedAt) : 'Нет ссылки'}
-                    </VolumeButton>
-                </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'right', whiteSpace: 'nowrap' }}>
                     {calculateStagesSum(workStages).toLocaleString('ru-RU', {
                         minimumFractionDigits: 2,
@@ -966,7 +938,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px', fontSize: '12px' }}>№</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: '250px', fontSize: '12px' }}>Изделие</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сер. номер</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Ссылка</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Сумма</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Старт</TableCell>
                                         <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Финиш</TableCell>
