@@ -64,7 +64,6 @@ router.get('/', authenticateToken, async (req, res) => {
           select: {
             id: true,
             serialNumber: true,
-            description: true,
             quantity: true,
             productSum: true,
             product: {
