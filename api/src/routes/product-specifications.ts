@@ -298,7 +298,7 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
         const originalSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }

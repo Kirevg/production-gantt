@@ -69,6 +69,7 @@ import UsersList from './components/UsersList';
 import ProjectsList from './components/ProjectsList';
 import ProjectCard from './components/ProjectCard';
 import ProductCard from './components/ProductCard';
+import SpecificationDetail from './components/SpecificationDetail';
 import type { User, Project } from './types/common';
 
 // Интерфейс для ответа сервера при авторизации
@@ -168,13 +169,13 @@ export default function App() {
   const [_showSpecificationsList, setShowSpecificationsList] = useState(false);
   // Состояние для переключения между старой и новой страницей спецификаций (используется только через setter)
   const [_showOldSpecificationsList, setShowOldSpecificationsList] = useState(false);
-  // Состояние для показа/скрытия детальной спецификации (используется только через setter)
-  const [_showSpecificationDetail, setShowSpecificationDetail] = useState(false);
-  // Состояние для хранения информации об изделии для спецификаций (используется только через setter)
-  const [_selectedProductName, setSelectedProductName] = useState<string | null>(null);
-  // Состояние для хранения ID и названия спецификации (используется только через setter)
-  const [_selectedSpecificationId, setSelectedSpecificationId] = useState<string | null>(null);
-  const [_selectedSpecificationName, setSelectedSpecificationName] = useState<string | null>(null);
+  // Состояние для показа/скрытия детальной спецификации
+  const [showSpecificationDetail, setShowSpecificationDetail] = useState(false);
+  // Состояние для хранения информации об изделии для спецификаций
+  const [selectedProductName, setSelectedProductName] = useState<string | null>(null);
+  // Состояние для хранения ID и названия спецификации
+  const [selectedSpecificationId, setSelectedSpecificationId] = useState<string | null>(null);
+  const [selectedSpecificationName, setSelectedSpecificationName] = useState<string | null>(null);
 
   // Состояние для контекстного меню страницы
   const [pageContextMenu, setPageContextMenu] = useState<{
@@ -783,6 +784,7 @@ export default function App() {
       setShowProjectComposition(false);
       setShowProductCard(false);
       setShowSpecificationsList(false);
+      setShowSpecificationDetail(false);
       setSelectedProject(null);
       setSelectedProductCardData(null);
       setSelectedSpecificationId(null);
@@ -3170,13 +3172,29 @@ export default function App() {
         </Tabs>
 
         {/* Основной контент */}
-        {/* 
+        {/*
           ЛОГИКА НАВИГАЦИИ:
           1. Страница "Проекты" (ProjectsList) → двойной клик на проекте → открывается ProjectCard
           2. ProjectCard (список изделий) → двойной клик на изделии → открывается ProductCard
-          3. ProductCard → кнопка "Назад" → возврат к ProjectCard
+          3. ProductCard → двойной клик на спецификации → открывается SpecificationDetail
+          4. SpecificationDetail → кнопка "Назад" → возврат к ProductCard
+          5. ProductCard → кнопка "Назад" → возврат к ProjectCard
         */}
-        {showProductCard && selectedProductCardData ? (
+        {showSpecificationDetail && selectedSpecificationId && selectedProductName ? (
+          <SpecificationDetail
+            projectProductSpecificationListId={selectedSpecificationId}
+            productName={selectedProductName}
+            onBack={() => {
+              // Возвращаемся к карточке изделия
+              setShowSpecificationDetail(false);
+              setSelectedSpecificationId(null);
+              setSelectedSpecificationName(null);
+              setSelectedProductName(null);
+            }}
+            canCreate={canCreate}
+            canDelete={canDelete}
+          />
+        ) : showProductCard && selectedProductCardData ? (
           <ProductCard
             projectId={selectedProductCardData.projectId}
             projectName={selectedProductCardData.projectName}
@@ -3188,8 +3206,12 @@ export default function App() {
               setSelectedProductCardData(null);
               // Не закрываем ProjectCard, чтобы остаться на карточке проекта
             }}
-            onOpenSpecification={(_specificationId: string, _specificationName: string) => {
-              // Обработчик для открытия спецификации (пока не реализовано)
+            onOpenSpecification={(specificationId: string, specificationName: string) => {
+              // Открываем детальную спецификацию
+              setSelectedSpecificationId(specificationId);
+              setSelectedSpecificationName(specificationName);
+              setSelectedProductName(productName || '');
+              setShowSpecificationDetail(true);
             }}
             canEdit={canEdit}
             canCreate={canCreate}
