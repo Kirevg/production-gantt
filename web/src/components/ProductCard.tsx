@@ -1346,12 +1346,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     {(productData?.product?.description || productData?.serialNumber) && (
                         <Box sx={{ mt: 1, display: 'flex', flexDirection: 'row', gap: 2 }}>
                             {productData?.product?.description && (
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                <Typography variant="body2">
                                     Описание: {productData.product.description}
                                 </Typography>
                             )}
                             {productData?.serialNumber && (
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                <Typography variant="body2">
                                     Сер. №: {productData.serialNumber}
                                 </Typography>
                             )}
