@@ -66,7 +66,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
         res.json(counterparties);
     } catch (error) {
-        console.error('Ошибка при получении контрагентов:', error);
+        // console.error('Ошибка при получении контрагентов:', error);
         res.status(500).json({ error: 'Ошибка при получении контрагентов' });
     }
 });
@@ -85,7 +85,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         res.json(counterparty);
     } catch (error) {
-        console.error('Ошибка при получении контрагента:', error);
+        // console.error('Ошибка при получении контрагента:', error);
         res.status(500).json({ error: 'Ошибка при получении контрагента' });
     }
 });
@@ -101,7 +101,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
         res.status(201).json(counterparty);
     } catch (error) {
-        console.error('Ошибка при создании контрагента:', error);
+        // console.error('Ошибка при создании контрагента:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -122,7 +122,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
         res.json(counterparty);
     } catch (error) {
-        console.error('Ошибка при обновлении контрагента:', error);
+        // console.error('Ошибка при обновлении контрагента:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -140,7 +140,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка при удалении контрагента:', error);
+        // console.error('Ошибка при удалении контрагента:', error);
         res.status(500).json({ error: 'Ошибка при удалении контрагента' });
     }
 });

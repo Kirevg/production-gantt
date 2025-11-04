@@ -22,7 +22,7 @@ router.post('/deploy', authenticateToken, requireRole(['admin']), async (req, re
             warnings: stderr || null
         });
     } catch (error) {
-        console.error('Ошибка применения миграций:', error);
+        // console.error('Ошибка применения миграций:', error);
         res.status(500).json({
             error: 'Ошибка применения миграций',
             details: error instanceof Error ? error.message : 'Неизвестная ошибка'
@@ -55,7 +55,7 @@ router.post('/reset', authenticateToken, requireRole(['admin']), async (req, res
             warnings: stderr || null
         });
     } catch (error) {
-        console.error('Ошибка сброса миграций:', error);
+        // console.error('Ошибка сброса миграций:', error);
         res.status(500).json({
             error: 'Ошибка сброса миграций',
             details: error instanceof Error ? error.message : 'Неизвестная ошибка'
@@ -79,7 +79,7 @@ router.get('/status', authenticateToken, requireRole(['admin']), async (req, res
             warnings: stderr || null
         });
     } catch (error) {
-        console.error('Ошибка проверки статуса миграций:', error);
+        // console.error('Ошибка проверки статуса миграций:', error);
         res.status(500).json({
             error: 'Ошибка проверки статуса миграций',
             details: error instanceof Error ? error.message : 'Неизвестная ошибка'
@@ -113,7 +113,7 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
             warnings: stderr || null
         });
     } catch (error) {
-        console.error('Ошибка создания миграции:', error);
+        // console.error('Ошибка создания миграции:', error);
         res.status(500).json({
             error: 'Ошибка создания миграции',
             details: error instanceof Error ? error.message : 'Неизвестная ошибка'

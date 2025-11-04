@@ -23,7 +23,7 @@ router.get('/', authenticateToken, async (req, res) => {
         });
         res.json(kinds);
     } catch (error) {
-        console.error('Ошибка получения видов номенклатуры:', error);
+        // console.error('Ошибка получения видов номенклатуры:', error);
         res.status(500).json({ error: 'Ошибка загрузки видов номенклатуры' });
     }
 });
@@ -45,7 +45,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         res.json(kind);
     } catch (error) {
-        console.error('Ошибка получения вида номенклатуры:', error);
+        // console.error('Ошибка получения вида номенклатуры:', error);
         res.status(500).json({ error: 'Ошибка получения вида номенклатуры' });
     }
 });
@@ -61,7 +61,7 @@ router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (re
 
         res.status(201).json(kind);
     } catch (error) {
-        console.error('Ошибка создания вида номенклатуры:', error);
+        // console.error('Ошибка создания вида номенклатуры:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -82,7 +82,7 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'manager']), async (
 
         res.json(kind);
     } catch (error) {
-        console.error('Ошибка обновления вида номенклатуры:', error);
+        // console.error('Ошибка обновления вида номенклатуры:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -101,7 +101,7 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res
 
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка удаления вида номенклатуры:', error);
+        // console.error('Ошибка удаления вида номенклатуры:', error);
         res.status(500).json({ error: 'Ошибка удаления вида номенклатуры' });
     }
 });

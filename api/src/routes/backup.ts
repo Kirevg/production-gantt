@@ -81,7 +81,7 @@ router.post('/create', authenticateToken, requireRole(['admin']), async (req, re
         res.json(backup);
 
     } catch (error) {
-        console.error('❌ Ошибка создания резервной копии:', error);
+        // console.error('❌ Ошибка создания резервной копии:', error);
         res.status(500).json({
             error: 'Ошибка создания резервной копии',
             details: error instanceof Error ? error.message : 'Неизвестная ошибка'
@@ -151,7 +151,7 @@ router.post('/restore', authenticateToken, requireRole(['admin']), async (req, r
         });
 
     } catch (error) {
-        console.error('❌ Ошибка восстановления базы данных:', error);
+        // console.error('❌ Ошибка восстановления базы данных:', error);
         res.status(500).json({
             error: 'Ошибка восстановления базы данных',
             details: error instanceof Error ? error.message : 'Неизвестная ошибка'

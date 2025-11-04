@@ -91,7 +91,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // GET /projects/gantt - получить все этапы работ для Gantt-диаграммы
 router.get('/gantt', authenticateToken, async (req, res) => {
   try {
-    console.log('🔍 Запрос данных для Gantt-диаграммы');
+    // console.log('🔍 Запрос данных для Gantt-диаграммы');
 
     // Получаем все этапы работ со связанными данными
     const workStages = await prisma.workStage.findMany({
@@ -124,7 +124,7 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       ]
     } as any);
 
-    console.log('📊 Найдено этапов работ:', workStages.length);
+    // console.log('📊 Найдено этапов работ:', workStages.length);
 
     // Получаем все проекты с изделиями, чтобы показать изделия без этапов
     const projectsWithProducts = await prisma.project.findMany({
@@ -278,12 +278,12 @@ router.get('/gantt', authenticateToken, async (req, res) => {
       }
     });
 
-    console.log('🎯 Отправляем данные Gantt:', ganttData.length, 'задач');
+    // console.log('🎯 Отправляем данные Gantt:', ganttData.length, 'задач');
     res.json(ganttData);
   } catch (error) {
-    console.error('❌ Ошибка получения данных для Gantt-диаграммы:', error);
-    console.error('❌ Детали ошибки:', error instanceof Error ? error.message : 'Неизвестная ошибка');
-    console.error('❌ Стек ошибки:', error instanceof Error ? error.stack : 'Нет стека');
+    // console.error('❌ Ошибка получения данных для Gantt-диаграммы:', error);
+    // console.error('❌ Детали ошибки:', error instanceof Error ? error.message : 'Неизвестная ошибка');
+    // console.error('❌ Стек ошибки:', error instanceof Error ? error.stack : 'Нет стека');
     res.status(500).json({
       error: 'Failed to fetch gantt data',
       details: error instanceof Error ? error.message : 'Неизвестная ошибка'
@@ -449,7 +449,7 @@ router.put('/reorder', authenticateToken, requireRole(['admin', 'manager']), asy
 
     res.json({ message: 'Project order updated successfully' });
   } catch (error) {
-    console.error('Ошибка обновления порядка проектов:', error);
+    // console.error('Ошибка обновления порядка проектов:', error);
 
     // Более детальная обработка ошибок
     if (error instanceof Error) {
@@ -565,7 +565,7 @@ router.put('/products/:productId/work-stages/order', authenticateToken, async (r
 
     res.json({ message: 'Порядок этапов успешно обновлен' });
   } catch (error) {
-    console.error('Ошибка обновления порядка этапов:', error);
+    // console.error('Ошибка обновления порядка этапов:', error);
     res.status(500).json({ error: 'Ошибка обновления порядка этапов' });
   }
 });

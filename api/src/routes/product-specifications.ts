@@ -47,12 +47,12 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
             orderBy: { createdAt: 'desc' },
         });
 
-        console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
-        console.log('Product ID:', productId);
-        console.log('Found specifications:', projectProductSpecificationLists.length);
-        projectProductSpecificationLists.forEach(spec => {
-            console.log(`Spec: ${spec.name}, isLocked: ${spec.isLocked}, ID: ${spec.id}`);
-        });
+        // console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
+        // console.log('Product ID:', productId);
+        // console.log('Found specifications:', projectProductSpecificationLists.length);
+        // projectProductSpecificationLists.forEach(spec => {
+        //     console.log(`Spec: ${spec.name}, isLocked: ${spec.isLocked}, ID: ${spec.id}`);
+        // });
 
         // Проверяем права доступа
         const userSpecifications = projectProductSpecificationLists.filter(ps =>
@@ -61,7 +61,7 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
 
         res.json(userSpecifications);
     } catch (error) {
-        console.error('Ошибка при получении спецификаций изделия:', error);
+        // console.error('Ошибка при получении спецификаций изделия:', error);
         res.status(500).json({ error: 'Ошибка при получении спецификаций изделия' });
     }
 });
@@ -85,9 +85,9 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
         }
 
         const validatedData = projectProductSpecificationListCreateSchema.parse(req.body);
-        console.log('=== CREATING PRODUCT SPECIFICATION ===');
-        console.log('Validated data:', validatedData);
-        console.log('Product ID:', productId);
+        // console.log('=== CREATING PRODUCT SPECIFICATION ===');
+        // console.log('Validated data:', validatedData);
+        // console.log('Product ID:', productId);
 
         const projectProductSpecificationList = await prisma.projectProductSpecificationList.create({
             data: {
@@ -101,7 +101,7 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
         });
         res.status(201).json(projectProductSpecificationList);
     } catch (error) {
-        console.error('Ошибка при создании спецификации изделия:', error);
+        // console.error('Ошибка при создании спецификации изделия:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -143,7 +143,7 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
         });
         res.json(projectProductSpecificationList);
     } catch (error) {
-        console.error('Ошибка при обновлении спецификации изделия:', error);
+        // console.error('Ошибка при обновлении спецификации изделия:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -189,7 +189,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         });
 
         if (previousSpec) {
-            console.log(`Разблокируем предыдущую версию ${previousSpec.id} (v${previousSpec.version})`);
+            // console.log(`Разблокируем предыдущую версию ${previousSpec.id} (v${previousSpec.version})`);
             await prisma.projectProductSpecificationList.update({
                 where: { id: previousSpec.id },
                 data: { isLocked: false }
@@ -201,7 +201,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         });
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка при удалении спецификации изделия:', error);
+        // console.error('Ошибка при удалении спецификации изделия:', error);
         res.status(500).json({ error: 'Ошибка при удалении спецификации изделия' });
     }
 });
@@ -228,7 +228,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         res.json(projectProductSpecificationList);
     } catch (error) {
-        console.error('Ошибка при получении спецификации:', error);
+        // console.error('Ошибка при получении спецификации:', error);
         res.status(500).json({ error: 'Ошибка при получении спецификации' });
     }
 });
@@ -272,7 +272,7 @@ router.get('/:id/specifications', authenticateToken, async (req, res) => {
         });
         res.json(specifications);
     } catch (error) {
-        console.error('Ошибка при получении позиций спецификации:', error);
+        // console.error('Ошибка при получении позиций спецификации:', error);
         res.status(500).json({ error: 'Ошибка при получении позиций спецификации' });
     }
 });
@@ -334,21 +334,21 @@ router.post('/:id/copy', authenticateToken, async (req, res) => {
         }
 
         // Блокируем оригинальную спецификацию
-        console.log('=== BLOCKING ORIGINAL SPECIFICATION ===');
-        console.log('Original spec ID:', id);
-        console.log('Setting isLocked to true');
+        // console.log('=== BLOCKING ORIGINAL SPECIFICATION ===');
+        // console.log('Original spec ID:', id);
+        // console.log('Setting isLocked to true');
 
         const updatedSpec = await prisma.projectProductSpecificationList.update({
             where: { id },
             data: { isLocked: true }
         });
 
-        console.log('Updated specification:', updatedSpec);
-        console.log('isLocked value:', updatedSpec.isLocked);
+        // console.log('Updated specification:', updatedSpec);
+        // console.log('isLocked value:', updatedSpec.isLocked);
 
         res.status(201).json(copiedSpec);
     } catch (error) {
-        console.error('Ошибка при копировании спецификации:', error);
+        // console.error('Ошибка при копировании спецификации:', error);
         res.status(500).json({ error: 'Ошибка при копировании спецификации' });
     }
 });
@@ -411,7 +411,7 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
         });
         res.json(specification);
     } catch (error) {
-        console.error('Ошибка при обновлении позиции спецификации:', error);
+        // console.error('Ошибка при обновлении позиции спецификации:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -596,7 +596,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
         });
 
     } catch (error) {
-        console.error('Ошибка при сравнении версий:', error);
+        // console.error('Ошибка при сравнении версий:', error);
         res.status(500).json({ error: 'Ошибка при сравнении версий' });
     }
 });

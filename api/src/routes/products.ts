@@ -101,7 +101,7 @@ router.get('/:projectId/products', authenticateToken, async (req, res) => {
 
     res.json(products);
   } catch (error) {
-    console.error('API Error fetching products:', error);
+    // console.error('API Error fetching products:', error);
     res.status(500).json({
       error: 'Failed to fetch products',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -124,7 +124,7 @@ router.post('/:projectId/products', authenticateToken, requireRole(['admin', 'ma
 
     res.status(201).json(product);
   } catch (error) {
-    console.error('Ошибка создания изделия:', error);
+    // console.error('Ошибка создания изделия:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid data', details: error.issues });
     }
@@ -238,7 +238,7 @@ router.get('/products/:productId/work-stages', authenticateToken, async (req, re
 
     res.json(workStages);
   } catch (error) {
-    console.error('Ошибка получения этапов работ:', error);
+    // console.error('Ошибка получения этапов работ:', error);
     res.status(500).json({ error: 'Failed to fetch work stages' });
   }
 });
@@ -278,7 +278,7 @@ router.get('/products/:productId', authenticateToken, async (req, res) => {
 
     res.json(product);
   } catch (error) {
-    console.error('Ошибка получения изделия:', error);
+    // console.error('Ошибка получения изделия:', error);
     res.status(500).json({ error: 'Failed to fetch product' });
   }
 });
@@ -313,7 +313,7 @@ router.post('/products/:productId/work-stages', authenticateToken, requireRole([
 
     res.status(201).json(workStage);
   } catch (error) {
-    console.error('Ошибка создания этапа работ:', error);
+    // console.error('Ошибка создания этапа работ:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid data', details: error.issues });
     }
@@ -345,7 +345,7 @@ router.put('/products/:productId/work-stages/:workStageId', authenticateToken, r
 
     res.json(workStage);
   } catch (error) {
-    console.error('Ошибка обновления этапа работ:', error);
+    // console.error('Ошибка обновления этапа работ:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid data', details: error.issues });
     }
@@ -371,7 +371,7 @@ router.delete('/products/:productId/work-stages/:workStageId', authenticateToken
 
     res.status(204).send();
   } catch (error) {
-    console.error('Ошибка удаления этапа работ:', error);
+    // console.error('Ошибка удаления этапа работ:', error);
     res.status(500).json({ error: 'Failed to delete work stage' });
   }
 });
@@ -397,7 +397,7 @@ router.put('/products/reorder', authenticateToken, requireRole(['admin', 'manage
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Ошибка переупорядочивания изделий:', error);
+    // console.error('Ошибка переупорядочивания изделий:', error);
     res.status(500).json({ error: 'Failed to reorder products' });
   }
 });

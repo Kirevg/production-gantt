@@ -62,7 +62,7 @@ router.get('/groups', authenticateToken, async (req, res) => {
         });
         res.json(groups);
     } catch (error) {
-        console.error('Ошибка получения групп:', error);
+        // console.error('Ошибка получения групп:', error);
         res.status(500).json({ error: 'Ошибка загрузки групп' });
     }
 });
@@ -85,7 +85,7 @@ router.get('/groups/:id', authenticateToken, async (req, res) => {
 
         res.json(group);
     } catch (error) {
-        console.error('Ошибка получения группы:', error);
+        // console.error('Ошибка получения группы:', error);
         res.status(500).json({ error: 'Ошибка загрузки группы' });
     }
 });
@@ -103,7 +103,7 @@ router.post('/groups', authenticateToken, requireRole(['admin', 'manager']), asy
         });
         res.status(201).json(group);
     } catch (error) {
-        console.error('Ошибка создания группы:', error);
+        // console.error('Ошибка создания группы:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -128,7 +128,7 @@ router.put('/groups/:id', authenticateToken, requireRole(['admin', 'manager']), 
         });
         res.json(group);
     } catch (error) {
-        console.error('Ошибка обновления группы:', error);
+        // console.error('Ошибка обновления группы:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -168,7 +168,7 @@ router.delete('/groups/:id', authenticateToken, requireRole(['admin']), async (r
         });
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка удаления группы:', error);
+        // console.error('Ошибка удаления группы:', error);
         res.status(500).json({ error: 'Ошибка удаления группы' });
     }
 });
@@ -225,7 +225,7 @@ router.get('/', authenticateToken, async (req, res) => {
         });
         res.json(items);
     } catch (error) {
-        console.error('Ошибка получения позиций:', error);
+        // console.error('Ошибка получения позиций:', error);
         res.status(500).json({ error: 'Ошибка загрузки позиций' });
     }
 });
@@ -284,7 +284,7 @@ router.get('/find', authenticateToken, async (req, res) => {
 
         res.json(items);
     } catch (error) {
-        console.error('Ошибка поиска позиции:', error);
+        // console.error('Ошибка поиска позиции:', error);
         res.status(500).json({ error: 'Ошибка поиска позиции' });
     }
 });
@@ -315,7 +315,7 @@ router.get('/items', authenticateToken, async (req, res) => {
         });
         res.json(items);
     } catch (error) {
-        console.error('Ошибка получения позиций:', error);
+        // console.error('Ошибка получения позиций:', error);
         res.status(500).json({ error: 'Ошибка загрузки позиций' });
     }
 });
@@ -339,7 +339,7 @@ router.get('/items/:id', authenticateToken, async (req, res) => {
 
         res.json(item);
     } catch (error) {
-        console.error('Ошибка получения позиции:', error);
+        // console.error('Ошибка получения позиции:', error);
         res.status(500).json({ error: 'Ошибка загрузки позиции' });
     }
 });
@@ -370,7 +370,7 @@ router.post('/items', authenticateToken, requireRole(['admin', 'manager']), asyn
         });
         res.status(201).json(item);
     } catch (error) {
-        console.error('Ошибка создания позиции:', error);
+        // console.error('Ошибка создания позиции:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -408,7 +408,7 @@ router.put('/items/:id', authenticateToken, requireRole(['admin', 'manager']), a
         });
         res.json(item);
     } catch (error) {
-        console.error('Ошибка обновления позиции:', error);
+        // console.error('Ошибка обновления позиции:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -462,7 +462,7 @@ router.delete('/items/:id', authenticateToken, requireRole(['admin']), async (re
         });
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка удаления позиции:', error);
+        // console.error('Ошибка удаления позиции:', error);
         res.status(500).json({ error: 'Ошибка удаления позиции' });
     }
 });

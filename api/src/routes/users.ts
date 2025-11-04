@@ -50,7 +50,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
         res.json(users);
     } catch (error) {
-        console.error('Ошибка получения пользователей:', error);
+        // console.error('Ошибка получения пользователей:', error);
         res.status(500).json({ error: 'Ошибка получения пользователей' });
     }
 });
@@ -82,7 +82,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         res.json(user);
     } catch (error) {
-        console.error('Ошибка получения пользователя:', error);
+        // console.error('Ошибка получения пользователя:', error);
         res.status(500).json({ error: 'Ошибка получения пользователя' });
     }
 });
@@ -128,7 +128,7 @@ router.post('/', authenticateToken, requireRole(['admin']), async (req, res) => 
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
-        console.error('Ошибка создания пользователя:', error);
+        // console.error('Ошибка создания пользователя:', error);
         res.status(500).json({ error: 'Ошибка создания пользователя' });
     }
 });
@@ -238,7 +238,7 @@ router.put('/:id', authenticateToken, requireRole(['admin']), async (req, res) =
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
-        console.error('Ошибка обновления пользователя:', error);
+        // console.error('Ошибка обновления пользователя:', error);
         res.status(500).json({ error: 'Ошибка обновления пользователя' });
     }
 });
@@ -284,7 +284,7 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res
 
         res.json({ message: 'Пользователь удален' });
     } catch (error) {
-        console.error('Ошибка удаления пользователя:', error);
+        // console.error('Ошибка удаления пользователя:', error);
         res.status(500).json({ error: 'Ошибка удаления пользователя' });
     }
 });

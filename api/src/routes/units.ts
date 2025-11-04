@@ -25,7 +25,7 @@ router.get('/', authenticateToken, async (req, res) => {
         });
         res.json(units);
     } catch (error) {
-        console.error('Ошибка получения единиц измерения:', error);
+        // console.error('Ошибка получения единиц измерения:', error);
         res.status(500).json({ error: 'Ошибка загрузки единиц измерения' });
     }
 });
@@ -44,7 +44,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         res.json(unit);
     } catch (error) {
-        console.error('Ошибка получения единицы измерения:', error);
+        // console.error('Ошибка получения единицы измерения:', error);
         res.status(500).json({ error: 'Ошибка получения единицы измерения' });
     }
 });
@@ -60,7 +60,7 @@ router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (re
 
         res.status(201).json(unit);
     } catch (error) {
-        console.error('Ошибка создания единицы измерения:', error);
+        // console.error('Ошибка создания единицы измерения:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -81,7 +81,7 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'manager']), async (
 
         res.json(unit);
     } catch (error) {
-        console.error('Ошибка обновления единицы измерения:', error);
+        // console.error('Ошибка обновления единицы измерения:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -100,7 +100,7 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res
 
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка удаления единицы измерения:', error);
+        // console.error('Ошибка удаления единицы измерения:', error);
         res.status(500).json({ error: 'Ошибка удаления единицы измерения' });
     }
 });

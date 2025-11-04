@@ -122,7 +122,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error('Ошибка при получении информации о пользователе:', error);
+    // console.error('Ошибка при получении информации о пользователе:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

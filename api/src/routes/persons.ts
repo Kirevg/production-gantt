@@ -56,7 +56,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
         res.json(persons);
     } catch (error) {
-        console.error('Ошибка при получении физических лиц:', error);
+        // console.error('Ошибка при получении физических лиц:', error);
         res.status(500).json({ error: 'Ошибка при получении физических лиц' });
     }
 });
@@ -75,7 +75,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         res.json(person);
     } catch (error) {
-        console.error('Ошибка при получении физического лица:', error);
+        // console.error('Ошибка при получении физического лица:', error);
         res.status(500).json({ error: 'Ошибка при получении физического лица' });
     }
 });
@@ -91,7 +91,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
         res.status(201).json(person);
     } catch (error) {
-        console.error('Ошибка при создании физического лица:', error);
+        // console.error('Ошибка при создании физического лица:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -112,7 +112,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
         res.json(person);
     } catch (error) {
-        console.error('Ошибка при обновлении физического лица:', error);
+        // console.error('Ошибка при обновлении физического лица:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: error.issues });
         }
@@ -130,7 +130,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка при удалении физического лица:', error);
+        // console.error('Ошибка при удалении физического лица:', error);
         res.status(500).json({ error: 'Ошибка при удалении физического лица' });
     }
 });

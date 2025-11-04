@@ -49,7 +49,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
         res.json(products);
     } catch (error) {
-        console.error('Ошибка получения изделий:', error);
+        // console.error('Ошибка получения изделий:', error);
         res.status(500).json({ error: 'Ошибка загрузки изделий' });
     }
 });
@@ -81,7 +81,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
         res.json(product);
     } catch (error) {
-        console.error('Ошибка получения изделия:', error);
+        // console.error('Ошибка получения изделия:', error);
         res.status(500).json({ error: 'Ошибка загрузки изделия' });
     }
 });
@@ -101,7 +101,7 @@ router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (re
 
         res.status(201).json(product);
     } catch (error) {
-        console.error('Ошибка создания изделия:', error);
+        // console.error('Ошибка создания изделия:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -127,7 +127,7 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'manager']), async (
 
         res.json(product);
     } catch (error) {
-        console.error('Ошибка обновления изделия:', error);
+        // console.error('Ошибка обновления изделия:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -158,7 +158,7 @@ router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res
 
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка удаления изделия:', error);
+        // console.error('Ошибка удаления изделия:', error);
         res.status(500).json({ error: 'Ошибка удаления изделия' });
     }
 });

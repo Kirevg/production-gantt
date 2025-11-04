@@ -104,17 +104,17 @@ router.get('/product-specifications/:id/specifications', authenticateToken, asyn
             orderBy: { orderIndex: 'asc' }
         });
 
-        console.log('=== SPECIFICATIONS API CALLED ===');
-        console.log('Product Specification ID:', id);
-        console.log('Number of specifications:', specifications.length);
-        if (specifications.length > 0 && specifications[0]) {
-            console.log('First specification keys:', Object.keys(specifications[0]));
-            console.log('First specification totalPrice:', specifications[0].totalPrice);
-        }
-        console.log('================================');
+        // console.log('=== SPECIFICATIONS API CALLED ===');
+        // console.log('Product Specification ID:', id);
+        // console.log('Number of specifications:', specifications.length);
+        // if (specifications.length > 0 && specifications[0]) {
+        //     console.log('First specification keys:', Object.keys(specifications[0]));
+        //     console.log('First specification totalPrice:', specifications[0].totalPrice);
+        // }
+        // console.log('================================');
         res.json(specifications);
     } catch (error) {
-        console.error('Ошибка получения спецификаций:', error);
+        // console.error('Ошибка получения спецификаций:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
@@ -132,7 +132,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
         try {
             data = specificationCreateSchema.parse(req.body);
         } catch (validationError) {
-            console.error('Ошибка валидации:', validationError);
+            // console.error('Ошибка валидации:', validationError);
             return res.status(400).json({
                 error: 'Ошибка валидации данных',
                 details: validationError
@@ -211,7 +211,7 @@ router.post('/product-specifications/:id/specifications', authenticateToken, asy
 
         res.status(201).json(specification);
     } catch (error) {
-        console.error('Ошибка создания спецификации:', error);
+        // console.error('Ошибка создания спецификации:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -278,7 +278,7 @@ router.put('/specifications/:id', authenticateToken, async (req, res) => {
 
         res.json(specification);
     } catch (error) {
-        console.error('Ошибка обновления спецификации:', error);
+        // console.error('Ошибка обновления спецификации:', error);
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: 'Неверные данные', details: error.issues });
         }
@@ -324,7 +324,7 @@ router.delete('/specifications/:id', authenticateToken, async (req, res) => {
 
         res.status(204).send();
     } catch (error) {
-        console.error('Ошибка удаления спецификации:', error);
+        // console.error('Ошибка удаления спецификации:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
@@ -369,7 +369,7 @@ router.put('/specifications/reorder', authenticateToken, async (req, res) => {
 
         res.json({ message: 'Порядок спецификаций обновлен' });
     } catch (error) {
-        console.error('Ошибка переупорядочивания спецификаций:', error);
+        // console.error('Ошибка переупорядочивания спецификаций:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
