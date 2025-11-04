@@ -3210,7 +3210,7 @@ export default function App() {
               // Открываем детальную спецификацию
               setSelectedSpecificationId(specificationId);
               setSelectedSpecificationName(specificationName);
-              setSelectedProductName(productName || '');
+              setSelectedProductName(selectedProductCardData?.productName || '');
               setShowSpecificationDetail(true);
             }}
             canEdit={canEdit}
