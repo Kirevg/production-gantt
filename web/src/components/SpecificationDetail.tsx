@@ -191,22 +191,33 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
             const timeout = setTimeout(() => {
                 const table = dataTableRef.current;
                 if (table) {
-                    // Берем первую строку данных для измерения ширин
-                    const firstRow = table.querySelector('tbody tr');
-                    if (firstRow) {
-                        const cells = firstRow.querySelectorAll('td');
-                        const widths: number[] = [];
-                        cells.forEach((cell) => {
-                            const width = cell.getBoundingClientRect().width;
-                            // Ограничиваем максимальной шириной 400px
-                            widths.push(Math.min(width, 400));
+                    // Берем все строки данных для измерения максимальных ширин
+                    const rows = table.querySelectorAll('tbody tr');
+                    if (rows.length > 0) {
+                        const columnCount = excelData[0].length;
+                        const maxWidths: number[] = new Array(columnCount).fill(0);
+                        
+                        // Проходим по всем строкам и находим максимальную ширину для каждой колонки
+                        rows.forEach((row) => {
+                            const cells = row.querySelectorAll('td');
+                            cells.forEach((cell, cellIndex) => {
+                                if (cellIndex < columnCount) {
+                                    const width = cell.getBoundingClientRect().width;
+                                    // Сохраняем максимальную ширину для каждой колонки
+                                    maxWidths[cellIndex] = Math.max(maxWidths[cellIndex], width);
+                                }
+                            });
                         });
+                        
+                        // Ограничиваем максимальной шириной 400px для каждой колонки
+                        const widths = maxWidths.map(width => Math.min(width, 400));
+                        
                         if (widths.length > 0 && widths.length === excelData[0].length) {
                             setExcelColumnWidths(widths);
                         }
                     }
                 }
-            }, 100);
+            }, 200); // Увеличиваем таймаут для полного рендера всех строк
             return () => clearTimeout(timeout);
         }
     }, [excelData, showColumnMapping]);
