@@ -482,7 +482,7 @@ router.get('/:id/compare/:version1/:version2', authenticateToken, async (req, re
         const currentSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
                 id,
-                product: {
+                projectProduct: {
                     project: {
                         ownerId: (req as AuthenticatedRequest).user.id
                     }

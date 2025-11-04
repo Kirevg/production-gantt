@@ -1759,9 +1759,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 disableEscapeKeyDown // Отключаем закрытие по Escape
             >
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">
-                        Сравнение версий: {comparingSpecification?.name} (v{(comparingSpecification?.version || 1) - 1} vs v{comparingSpecification?.version})
-                    </Typography>
+                    Сравнение версий: {comparingSpecification?.name} (v{(comparingSpecification?.version || 1) - 1} vs v{comparingSpecification?.version})
                     <IconButton
                         onClick={() => setShowVersionCompareDialog(false)}
                         sx={{ ml: 2 }}
