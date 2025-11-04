@@ -1521,12 +1521,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 key={specification.id}
                                 sx={{ height: '30px !important' }}
                             >
-                                <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
+                                <TableCell sx={{ p: 0.5, textAlign: 'center', width: `${columnWidths.number}px` }}>{index + 1}</TableCell>
                                 <TableCell sx={{
                                     p: 0.5,
                                     position: 'relative',
                                     wordWrap: 'break-word',
-                                    whiteSpace: 'normal'
+                                    whiteSpace: 'normal',
+                                    width: columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`,
+                                    maxWidth: '300px'
                                 }}>
                                     {editingCell === specification.id ? (
                                         <Box
@@ -1748,10 +1750,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     )}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}
+                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal', width: `${columnWidths.article}px`, maxWidth: '300px' }}
                                 >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default', width: `${columnWidths.quantity}px`, maxWidth: '300px' }}
                                     onDoubleClick={() => handleQuantityClick(specification.id, specification.quantity)}
                                 >
                                     {editingQuantity === specification.id ? (
@@ -1781,14 +1783,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     )}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center' }}
+                                    sx={{ p: 0.5, textAlign: 'center', width: `${columnWidths.unit}px`, maxWidth: '300px' }}
                                 >
                                     {(specification.nomenclatureItem as any)?.unit?.name ||
                                         (specification.nomenclatureItem as any)?.unit?.code ||
                                         specification.unit || '-'}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
+                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default', width: `${columnWidths.price}px`, maxWidth: '300px' }}
                                     onDoubleClick={() => handlePriceClick(specification.id, specification.price || 0)}
                                 >
                                     {editingPrice === specification.id ? (
@@ -1819,7 +1821,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     )}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}
+                                    sx={{ p: 0.5, textAlign: 'right', width: `${columnWidths.total}px`, minWidth: '80px', maxWidth: '300px' }}
                                 >
                                     {formatCurrency(specification.totalPrice)}
                                 </TableCell>
@@ -2340,12 +2342,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     {/* Строка сопоставления колонок */}
                                     <TableRow sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
                                         {excelData[0].map((_: any, index: number) => (
-                                        <TableCell key={index} sx={{
-                                            textAlign: 'center',
-                                            padding: '4px !important',
-                                            width: getColumnWidth(index),
-                                            maxWidth: '300px'
-                                        }}>
+                                            <TableCell key={index} sx={{
+                                                textAlign: 'center',
+                                                padding: '4px !important',
+                                                width: getColumnWidth(index),
+                                                maxWidth: '300px'
+                                            }}>
                                                 <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
                                                     <Select
                                                         value={columnMapping[index.toString()] || ''}
@@ -2384,14 +2386,14 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     {/* Заголовки Excel */}
                                     <TableRow>
                                         {excelData[0].map((_: any, index: number) => (
-                                        <TableCell key={index} sx={{
-                                            fontWeight: 'bold',
-                                            fontSize: '12px !important',
-                                            textAlign: 'center',
-                                            padding: '4px !important',
-                                            width: getColumnWidth(index),
-                                            maxWidth: '300px',
-                                            border: '2px solid #333',
+                                            <TableCell key={index} sx={{
+                                                fontWeight: 'bold',
+                                                fontSize: '12px !important',
+                                                textAlign: 'center',
+                                                padding: '4px !important',
+                                                width: getColumnWidth(index),
+                                                maxWidth: '300px',
+                                                border: '2px solid #333',
                                                 borderTop: '2px solid #333',
                                                 borderLeft: '2px solid #333',
                                                 borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
@@ -2430,57 +2432,57 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 <Table size="small" data-table="second" sx={{
                                     tableLayout: 'fixed',
                                     width: '100%',
-                                '& .MuiTableCell-root': {
-                                    maxWidth: '300px',
-                                    fontSize: '12px !important'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(1)': {
-                                    width: getColumnWidth(0),
-                                    maxWidth: '300px'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
-                                    width: getColumnWidth(1),
-                                    maxWidth: '300px',
-                                    paddingLeft: '4px !important',
-                                    paddingRight: '4px !important'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(3)': {
-                                    width: getColumnWidth(2),
-                                    maxWidth: '300px'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(4)': {
-                                    width: getColumnWidth(3),
-                                    maxWidth: '300px'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)': {
-                                    width: getColumnWidth(4),
-                                    maxWidth: '300px'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(6)': {
-                                    width: getColumnWidth(5),
-                                    maxWidth: '300px'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)': {
-                                    width: getColumnWidth(6),
-                                    maxWidth: '300px'
-                                },
-                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(n+8)': {
-                                    width: getColumnWidth(6),
-                                    maxWidth: '300px'
-                                }
+                                    '& .MuiTableCell-root': {
+                                        maxWidth: '300px',
+                                        fontSize: '12px !important'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(1)': {
+                                        width: getColumnWidth(0),
+                                        maxWidth: '300px'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
+                                        width: getColumnWidth(1),
+                                        maxWidth: '300px',
+                                        paddingLeft: '4px !important',
+                                        paddingRight: '4px !important'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(3)': {
+                                        width: getColumnWidth(2),
+                                        maxWidth: '300px'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(4)': {
+                                        width: getColumnWidth(3),
+                                        maxWidth: '300px'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)': {
+                                        width: getColumnWidth(4),
+                                        maxWidth: '300px'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(6)': {
+                                        width: getColumnWidth(5),
+                                        maxWidth: '300px'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)': {
+                                        width: getColumnWidth(6),
+                                        maxWidth: '300px'
+                                    },
+                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(n+8)': {
+                                        width: getColumnWidth(6),
+                                        maxWidth: '300px'
+                                    }
                                 }}>
                                     <TableBody>
                                         {/* Превью данных */}
                                         {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
                                             <TableRow key={rowIndex}>
                                                 {row.map((cell: any, cellIndex: number) => (
-                                                <TableCell key={cellIndex} className="excel-table-cell" sx={{
-                                                    fontSize: '12px !important',
-                                                    padding: '2px 4px !important',
-                                                    whiteSpace: 'normal',
-                                                    width: getColumnWidth(cellIndex),
-                                                    maxWidth: '300px',
-                                                    border: '2px solid #333',
+                                                    <TableCell key={cellIndex} className="excel-table-cell" sx={{
+                                                        fontSize: '12px !important',
+                                                        padding: '2px 4px !important',
+                                                        whiteSpace: 'normal',
+                                                        width: getColumnWidth(cellIndex),
+                                                        maxWidth: '300px',
+                                                        border: '2px solid #333',
                                                         borderTop: '1px solid #e0e0e0',
                                                         borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
                                                         borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
