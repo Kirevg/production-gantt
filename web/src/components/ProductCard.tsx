@@ -27,7 +27,8 @@ import {
     Balance as BalanceIcon,
     DragIndicator,
     Build as BuildIcon,
-    List as ListIcon
+    List as ListIcon,
+    Link as LinkIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
@@ -1421,6 +1422,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             icon={<ListIcon sx={{ fontSize: '18px', mb: 0 }} />}
                             iconPosition="start"
                         />
+                        <Tab
+                            label="Ссылки на модели"
+                            icon={<LinkIcon sx={{ fontSize: '18px', mb: 0 }} />}
+                            iconPosition="start"
+                        />
                     </Tabs>
                     {activeTab === 0 && (
                         <VolumeButton
@@ -1699,6 +1705,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 </TableBody>
                             </Table>
                         </TableContainer>
+                    </Box>
+                )}
+
+                {/* Секция ссылок на модели */}
+                {activeTab === 2 && (
+                    <Box>
+                        <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                            Ссылки на модели
+                        </Typography>
                     </Box>
                 )}
             </Box>
