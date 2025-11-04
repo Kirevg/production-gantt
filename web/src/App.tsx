@@ -2003,12 +2003,12 @@ export default function App() {
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   Создайте резервную копию базы данных перед важными изменениями
                 </Typography>
-                
+
                 {/* Информационная памятка о бэкапах */}
-                <Alert 
-                  severity="info" 
-                  sx={{ 
-                    mb: 3, 
+                <Alert
+                  severity="info"
+                  sx={{
+                    mb: 3,
                     '& .MuiAlert-message': {
                       width: '100%'
                     }
