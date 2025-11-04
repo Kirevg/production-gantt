@@ -2331,7 +2331,6 @@ return (
                             tableLayout: 'fixed',
                             width: '100%',
                             '& .MuiTableCell-root': {
-                                width: `${columnWidths.number}px`,
                                 maxWidth: 'none',
                                 fontSize: '12px !important'
                             }
@@ -2427,25 +2426,36 @@ return (
                         }}>
                             <Table size="small" data-table="second" sx={{
                                 tableLayout: 'fixed',
-                                width: 'auto',
+                                width: '100%',
                                 '& .MuiTableCell-root': {
-                                    width: 'auto',
-                                    minWidth: '80px !important',
                                     maxWidth: 'none',
                                     fontSize: '12px !important'
                                 },
-                                '& .css-1aomwwg-MuiTableCell-root': {
-                                    minWidth: '80px !important'
-                                },
-                                '& .MuiTableCell-body': {
-                                    minWidth: '80px !important'
-                                },
-                                '& .MuiTableCell-sizeSmall': {
-                                    minWidth: '80px !important'
+                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(1)': {
+                                    width: getColumnWidth(0)
                                 },
                                 '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
+                                    width: getColumnWidth(1),
                                     paddingLeft: '4px !important',
                                     paddingRight: '4px !important'
+                                },
+                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(3)': {
+                                    width: getColumnWidth(2)
+                                },
+                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(4)': {
+                                    width: getColumnWidth(3)
+                                },
+                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)': {
+                                    width: getColumnWidth(4)
+                                },
+                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(6)': {
+                                    width: getColumnWidth(5)
+                                },
+                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)': {
+                                    width: getColumnWidth(6)
+                                },
+                                '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(n+8)': {
+                                    width: getColumnWidth(6)
                                 }
                             }}>
                                 <TableBody>
@@ -2457,7 +2467,7 @@ return (
                                                     fontSize: '12px !important',
                                                     padding: '2px 4px !important',
                                                     whiteSpace: 'normal',
-                                                    minWidth: '80px !important',
+                                                    width: getColumnWidth(cellIndex),
                                                     border: '2px solid #333',
                                                     borderTop: '1px solid #e0e0e0',
                                                     borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
