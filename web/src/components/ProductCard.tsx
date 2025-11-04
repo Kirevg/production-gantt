@@ -303,6 +303,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             // Строим URL для получения спецификаций изделия
             const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${productIdToUse}/specifications`;
+            
+            console.log('🔍 Загрузка спецификаций:');
+            console.log('   productId из пропсов:', productId);
+            console.log('   currentProductId:', currentProductId);
+            console.log('   productIdToUse:', productIdToUse);
+            console.log('   URL:', url);
 
             const response = await fetch(url, {
                 headers: {
@@ -312,13 +318,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
             });
 
             if (!response.ok) {
+                console.error('❌ Ошибка ответа сервера:', response.status, response.statusText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('📦 Получено спецификаций:', data.length);
+            console.log('   Данные:', data);
 
             // Определяем дочерние и родительские спецификации
             const specificationsWithStatus = determineSpecificationStatus(data);
+            console.log('✅ После обработки:', specificationsWithStatus.length);
             setSpecifications(specificationsWithStatus);
         } catch (error) {
             //// console.('Ошибка загрузки спецификаций:', error);
