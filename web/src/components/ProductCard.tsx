@@ -303,7 +303,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             // Строим URL для получения спецификаций изделия
             const url = `${import.meta.env.VITE_API_BASE_URL}/product-specifications/products/${productIdToUse}/specifications`;
-            
+
             console.log('🔍 Загрузка спецификаций:');
             console.log('   productId из пропсов:', productId);
             console.log('   currentProductId:', currentProductId);

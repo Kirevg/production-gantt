@@ -13,25 +13,25 @@ async function restoreBackup(backupPath) {
         const data = backupData.data;
 
         console.log('📊 Данные в бэкапе:');
-        console.log(`   - Пользователи: ${data.users.length}`);
-        console.log(`   - Физические лица: ${data.persons.length}`);
-        console.log(`   - Контрагенты: ${data.counterparties.length}`);
-        console.log(`   - Единицы измерения: ${data.units.length}`);
-        console.log(`   - Проекты: ${data.projects.length}`);
-        console.log(`   - Продукты проектов: ${data.projectProducts.length}`);
-        console.log(`   - Этапы работ: ${data.workStages.length}`);
-        console.log(`   - Спецификации изделий: ${data.productSpecifications.length}`);
-        console.log(`   - Спецификации: ${data.specifications.length}`);
-        console.log(`   - Виды номенклатуры: ${data.nomenclatureKinds.length}`);
-        console.log(`   - Группы номенклатуры: ${data.nomenclatureGroups.length}`);
-        console.log(`   - Позиции номенклатуры: ${data.nomenclatureItems.length}`);
+        console.log(`   - Пользователи: ${data.users?.length || 0}`);
+        console.log(`   - Физические лица: ${data.persons?.length || 0}`);
+        console.log(`   - Контрагенты: ${data.counterparties?.length || 0}`);
+        console.log(`   - Единицы измерения: ${data.units?.length || 0}`);
+        console.log(`   - Проекты: ${data.projects?.length || 0}`);
+        console.log(`   - Продукты проектов: ${data.projectProducts?.length || 0}`);
+        console.log(`   - Этапы работ: ${data.workStages?.length || 0}`);
+        console.log(`   - Списки спецификаций изделий: ${data.projectProductSpecificationLists?.length || 0}`);
+        console.log(`   - Спецификации: ${data.specifications?.length || 0}`);
+        console.log(`   - Виды номенклатуры: ${data.nomenclatureKinds?.length || 0}`);
+        console.log(`   - Группы номенклатуры: ${data.nomenclatureGroups?.length || 0}`);
+        console.log(`   - Позиции номенклатуры: ${data.nomenclatureItems?.length || 0}`);
 
         // Очищаем базу данных (в правильном порядке из-за внешних ключей)
         console.log('🗑️ Очистка базы данных...');
         await prisma.refreshToken.deleteMany();
         await prisma.auditLog.deleteMany();
         await prisma.specification.deleteMany();
-        await prisma.productSpecification.deleteMany();
+        await prisma.projectProductSpecificationList.deleteMany();
         await prisma.workStage.deleteMany();
         await prisma.projectProduct.deleteMany();
         await prisma.project.deleteMany();
@@ -123,22 +123,48 @@ async function restoreBackup(backupPath) {
             console.log(`✅ Этапы работ: ${successCount}/${data.workStages.length}`);
         }
 
-        if (data.productSpecifications.length > 0) {
-            await prisma.productSpecification.createMany({ data: data.productSpecifications });
-            console.log(`✅ Спецификации изделий: ${data.productSpecifications.length}`);
+        if (data.projectProductSpecificationLists && data.projectProductSpecificationLists.length > 0) {
+            // Используем upsert для каждой спецификации изделия с проверкой внешних ключей
+            let successCount = 0;
+            for (const specList of data.projectProductSpecificationLists) {
+                try {
+                    await prisma.projectProductSpecificationList.upsert({
+                        where: { id: specList.id },
+                        update: specList,
+                        create: specList
+                    });
+                    successCount++;
+                } catch (error) {
+                    console.log(`⚠️ Пропущен список спецификаций ${specList.id}: ${error.message}`);
+                }
+            }
+            console.log(`✅ Списки спецификаций изделий: ${successCount}/${data.projectProductSpecificationLists.length}`);
         }
 
-        if (data.specifications.length > 0) {
-            await prisma.specification.createMany({ data: data.specifications });
-            console.log(`✅ Спецификации: ${data.specifications.length}`);
+        if (data.specifications && data.specifications.length > 0) {
+            // Используем upsert для каждой спецификации с проверкой внешних ключей
+            let successCount = 0;
+            for (const spec of data.specifications) {
+                try {
+                    await prisma.specification.upsert({
+                        where: { id: spec.id },
+                        update: spec,
+                        create: spec
+                    });
+                    successCount++;
+                } catch (error) {
+                    console.log(`⚠️ Пропущена спецификация ${spec.id}: ${error.message}`);
+                }
+            }
+            console.log(`✅ Спецификации: ${successCount}/${data.specifications.length}`);
         }
 
-        if (data.auditLogs.length > 0) {
+        if (data.auditLogs && data.auditLogs.length > 0) {
             await prisma.auditLog.createMany({ data: data.auditLogs });
             console.log(`✅ Логи аудита: ${data.auditLogs.length}`);
         }
 
-        if (data.refreshTokens.length > 0) {
+        if (data.refreshTokens && data.refreshTokens.length > 0) {
             await prisma.refreshToken.createMany({ data: data.refreshTokens });
             console.log(`✅ Токены обновления: ${data.refreshTokens.length}`);
         }
