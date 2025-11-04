@@ -1353,53 +1353,59 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Вкладки для спецификаций и этапов работ */}
             <Box sx={{ mb: 4 }}>
-                <Tabs
-                    value={activeTab}
-                    onChange={(_, newValue) => setActiveTab(newValue)}
-                    sx={{
-                        borderBottom: 1,
-                        borderColor: 'divider',
-                        mb: 2,
-                        '& .MuiTab-root': {
-                            border: 'none !important', // Убираем рамку у всех вкладок
-                            outline: 'none !important',
-                            '&.Mui-selected': {
-                                border: 'none !important', // Убираем рамку (белые линии сверху, справа и слева) у активной вкладки
-                                outline: 'none !important'
-                            },
-                            '&:focus': {
-                                border: 'none !important',
-                                outline: 'none !important'
-                            },
-                            '&:active': {
-                                border: 'none !important',
-                                outline: 'none !important'
-                            },
-                            '&:focus-visible': {
-                                border: 'none !important',
-                                outline: 'none !important'
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                    <Tabs
+                        value={activeTab}
+                        onChange={(_, newValue) => setActiveTab(newValue)}
+                        sx={{
+                            '& .MuiTab-root': {
+                                border: 'none !important', // Убираем рамку у всех вкладок
+                                outline: 'none !important',
+                                '&.Mui-selected': {
+                                    border: 'none !important', // Убираем рамку (белые линии сверху, справа и слева) у активной вкладки
+                                    outline: 'none !important'
+                                },
+                                '&:focus': {
+                                    border: 'none !important',
+                                    outline: 'none !important'
+                                },
+                                '&:active': {
+                                    border: 'none !important',
+                                    outline: 'none !important'
+                                },
+                                '&:focus-visible': {
+                                    border: 'none !important',
+                                    outline: 'none !important'
+                                }
                             }
-                        }
-                    }}
-                >
-                    <Tab label="Список спецификаций" />
-                    <Tab label="Этапы работ" />
-                </Tabs>
+                        }}
+                    >
+                        <Tab label="Список спецификаций" />
+                        <Tab label="Этапы работ" />
+                    </Tabs>
+                    {activeTab === 0 && canCreate() && specifications.some(spec => !spec.isLocked) && (
+                        <VolumeButton
+                            variant="contained"
+                            onClick={() => handleOpenSpecificationDialog()}
+                            color="blue"
+                        >
+                            Добавить
+                        </VolumeButton>
+                    )}
+                    {activeTab === 1 && (
+                        <VolumeButton
+                            variant="contained"
+                            onClick={() => handleOpenStageDialog()}
+                            color="blue"
+                        >
+                            Добавить
+                        </VolumeButton>
+                    )}
+                </Box>
 
                 {/* Секция спецификаций */}
                 {activeTab === 0 && (
                     <Box>
-                        <Box className="page-header" sx={{ mb: 2, display: 'flex !important', justifyContent: 'flex-end !important' }}>
-                            {canCreate() && specifications.some(spec => !spec.isLocked) && (
-                                <VolumeButton
-                                    variant="contained"
-                                    onClick={() => handleOpenSpecificationDialog()}
-                                    color="blue"
-                                >
-                                    Добавить
-                                </VolumeButton>
-                            )}
-                        </Box>
 
                         {/* Таблица спецификаций */}
                         <TableContainer component={Paper}>
@@ -1614,16 +1620,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 {/* Секция этапов работ */}
                 {activeTab === 1 && (
                     <Box>
-                        <Box className="page-header" sx={{ mb: 2 }}>
-                            <VolumeButton
-                                variant="contained"
-                                onClick={() => handleOpenStageDialog()}
-                                color="blue"
-                            >
-                                Добавить
-                            </VolumeButton>
-                        </Box>
-
                         {!productId ? (
                             <Alert severity="info" sx={{ mb: 2 }}>
                                 Для просмотра этапов работ необходимо выбрать изделие
