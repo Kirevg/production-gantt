@@ -502,7 +502,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             productName: currentProductData?.product?.name || '',
             serialNumber: currentProductData?.serialNumber || '',
             quantity: currentProductData?.quantity || 1,
-            link: currentProductData?.description || ''
+            link: '' // description удалена из ProjectProduct
         });
         setOpenProductEditDialog(true);
     };
@@ -612,7 +612,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const requestBody = {
                 productId: finalProductId.trim(),
                 serialNumber: productForm.serialNumber || undefined,
-                description: productForm.link || undefined,
                 quantity: productForm.quantity,
                 ...(isNewProduct ? { orderIndex: 0 } : { version: productData?.version || 1 })
             };

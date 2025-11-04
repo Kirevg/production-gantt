@@ -118,7 +118,6 @@ model ProjectProduct {
   id                               String                            @id @default(uuid())
   projectId                        String
   serialNumber                     String?
-  description                      String?
   quantity                         Int                               @default(1)
   productSum                       Float?
   status                           ProductStatus                     @default(InProject)
