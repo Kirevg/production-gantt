@@ -126,6 +126,11 @@ router.post('/products/:productId/specifications', authenticateToken, async (req
 router.put('/product-specifications/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
+        console.log('=== UPDATE SPECIFICATION ===');
+        console.log('Specification ID:', id);
+        console.log('User ID:', (req as AuthenticatedRequest).user.id);
+        console.log('Request body:', req.body);
+        
         // Проверяем права доступа
         const existingSpec = await prisma.projectProductSpecificationList.findFirst({
             where: {
@@ -139,8 +144,28 @@ router.put('/product-specifications/:id', authenticateToken, async (req, res) =>
         });
 
         if (!existingSpec) {
+            console.log('❌ Specification not found or access denied');
+            // Проверяем, существует ли спецификация вообще
+            const specExists = await prisma.projectProductSpecificationList.findUnique({
+                where: { id }
+            });
+            console.log('Specification exists:', !!specExists);
+            if (specExists) {
+                console.log('Specification projectProductId:', specExists.projectProductId);
+                const projectProduct = await prisma.projectProduct.findUnique({
+                    where: { id: specExists.projectProductId },
+                    select: { projectId: true, project: { select: { ownerId: true } } }
+                });
+                console.log('ProjectProduct found:', !!projectProduct);
+                if (projectProduct) {
+                    console.log('Project ownerId:', projectProduct.project?.ownerId);
+                    console.log('User ID:', (req as AuthenticatedRequest).user.id);
+                }
+            }
             return res.status(404).json({ error: 'Спецификация не найдена' });
         }
+        
+        console.log('✅ Specification found:', existingSpec.name);
 
         // Проверяем, не заблокирована ли спецификация
         if (existingSpec.isLocked) {
