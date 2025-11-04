@@ -204,27 +204,49 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     // Синхронизация ширины колонок Excel между заголовками и данными (только для таблицы Excel)
     useEffect(() => {
         if (excelData.length > 0 && dataTableRef.current && showColumnMapping) {
-            // Функция измерения ширин
+            // Функция измерения ширин на основе содержимого всех ячеек
             const measureWidths = () => {
                 const table = dataTableRef.current;
                 if (table) {
-                    // Берем все строки данных для измерения максимальных ширин
+                    // Берем все строки (включая заголовки и данные)
                     const rows = table.querySelectorAll('tbody tr');
                     if (rows.length > 0) {
                         const columnCount = excelData[0].length;
                         const maxWidths: number[] = new Array(columnCount).fill(0);
 
-                        // Проходим по всем строкам и находим максимальную ширину для каждой колонки
-                        rows.forEach((row) => {
+                        // Временный элемент для измерения текста
+                        const measureEl = document.createElement('div');
+                        measureEl.style.position = 'absolute';
+                        measureEl.style.visibility = 'hidden';
+                        measureEl.style.whiteSpace = 'nowrap';
+                        measureEl.style.fontSize = '12px';
+                        measureEl.style.padding = '2px 4px';
+                        document.body.appendChild(measureEl);
+
+                        // Проходим по строкам данных (пропускаем первые две строки - заголовки)
+                        rows.forEach((row, rowIndex) => {
+                            // Пропускаем первые две строки (строка сопоставления и строка заголовков)
+                            if (rowIndex < 2) return;
+
                             const cells = row.querySelectorAll('td');
                             cells.forEach((cell, cellIndex) => {
                                 if (cellIndex < columnCount) {
-                                    const width = cell.getBoundingClientRect().width;
+                                    // Получаем текстовое содержимое ячейки
+                                    const textContent = cell.textContent || '';
+
+                                    // Измеряем ширину текста
+                                    measureEl.textContent = textContent || 'M'; // Минимальная ширина
+                                    const textWidth = measureEl.offsetWidth;
+
+                                    const cellWidth = Math.max(textWidth + 20, 80); // +20 для padding и borders, минимум 80px
+
                                     // Сохраняем максимальную ширину для каждой колонки
-                                    maxWidths[cellIndex] = Math.max(maxWidths[cellIndex], width);
+                                    maxWidths[cellIndex] = Math.max(maxWidths[cellIndex], cellWidth);
                                 }
                             });
                         });
+
+                        document.body.removeChild(measureEl);
 
                         // Ограничиваем максимальной шириной 400px для каждой колонки
                         const widths = maxWidths.map(width => Math.min(width, 400));
@@ -251,7 +273,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                 if (timeout2) clearTimeout(timeout2);
             };
         }
-    }, [excelData, showColumnMapping]);
+    }, [excelData, showColumnMapping, columnMapping]);
 
 
 
@@ -2337,21 +2359,21 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                 }}
             >
                 <DialogTitle>Сопоставление колонок Excel</DialogTitle>
-                <DialogContent sx={{ overflow: 'hidden', paddingBottom: '20px' }}>
+                <DialogContent sx={{ overflow: 'hidden', paddingBottom: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
                     {excelData.length > 0 && (
                         <Box sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            flexWrap: 'wrap',
-                            alignContent: 'flex-start'
+                            height: '100%',
+                            overflow: 'hidden'
                         }}>
                             <Box sx={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
                                 mb: 2,
-                                width: 'auto',
-                                minWidth: `${excelData[0].length * 150}px`
+                                flexShrink: 0,
+                                maxWidth: '1400px'
                             }}>
                                 <Typography variant="body2" color="text.secondary">
                                     Сопоставьте колонки из Excel файла с полями спецификации:
@@ -2369,95 +2391,18 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     </Button>
                                 </Box>
                             </Box>
-                            {/* Закрепленные первые две строки */}
-                            <Table size="small" sx={{
-                                tableLayout: excelColumnWidths.length > 0 ? 'fixed' : 'auto',
-                                width: '100%',
-                                '& .MuiTableCell-root': {
-                                    maxWidth: '350px',
-                                    fontSize: '12px !important'
-                                }
-                            }}>
-                                <TableBody>
-                                    {/* Строка сопоставления колонок */}
-                                    <TableRow sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
-                                        {excelData[0].map((_: any, index: number) => (
-                                            <TableCell key={index} sx={{
-                                                textAlign: 'center',
-                                                padding: '4px !important',
-                                                width: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : 'auto',
-                                                maxWidth: '400px',
-                                                minWidth: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : undefined
-                                            }}>
-                                                <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
-                                                    <Select
-                                                        value={columnMapping[index.toString()] || ''}
-                                                        onChange={(e) => {
-                                                            const newMapping = { ...columnMapping };
-                                                            Object.keys(newMapping).forEach(key => {
-                                                                if (key === index.toString()) delete newMapping[key];
-                                                            });
-                                                            if (e.target.value) {
-                                                                Object.keys(newMapping).forEach(key => {
-                                                                    if (newMapping[key] === e.target.value) delete newMapping[key];
-                                                                });
-                                                                newMapping[index.toString()] = e.target.value;
-                                                            }
-                                                            setColumnMapping(newMapping);
-                                                        }}
-                                                        displayEmpty
-                                                        sx={{ '& .MuiSelect-select': { fontSize: '12px' } }}
-                                                    >
-                                                        <MenuItem value="" sx={{ fontSize: '12px' }}>Не выбрано</MenuItem>
-                                                        <MenuItem value="designation" sx={{ fontSize: '12px' }}>Обозначение</MenuItem>
-                                                        <MenuItem value="name" sx={{ fontSize: '12px' }}>Наименование</MenuItem>
-                                                        <MenuItem value="article" sx={{ fontSize: '12px' }}>Артикул</MenuItem>
-                                                        <MenuItem value="code1c" sx={{ fontSize: '12px' }}>Код 1С</MenuItem>
-                                                        <MenuItem value="group" sx={{ fontSize: '12px' }}>Группа</MenuItem>
-                                                        <MenuItem value="manufacturer" sx={{ fontSize: '12px' }}>Производитель</MenuItem>
-                                                        <MenuItem value="description" sx={{ fontSize: '12px' }}>Описание</MenuItem>
-                                                        <MenuItem value="quantity" sx={{ fontSize: '12px' }}>Кол-во</MenuItem>
-                                                        <MenuItem value="unit" sx={{ fontSize: '12px' }}>Ед.</MenuItem>
-                                                        <MenuItem value="price" sx={{ fontSize: '12px' }}>Цена за ед. (руб)</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                    {/* Заголовки Excel */}
-                                    <TableRow>
-                                        {excelData[0].map((_: any, index: number) => (
-                                            <TableCell key={index} sx={{
-                                                fontWeight: 'bold',
-                                                fontSize: '12px !important',
-                                                textAlign: 'center',
-                                                padding: '4px !important',
-                                                width: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : 'auto',
-                                                maxWidth: '400px',
-                                                minWidth: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : undefined,
-                                                border: '2px solid #333',
-                                                borderTop: '2px solid #333',
-                                                borderLeft: '2px solid #333',
-                                                borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                borderBottom: '2px solid #333'
-                                            }}>
-                                                {excelData[0][index] || `Колонка ${index + 1}`}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-
-                            {/* Прокручиваемые данные (с третьей строки) */}
+                            {/* Контейнер с прокруткой для всей таблицы */}
                             <Box sx={{
-                                width: 'auto',
-                                maxHeight: '600px',
+                                flex: 1,
                                 overflow: 'auto',
-                                borderBottom: '2px solid #333',
-                                // Стили ползунка как у основной таблицы
+                                maxWidth: '1400px',
+                                maxHeight: '700px',
+                                border: '2px solid #333',
+                                borderRadius: '4px',
+                                // Стили ползунка для горизонтальной и вертикальной прокрутки
                                 '&::-webkit-scrollbar': {
                                     width: '8px',
-                                    height: '0px' // Убираем горизонтальную прокрутку
+                                    height: '8px'
                                 },
                                 '&::-webkit-scrollbar-track': {
                                     backgroundColor: '#f1f1f1',
@@ -2469,49 +2414,122 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     '&:hover': {
                                         backgroundColor: '#a8a8a8'
                                     }
+                                },
+                                '&::-webkit-scrollbar-corner': {
+                                    backgroundColor: '#f1f1f1'
                                 }
                             }}>
-                                <Table size="small" data-table="second" ref={dataTableRef} sx={{
-                                    tableLayout: excelColumnWidths.length > 0 ? 'fixed' : 'auto',
-                                    width: '100%',
-                                    '& .MuiTableCell-root': {
-                                        maxWidth: '400px',
-                                        fontSize: '12px !important'
-                                    },
-                                    '& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)': {
-                                        paddingLeft: '4px !important',
-                                        paddingRight: '4px !important'
-                                    }
-                                }}>
-                                    <TableBody>
-                                        {/* Превью данных */}
-                                        {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
-                                            <TableRow key={rowIndex}>
-                                                {row.map((cell: any, cellIndex: number) => {
-                                                    const isNumeric = isNumericColumn(cellIndex);
-                                                    const cellValue = isNumeric ? formatNumber(cell) : (cell || '');
-                                                    return (
-                                                        <TableCell key={cellIndex} className="excel-table-cell" sx={{
-                                                            fontSize: '12px !important',
-                                                            padding: '2px 4px !important',
-                                                            whiteSpace: 'normal',
-                                                            width: excelColumnWidths[cellIndex] ? `${excelColumnWidths[cellIndex]}px` : 'auto',
-                                                            maxWidth: '400px',
-                                                            textAlign: isNumeric ? 'right' : 'left',
-                                                            border: '2px solid #333',
-                                                            borderTop: '1px solid #e0e0e0',
-                                                            borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                            borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                            borderBottom: '1px solid #e0e0e0'
-                                                        }}>
-                                                            {cellValue}
-                                                        </TableCell>
-                                                    );
-                                                })}
+                                <TableContainer sx={{ width: '100%' }}>
+                                    <Table size="small" data-table="second" ref={dataTableRef} sx={{
+                                        tableLayout: 'auto',
+                                        width: '100%',
+                                        '& .MuiTableCell-root': {
+                                            fontSize: '12px !important'
+                                        }
+                                    }}>
+                                        <TableBody>
+                                            {/* Строка сопоставления колонок - закреплена сверху */}
+                                            <TableRow sx={{
+                                                position: 'sticky',
+                                                top: 0,
+                                                backgroundColor: 'white',
+                                                zIndex: 10,
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                            }}>
+                                                {excelData[0].map((_: any, index: number) => (
+                                                    <TableCell key={index} sx={{
+                                                        textAlign: 'center',
+                                                        padding: '4px !important',
+                                                        backgroundColor: 'white'
+                                                    }}>
+                                                        <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
+                                                            <Select
+                                                                value={columnMapping[index.toString()] || ''}
+                                                                onChange={(e) => {
+                                                                    const newMapping = { ...columnMapping };
+                                                                    Object.keys(newMapping).forEach(key => {
+                                                                        if (key === index.toString()) delete newMapping[key];
+                                                                    });
+                                                                    if (e.target.value) {
+                                                                        Object.keys(newMapping).forEach(key => {
+                                                                            if (newMapping[key] === e.target.value) delete newMapping[key];
+                                                                        });
+                                                                        newMapping[index.toString()] = e.target.value;
+                                                                    }
+                                                                    setColumnMapping(newMapping);
+                                                                }}
+                                                                displayEmpty
+                                                                sx={{ '& .MuiSelect-select': { fontSize: '12px' } }}
+                                                            >
+                                                                <MenuItem value="" sx={{ fontSize: '12px' }}>Не выбрано</MenuItem>
+                                                                <MenuItem value="designation" sx={{ fontSize: '12px' }}>Обозначение</MenuItem>
+                                                                <MenuItem value="name" sx={{ fontSize: '12px' }}>Наименование</MenuItem>
+                                                                <MenuItem value="article" sx={{ fontSize: '12px' }}>Артикул</MenuItem>
+                                                                <MenuItem value="code1c" sx={{ fontSize: '12px' }}>Код 1С</MenuItem>
+                                                                <MenuItem value="group" sx={{ fontSize: '12px' }}>Группа</MenuItem>
+                                                                <MenuItem value="manufacturer" sx={{ fontSize: '12px' }}>Производитель</MenuItem>
+                                                                <MenuItem value="description" sx={{ fontSize: '12px' }}>Описание</MenuItem>
+                                                                <MenuItem value="quantity" sx={{ fontSize: '12px' }}>Кол-во</MenuItem>
+                                                                <MenuItem value="unit" sx={{ fontSize: '12px' }}>Ед.</MenuItem>
+                                                                <MenuItem value="price" sx={{ fontSize: '12px' }}>Цена за ед. (руб)</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </TableCell>
+                                                ))}
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                            {/* Заголовки Excel - закреплены после строки сопоставления */}
+                                            <TableRow sx={{
+                                                position: 'sticky',
+                                                top: '40px',
+                                                backgroundColor: 'white',
+                                                zIndex: 9,
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                            }}>
+                                                {excelData[0].map((_: any, index: number) => (
+                                                    <TableCell key={index} sx={{
+                                                        fontWeight: 'bold',
+                                                        fontSize: '12px !important',
+                                                        textAlign: 'center',
+                                                        padding: '4px !important',
+                                                        whiteSpace: 'normal',
+                                                        border: '2px solid #333',
+                                                        borderTop: '2px solid #333',
+                                                        borderLeft: '2px solid #333',
+                                                        borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                        borderBottom: '2px solid #333',
+                                                        backgroundColor: 'white'
+                                                    }}>
+                                                        {excelData[0][index] || `Колонка ${index + 1}`}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                            {/* Превью данных - прокручиваемые строки */}
+                                            {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
+                                                <TableRow key={rowIndex}>
+                                                    {row.map((cell: any, cellIndex: number) => {
+                                                        const isNumeric = isNumericColumn(cellIndex);
+                                                        const cellValue = isNumeric ? formatNumber(cell) : (cell || '');
+                                                        return (
+                                                            <TableCell key={cellIndex} className="excel-table-cell" sx={{
+                                                                fontSize: '12px !important',
+                                                                padding: '2px 4px !important',
+                                                                whiteSpace: 'nowrap',
+                                                                textAlign: isNumeric ? 'right' : 'left',
+                                                                border: '2px solid #333',
+                                                                borderTop: '1px solid #e0e0e0',
+                                                                borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                                borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                                borderBottom: '1px solid #e0e0e0'
+                                                            }}>
+                                                                {cellValue}
+                                                            </TableCell>
+                                                        );
+                                                    })}
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
                             </Box>
                         </Box>
                     )}
