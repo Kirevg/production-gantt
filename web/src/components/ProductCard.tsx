@@ -25,7 +25,8 @@ import {
 import {
     Delete as DeleteIcon,
     Balance as BalanceIcon,
-    DragIndicator
+    DragIndicator,
+    Build as BuildIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
@@ -1353,7 +1354,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Вкладки для спецификаций и этапов работ */}
             <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', mb: 0.5 }}>
                     <Tabs
                         value={activeTab}
                         onChange={(_, newValue) => setActiveTab(newValue)}
@@ -1387,7 +1388,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             }
                         }}
                     >
-                        <Tab label="Этапы работ" />
+                        <Tab 
+                            label="Этапы работ" 
+                            icon={<BuildIcon sx={{ fontSize: '18px', mb: 0 }} />}
+                            iconPosition="start"
+                        />
                         <Tab label="Список спецификаций" />
                     </Tabs>
                     {activeTab === 0 && (
@@ -1537,7 +1542,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                             sx={{
                                                                 width: '20px',
                                                                 height: '20px',
-                                                                p: '2px 4px',
+                                                                p: '2px 2px',
                                                                 cursor: specification.isLocked ? 'not-allowed' : 'pointer',
                                                                 backgroundColor: specification.isLocked ? '#ffebee' : '#f0f0f0',
                                                                 border: specification.isLocked ? '1px solid #f44336' : '1px solid #808080',
@@ -1573,14 +1578,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                             <Box
                                                                 onClick={() => handleOpenVersionCompare(specification)}
                                                                 sx={{
-                                                                    width: '28px',
-                                                                    height: '28px',
-                                                                    p: '4px',
+                                                                    width: '20px',
+                                                                    height: '20px',
+                                                                    p: '2px 2px',
                                                                     cursor: 'pointer',
                                                                     backgroundColor: '#e3f2fd',
                                                                     border: '1px solid #2196f3',
                                                                     fontFamily: 'Arial, sans-serif',
-                                                                    fontSize: '11px',
+                                                                    fontSize: '12px',
                                                                     display: 'flex',
                                                                     alignItems: 'center',
                                                                     justifyContent: 'center',
