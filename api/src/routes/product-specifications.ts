@@ -31,6 +31,19 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
         console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
         console.log('Product ID (projectProductId):', productId);
         
+        // Проверяем, существует ли ProjectProduct с таким ID
+        const projectProduct = await prisma.projectProduct.findUnique({
+            where: { id: productId },
+            select: { id: true, projectId: true }
+        });
+
+        if (!projectProduct) {
+            console.log('❌ ProjectProduct not found with ID:', productId);
+            return res.json([]);
+        }
+
+        console.log('✅ ProjectProduct found:', projectProduct.id, 'Project:', projectProduct.projectId);
+        
         const projectProductSpecificationLists = await prisma.projectProductSpecificationList.findMany({
             where: { projectProductId: productId },
             include: {
@@ -55,10 +68,8 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
             console.log(`Spec: ${spec.name}, isLocked: ${spec.isLocked}, ID: ${spec.id}, projectProductId: ${spec.projectProductId}`);
         });
 
-        // Проверяем права доступа
-        const userSpecifications = projectProductSpecificationLists.filter(ps =>
-            ps.projectProductId === productId
-        );
+        // Проверяем права доступа (фильтр избыточен, так как мы уже фильтруем по projectProductId)
+        const userSpecifications = projectProductSpecificationLists;
 
         console.log('Returning specifications:', userSpecifications.length);
         res.json(userSpecifications);
