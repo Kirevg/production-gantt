@@ -2334,7 +2334,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 tableLayout: 'fixed',
                                 width: '100%',
                                 '& .MuiTableCell-root': {
-                                    maxWidth: 'none',
+                                    maxWidth: '300px',
                                     fontSize: '12px !important'
                                 }
                             }}>
@@ -2408,7 +2408,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
                             {/* Прокручиваемые данные (с третьей строки) */}
                             <Box sx={{
-                                width: 'auto',
+                                width: '100%',
                                 maxHeight: '600px',
                                 overflow: 'auto',
                                 borderBottom: '2px solid #333',
