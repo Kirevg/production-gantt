@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/buttons.css';
 
 // Глобальный CSS для минимальной ширины ячеек
@@ -162,6 +162,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [showColumnMapping, setShowColumnMapping] = useState(false);
     const [excelData, setExcelData] = useState<any[][]>([]);
     const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
+    const [excelColumnWidths, setExcelColumnWidths] = useState<number[]>([]);
+    const dataTableRef = useRef<HTMLTableElement>(null);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0, skipped: 0 });
     const [showExcelImportDialog, setShowExcelImportDialog] = useState(false);
@@ -182,33 +184,32 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         };
     }, []);
 
-    // Синхронизация ширины колонок между таблицами
+    // Синхронизация ширины колонок Excel между заголовками и данными
     useEffect(() => {
-        if (excelData.length > 0) {
-            // Получаем ширину колонок из второй таблицы
-            const secondTable = document.querySelector('[data-table="second"]');
-            if (secondTable) {
-                const cells = secondTable.querySelectorAll('td');
-                const widths: number[] = [];
-                cells.forEach((cell, index) => {
-                    if (index < excelData[0].length) {
-                        widths.push(cell.getBoundingClientRect().width);
+        if (excelData.length > 0 && dataTableRef.current && showColumnMapping) {
+            // Ждем, пока таблица отрендерится
+            const timeout = setTimeout(() => {
+                const table = dataTableRef.current;
+                if (table) {
+                    // Берем первую строку данных для измерения ширин
+                    const firstRow = table.querySelector('tbody tr');
+                    if (firstRow) {
+                        const cells = firstRow.querySelectorAll('td');
+                        const widths: number[] = [];
+                        cells.forEach((cell) => {
+                            const width = cell.getBoundingClientRect().width;
+                            // Ограничиваем максимальной шириной 350px
+                            widths.push(Math.min(width, 350));
+                        });
+                        if (widths.length > 0 && widths.length === excelData[0].length) {
+                            setExcelColumnWidths(widths);
+                        }
                     }
-                });
-                // Преобразуем массив в объект с правильными ключами
-                const newWidths = {
-                    number: widths[0] || 40,
-                    name: (widths[1] || 'auto') as string, // Приводим к строке
-                    article: widths[2] || 100,
-                    quantity: widths[3] || 80,
-                    unit: widths[4] || 80,
-                    price: widths[5] || 100,
-                    total: widths[6] || 100
-                };
-                setColumnWidths(newWidths);
-            }
+                }
+            }, 100);
+            return () => clearTimeout(timeout);
         }
-    }, [excelData]);
+    }, [excelData, showColumnMapping]);
 
 
 
@@ -2328,10 +2329,9 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                             </Box>
                             {/* Закрепленные первые две строки */}
                             <Table size="small" sx={{
-                                tableLayout: 'auto',
+                                tableLayout: excelColumnWidths.length > 0 ? 'fixed' : 'auto',
                                 width: '100%',
                                 '& .MuiTableCell-root': {
-                                    width: 'auto',
                                     maxWidth: '350px',
                                     fontSize: '12px !important'
                                 }
@@ -2343,8 +2343,9 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                             <TableCell key={index} sx={{
                                                 textAlign: 'center',
                                                 padding: '4px !important',
-                                                width: 'auto',
-                                                maxWidth: '350px'
+                                                width: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : 'auto',
+                                                maxWidth: '350px',
+                                                minWidth: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : undefined
                                             }}>
                                                 <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
                                                     <Select
@@ -2389,8 +2390,9 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 fontSize: '12px !important',
                                                 textAlign: 'center',
                                                 padding: '4px !important',
-                                                width: 'auto',
+                                                width: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : 'auto',
                                                 maxWidth: '350px',
+                                                minWidth: excelColumnWidths[index] ? `${excelColumnWidths[index]}px` : undefined,
                                                 border: '2px solid #333',
                                                 borderTop: '2px solid #333',
                                                 borderLeft: '2px solid #333',
@@ -2427,11 +2429,10 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     }
                                 }
                             }}>
-                                <Table size="small" data-table="second" sx={{
-                                    tableLayout: 'auto',
+                                <Table size="small" data-table="second" ref={dataTableRef} sx={{
+                                    tableLayout: excelColumnWidths.length > 0 ? 'fixed' : 'auto',
                                     width: '100%',
                                     '& .MuiTableCell-root': {
-                                        width: 'auto',
                                         maxWidth: '350px',
                                         fontSize: '12px !important'
                                     },
@@ -2445,13 +2446,13 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                         {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
                                             <TableRow key={rowIndex}>
                                                 {row.map((cell: any, cellIndex: number) => (
-                                                <TableCell key={cellIndex} className="excel-table-cell" sx={{
-                                                    fontSize: '12px !important',
-                                                    padding: '2px 4px !important',
-                                                    whiteSpace: 'normal',
-                                                    width: 'auto',
-                                                    maxWidth: '350px',
-                                                    border: '2px solid #333',
+                                                    <TableCell key={cellIndex} className="excel-table-cell" sx={{
+                                                        fontSize: '12px !important',
+                                                        padding: '2px 4px !important',
+                                                        whiteSpace: 'normal',
+                                                        width: excelColumnWidths[cellIndex] ? `${excelColumnWidths[cellIndex]}px` : 'auto',
+                                                        maxWidth: '350px',
+                                                        border: '2px solid #333',
                                                         borderTop: '1px solid #e0e0e0',
                                                         borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
                                                         borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
