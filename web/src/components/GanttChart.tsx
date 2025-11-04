@@ -38,8 +38,8 @@ const GanttChart: React.FC<GanttChartProps> = () => {
             setError('');
 
             const token = localStorage.getItem('token');
-            console.log('🔑 Токен из localStorage:', token ? 'найден' : 'не найден');
-            console.log('🌐 API URL:', `${import.meta.env.VITE_API_BASE_URL}/projects/gantt`);
+            // console.log('🔑 Токен из localStorage:', token ? 'найден' : 'не найден');
+            // console.log('🌐 API URL:', `${import.meta.env.VITE_API_BASE_URL}/projects/gantt`);
 
             if (!token) {
                 setError('Токен авторизации не найден. Войдите в систему.');
@@ -53,16 +53,16 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                 }
             });
 
-            console.log('📡 Ответ сервера:', response.status, response.statusText);
+            // console.log('📡 Ответ сервера:', response.status, response.statusText);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('❌ Ошибка ответа:', errorText);
+                // console.error('❌ Ошибка ответа:', errorText);
                 throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
 
             const data = await response.json();
-            console.log('📊 Получены данные Gantt:', data);
+            // console.log('📊 Получены данные Gantt:', data);
 
             // Преобразуем данные в формат для React Gantt Chart
             const tasks: GanttTask[] = data.map((stage: any) => {
@@ -71,7 +71,7 @@ const GanttChart: React.FC<GanttChartProps> = () => {
 
                 // Проверяем валидность дат
                 if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                    console.warn('⚠️ Невалидная дата для этапа:', stage);
+                    // console.warn('⚠️ Невалидная дата для этапа:', stage);
                     return null;
                 }
 
@@ -93,23 +93,23 @@ const GanttChart: React.FC<GanttChartProps> = () => {
                 };
             }).filter(Boolean); // Убираем null значения
 
-            console.log('🎯 Преобразованные задачи:', tasks);
-            console.log('🔍 Количество задач:', tasks.length);
+            // console.log('🎯 Преобразованные задачи:', tasks);
+            // console.log('🔍 Количество задач:', tasks.length);
 
-            if (tasks.length > 0) {
-                console.log('🔍 Первая задача:', tasks[0]);
-                console.log('🔍 Типы данных:', tasks.map(t => ({
-                    id: typeof t.id,
-                    name: typeof t.name,
-                    start: typeof t.start,
-                    end: typeof t.end,
-                    progress: typeof t.progress
-                })));
-            }
+            // if (tasks.length > 0) {
+            //     console.log('🔍 Первая задача:', tasks[0]);
+            //     console.log('🔍 Типы данных:', tasks.map(t => ({
+            //         id: typeof t.id,
+            //         name: typeof t.name,
+            //         start: typeof t.start,
+            //         end: typeof t.end,
+            //         progress: typeof t.progress
+            //     })));
+            // }
 
             setGanttTasks(tasks);
         } catch (err) {
-            console.error('Ошибка загрузки данных Gantt:', err);
+            // console.error('Ошибка загрузки данных Gantt:', err);
             setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
         } finally {
             setLoading(false);
@@ -127,11 +127,11 @@ const GanttChart: React.FC<GanttChartProps> = () => {
 
     // Обработчики масштабирования (пока заглушки)
     const handleZoomIn = () => {
-        console.log('Увеличить масштаб');
+        // console.log('Увеличить масштаб');
     };
 
     const handleZoomOut = () => {
-        console.log('Уменьшить масштаб');
+        // console.log('Уменьшить масштаб');
     };
 
     const handleRefresh = () => {

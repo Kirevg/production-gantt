@@ -306,7 +306,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const specificationsWithStatus = determineSpecificationStatus(data);
             setSpecifications(specificationsWithStatus);
         } catch (error) {
-            console.error('Ошибка загрузки спецификаций:', error);
+            // console.error('Ошибка загрузки спецификаций:', error);
         } finally {
             setSpecificationsLoading(false);
         }
@@ -319,7 +319,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -337,7 +337,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             const data = await response.json();
             setStages(data);
         } catch (error) {
-            console.error('Ошибка загрузки этапов:', error);
+            // console.error('Ошибка загрузки этапов:', error);
         }
     };
 
@@ -368,7 +368,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setContractors(contractorsData);
             }
         } catch (error) {
-            console.error('Ошибка загрузки справочников:', error);
+            // console.error('Ошибка загрузки справочников:', error);
         }
     };
 
@@ -393,10 +393,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 const data = await response.json();
                 setProductData(data);
             } else {
-                console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
+                // console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
-            console.error('Ошибка загрузки данных изделия:', error);
+            // console.error('Ошибка загрузки данных изделия:', error);
         }
     };
 
@@ -439,7 +439,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 setCatalogProducts(uniqueProducts);
             }
         } catch (error) {
-            console.error('Ошибка загрузки изделий проекта:', error);
+            // console.error('Ошибка загрузки изделий проекта:', error);
         } finally {
             setLoadingProducts(false);
         }
@@ -463,10 +463,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     currentProductData = await response.json();
                     setProductData(currentProductData);
                 } else {
-                    console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
+                    // console.error(`Ошибка загрузки изделия: ${response.status} ${response.statusText}`);
                 }
             } catch (error) {
-                console.error('Ошибка загрузки данных изделия:', error);
+                // console.error('Ошибка загрузки данных изделия:', error);
             }
         }
 

@@ -32,8 +32,6 @@ import {
   Home as HomeIcon,
   Assignment as ProjectIcon,
   Folder as FolderIcon,
-  Person as PersonIcon,
-  Group as GroupIcon,
   AdminPanelSettings as AdminIcon,
   Timeline as GanttIcon,
   CalendarMonth as CalendarMonthIcon,
@@ -49,8 +47,6 @@ import {
 import KanbanBoard from './components/KanbanBoard';
 import ReferencesPage from './components/ReferencesPage';
 import VolumeButton from './components/VolumeButton';
-import ProjectManagersList from './components/ProjectManagersList';
-import ContractorsList from './components/ContractorsList';
 import UsersList from './components/UsersList';
 import ProjectsList from './components/ProjectsList';
 import type { User, Project } from './types/common';
@@ -245,11 +241,7 @@ export default function App() {
         return true;
       case 3: // Справочники - доступна всем авторизованным
         return true;
-      case 4: // Руководители - доступна всем авторизованным
-        return true;
-      case 5: // Исполнители - доступна всем авторизованным
-        return true;
-      case 6: // Админ панель - только для администраторов
+      case 4: // Админ панель - только для администраторов
         return user.role === 'admin';
       default:
         return false;
@@ -300,7 +292,7 @@ export default function App() {
         setCalendarProjects(projectsWithDates);
       }
     } catch (error) {
-      console.error('Ошибка загрузки проектов для календаря:', error);
+      // console.error('Ошибка загрузки проектов для календаря:', error);
       setCalendarProjects([]);
     }
   }, [user]);
@@ -381,13 +373,13 @@ export default function App() {
             }
           }
         } catch (error) {
-          console.error(`Ошибка загрузки изделий для проекта ${project.id}:`, error);
+          // console.error(`Ошибка загрузки изделий для проекта ${project.id}:`, error);
         }
       }
 
       setCalendarProducts(productsChips);
     } catch (error) {
-      console.error('Ошибка загрузки изделий для календаря:', error);
+      // console.error('Ошибка загрузки изделий для календаря:', error);
       setCalendarProducts([]);
     }
   }, [user]);
@@ -404,7 +396,7 @@ export default function App() {
       });
 
       if (!response.ok) {
-        console.error('Ошибка загрузки календаря:', response.status);
+        // console.error('Ошибка загрузки календаря:', response.status);
         return;
       }
 
@@ -432,7 +424,7 @@ export default function App() {
       setHolidays(holidaysMap);
       setShortDays(shortDaysMap);
     } catch (error) {
-      console.error('Ошибка загрузки производственного календаря:', error);
+      // console.error('Ошибка загрузки производственного календаря:', error);
     }
   }, [calendarDate]);
 
@@ -529,16 +521,16 @@ export default function App() {
     switch (action) {
       case 'create': {
         // Главная страница очищена — создание карточек выключено
-        console.log('Создать');
+        // console.log('Создать');
         break;
       }
       case 'paste':
         // Здесь можно добавить логику вставки
-        console.log('Вставить');
+        // console.log('Вставить');
         break;
       case 'refresh':
         // Здесь можно добавить логику обновления
-        console.log('Обновить');
+        // console.log('Обновить');
         break;
     }
   };
@@ -650,9 +642,7 @@ export default function App() {
       { index: 1, label: 'Канбан', icon: <GanttIcon /> },
       { index: 2, label: 'Проекты', icon: <ProjectIcon /> },
       { index: 3, label: 'Справочники', icon: <FolderIcon /> },
-      { index: 4, label: 'Руководители', icon: <PersonIcon /> },
-      { index: 5, label: 'Исполнители', icon: <GroupIcon /> },
-      { index: 6, label: 'Админ', icon: <AdminIcon /> },
+      { index: 4, label: 'Админ', icon: <AdminIcon /> },
     ];
 
     return tabs.filter(tab => canAccessTab(tab.index));
@@ -1339,7 +1329,7 @@ export default function App() {
                                 }}
                                 onClick={() => {
                                   // Можно добавить обработчик клика по карточке изделия
-                                  console.log('Клик по изделию:', product.productName, 'проект:', product.projectName);
+                                  // console.log('Клик по изделию:', product.productName, 'проект:', product.projectName);
                                 }}
                               >
                                 {/* Иконка обрезки слева */}
@@ -1798,15 +1788,11 @@ export default function App() {
         return user && <ProjectsList onOpenProjectComposition={handleOpenProjectComposition} onOpenCreateProject={handleOpenCreateProject} user={user} canCreate={canCreate} canDelete={canDelete} />;
       case 3: // Страница справочников
         return <ReferencesPage canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-      case 4: // Страница руководителей проектов
-        return <ProjectManagersList canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-      case 5: // Страница исполнителей
-        return <ContractorsList canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />;
-      case 6: // Страница пользователей
+      case 4: // Страница пользователей (Админ панель)
         return (
           <>
             {user && <UsersList currentUser={user} canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />}
-            {/* Остальной код для case 6 будет добавлен ниже */}
+            {/* Остальной код для case 4 будет добавлен ниже */}
           </>
         );
       default:

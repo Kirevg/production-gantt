@@ -60,7 +60,7 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
             try {
                 return JSON.parse(saved);
             } catch (e) {
-                console.error('Ошибка загрузки фильтров контрагентов:', e);
+                // console.error('Ошибка загрузки фильтров контрагентов:', e);
             }
         }
         return {
@@ -100,7 +100,7 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
                 setCounterparties(data);
             }
         } catch (error) {
-            console.error('Ошибка загрузки контрагентов:', error);
+            // console.error('Ошибка загрузки контрагентов:', error);
         } finally {
             setLoading(false);
         }
@@ -204,7 +204,7 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
                 handleCloseDialog();
             }
         } catch (error) {
-            console.error('Ошибка сохранения контрагента:', error);
+            // console.error('Ошибка сохранения контрагента:', error);
         }
     };
 
@@ -224,7 +224,7 @@ const CounterpartiesPage: React.FC<CounterpartiesPageProps> = ({ canEdit, canCre
                 await fetchCounterparties();
             }
         } catch (error) {
-            console.error('Ошибка удаления контрагента:', error);
+            // console.error('Ошибка удаления контрагента:', error);
         }
     };
 

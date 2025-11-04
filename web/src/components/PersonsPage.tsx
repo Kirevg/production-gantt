@@ -75,7 +75,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({ canEdit, canCreate, canDelete
                 setPersons(data);
             }
         } catch (error) {
-            console.error('Ошибка загрузки физических лиц:', error);
+            // console.error('Ошибка загрузки физических лиц:', error);
         } finally {
             setLoading(false);
         }
@@ -148,7 +148,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({ canEdit, canCreate, canDelete
                 handleCloseDialog();
             }
         } catch (error) {
-            console.error('Ошибка сохранения физического лица:', error);
+            // console.error('Ошибка сохранения физического лица:', error);
         }
     };
 
@@ -168,7 +168,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({ canEdit, canCreate, canDelete
                 await fetchPersons();
             }
         } catch (error) {
-            console.error('Ошибка удаления физического лица:', error);
+            // console.error('Ошибка удаления физического лица:', error);
         }
     };
 

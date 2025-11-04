@@ -485,7 +485,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('❌ Ошибка ответа:', errorText);
+                // console.error('❌ Ошибка ответа:', errorText);
                 throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
 
@@ -515,7 +515,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                     // Проверяем валидность дат только для реальных этапов
                     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                        console.warn('⚠️ Невалидная дата для этапа:', stage);
+                        // console.warn('⚠️ Невалидная дата для этапа:', stage);
                         return null;
                     }
                 }
@@ -553,7 +553,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Порядок уже отсортирован в API по orderIndex
             setKanbanTasks(tasks);
         } catch (err) {
-            console.error('Ошибка загрузки данных канбан-доски:', err);
+            // console.error('Ошибка загрузки данных канбан-доски:', err);
             setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
         } finally {
             setLoading(false);
@@ -580,7 +580,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 setWorkTypes(data.map((wt: { id: string; name: string }) => ({ id: wt.id, name: wt.name })));
             }
         } catch (error) {
-            console.error('Ошибка загрузки видов работ:', error);
+            // console.error('Ошибка загрузки видов работ:', error);
         }
     };
 
@@ -595,7 +595,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 setContractors(data.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
             }
         } catch (error) {
-            console.error('Ошибка загрузки подрядчиков:', error);
+            // console.error('Ошибка загрузки подрядчиков:', error);
         }
     };
 
@@ -706,7 +706,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             handleCloseEditDialog();
             await fetchKanbanData(); // Обновляем данные канбан-доски
         } catch (error) {
-            console.error('Ошибка сохранения этапа:', error);
+            // console.error('Ошибка сохранения этапа:', error);
             alert(`Произошла ошибка при сохранении: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
         }
     };
@@ -868,7 +868,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -899,7 +899,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             });
             setKanbanTasks(updatedTasks);
         } catch (error) {
-            console.error('Ошибка обновления статуса проекта:', error);
+            // console.error('Ошибка обновления статуса проекта:', error);
             // При ошибке обновляем данные, чтобы восстановить правильное состояние
             await fetchKanbanData();
         }
@@ -910,7 +910,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -931,7 +931,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Это предотвращает "подпрыгивание" элементов
             // Данные будут обновлены при следующей загрузке или при других действиях
         } catch (error) {
-            console.error('Ошибка сохранения порядка проектов:', error);
+            // console.error('Ошибка сохранения порядка проектов:', error);
             // При ошибке обновляем данные, чтобы восстановить правильное состояние
             await fetchKanbanData();
         }
@@ -993,7 +993,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -1014,7 +1014,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Это предотвращает "подпрыгивание" элементов
             // Данные будут обновлены при следующей загрузке или при других действиях
         } catch (error) {
-            console.error('Ошибка сохранения порядка изделий:', error);
+            // console.error('Ошибка сохранения порядка изделий:', error);
             // При ошибке обновляем данные, чтобы восстановить правильное состояние
             await fetchKanbanData();
         }
@@ -1041,7 +1041,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Отправляем обновления для каждого изделия
             const token = localStorage.getItem('token');
             if (!token) {
-                console.warn('Токен не найден');
+                // console.warn('Токен не найден');
                 return;
             }
 
@@ -1066,7 +1066,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                     // console.log(`✅ Порядок этапов для изделия ${productId} сохранен на сервере`);
                 } catch (error) {
-                    console.error(`❌ Ошибка сохранения порядка для изделия ${productId}:`, error);
+                    // console.error(`❌ Ошибка сохранения порядка для изделия ${productId}:`, error);
                     // Не прерываем выполнение, продолжаем с другими изделиями
                 }
             });
@@ -1078,7 +1078,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Это предотвращает "подпрыгивание" элементов
             // Данные будут обновлены при следующей загрузке или при других действиях
         } catch (error) {
-            console.error('Ошибка сохранения порядка этапов:', error);
+            // console.error('Ошибка сохранения порядка этапов:', error);
             // При ошибке обновляем данные, чтобы восстановить правильное состояние
             await fetchKanbanData();
         }
@@ -1099,7 +1099,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             });
 
             if (!response.ok) {
-                console.error('Ошибка загрузки проектов для каталога изделий');
+                // console.error('Ошибка загрузки проектов для каталога изделий');
                 return;
             }
 
@@ -1132,14 +1132,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         });
                     }
                 } catch (error) {
-                    console.error(`Ошибка загрузки изделий для проекта ${project.id}:`, error);
+                    // console.error(`Ошибка загрузки изделий для проекта ${project.id}:`, error);
                 }
             }
 
             const uniqueProducts = Array.from(uniqueProductsMap.values());
             setCatalogProducts(uniqueProducts);
         } catch (error) {
-            console.error('Ошибка загрузки каталога изделий:', error);
+            // console.error('Ошибка загрузки каталога изделий:', error);
         }
     };
 
@@ -1198,11 +1198,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 setOpenProductDialog(true);
             } else {
                 const errorText = await response.text();
-                console.error('Ошибка загрузки данных изделия:', response.status, errorText);
+                // console.error('Ошибка загрузки данных изделия:', response.status, errorText);
                 alert(`Ошибка загрузки данных изделия: ${response.status}`);
             }
         } catch (error) {
-            console.error('Ошибка загрузки данных изделия:', error);
+            // console.error('Ошибка загрузки данных изделия:', error);
             alert('Ошибка загрузки данных изделия');
         }
     };
@@ -1280,7 +1280,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         }
                     }
                 } catch (error) {
-                    console.error('Ошибка при создании/поиске изделия в справочнике:', error);
+                    // console.error('Ошибка при создании/поиске изделия в справочнике:', error);
                     alert('Произошла ошибка при создании изделия в справочнике');
                     return;
                 }
@@ -1342,7 +1342,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 }
             }
         } catch (error) {
-            console.error('Ошибка сохранения изделия:', error);
+            // console.error('Ошибка сохранения изделия:', error);
             alert('Ошибка при сохранении изделия');
         }
     };
@@ -1476,7 +1476,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             const product = products.find((p: any) => p.id === productId);
 
             if (!product) {
-                console.error('Изделие не найдено');
+                // console.error('Изделие не найдено');
                 return;
             }
 
@@ -1501,7 +1501,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Не обновляем данные с сервера, так как мы уже оптимистично обновили локальное состояние
             // Это предотвращает визуальные "подпрыгивания" элементов
         } catch (error) {
-            console.error('Ошибка обновления статуса изделия:', error);
+            // console.error('Ошибка обновления статуса изделия:', error);
             // При ошибке обновляем данные, чтобы восстановить правильное состояние
             await fetchKanbanData();
         } finally {
@@ -1530,7 +1530,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 setManagers(data);
             }
         } catch (error) {
-            console.error('Ошибка загрузки руководителей:', error);
+            // console.error('Ошибка загрузки руководителей:', error);
         }
     };
 
@@ -1575,7 +1575,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 alert('Ошибка загрузки данных проекта');
             }
         } catch (error) {
-            console.error('Ошибка загрузки данных проекта:', error);
+            // console.error('Ошибка загрузки данных проекта:', error);
             alert('Ошибка загрузки данных проекта');
         }
     };
@@ -1638,7 +1638,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 }
             }
         } catch (error) {
-            console.error('Ошибка обновления проекта:', error);
+            // console.error('Ошибка обновления проекта:', error);
             alert('Ошибка при обновлении проекта');
         }
     };
@@ -1697,7 +1697,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             handleCloseContextMenu();
             await fetchKanbanData(); // Обновляем данные канбан-доски
         } catch (error) {
-            console.error('Ошибка удаления этапа:', error);
+            // console.error('Ошибка удаления этапа:', error);
             alert(`Произошла ошибка при удалении: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
         }
     };

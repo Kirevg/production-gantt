@@ -52,7 +52,7 @@ const NomenclatureKindsPage: React.FC<NomenclatureKindsPageProps> = ({ canEdit, 
             setLoading(true);
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -67,7 +67,7 @@ const NomenclatureKindsPage: React.FC<NomenclatureKindsPageProps> = ({ canEdit, 
                 setKinds(data);
             }
         } catch (error) {
-            console.error('Ошибка загрузки видов номенклатуры:', error);
+            // console.error('Ошибка загрузки видов номенклатуры:', error);
         } finally {
             setLoading(false);
         }
@@ -107,7 +107,7 @@ const NomenclatureKindsPage: React.FC<NomenclatureKindsPageProps> = ({ canEdit, 
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -134,7 +134,7 @@ const NomenclatureKindsPage: React.FC<NomenclatureKindsPageProps> = ({ canEdit, 
             await fetchKinds();
             handleCloseDialog();
         } catch (error) {
-            console.error('Ошибка сохранения вида номенклатуры:', error);
+            // console.error('Ошибка сохранения вида номенклатуры:', error);
         }
     };
 
@@ -146,7 +146,7 @@ const NomenclatureKindsPage: React.FC<NomenclatureKindsPageProps> = ({ canEdit, 
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -163,7 +163,7 @@ const NomenclatureKindsPage: React.FC<NomenclatureKindsPageProps> = ({ canEdit, 
 
             await fetchKinds();
         } catch (error) {
-            console.error('Ошибка удаления вида номенклатуры:', error);
+            // console.error('Ошибка удаления вида номенклатуры:', error);
         }
     };
 

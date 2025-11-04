@@ -128,7 +128,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             try {
                 return JSON.parse(saved);
             } catch (e) {
-                console.error('Ошибка загрузки фильтров номенклатуры:', e);
+                // console.error('Ошибка загрузки фильтров номенклатуры:', e);
             }
         }
         return {
@@ -253,7 +253,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     alert('Файл пуст или не содержит данных');
                 }
             } catch (error) {
-                console.error('Ошибка чтения файла:', error);
+                // console.error('Ошибка чтения файла:', error);
                 alert('Ошибка чтения файла. Убедитесь, что файл является корректным Excel файлом.');
             }
         };
@@ -278,7 +278,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 try {
                     const token = localStorage.getItem('token');
                     if (!token) {
-                        console.error('Токен авторизации не найден');
+                        // console.error('Токен авторизации не найден');
                         return;
                     }
 
@@ -382,7 +382,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     }
 
                 } catch (error) {
-                    console.error('Ошибка анализа строки:', error);
+                    // console.error('Ошибка анализа строки:', error);
                 }
             }
 
@@ -398,8 +398,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             setShowPreviewDialog(true);
 
         } catch (error) {
-            console.error('Ошибка анализа данных:', error);
-            console.error('Ошибка при анализе данных');
+            // console.error('Ошибка анализа данных:', error);
+            // console.error('Ошибка при анализе данных');
         } finally {
             setLoading(false);
         }
@@ -647,12 +647,12 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         successCount++;
                     } else {
                         errorCount++;
-                        console.error('Ошибка создания позиции:', await response.text());
+                        // console.error('Ошибка создания позиции:', await response.text());
                     }
 
                 } catch (error) {
                     errorCount++;
-                    console.error('Ошибка импорта позиции:', error);
+                    // console.error('Ошибка импорта позиции:', error);
                 }
             }
 
@@ -670,8 +670,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             await fetchNomenclature();
 
         } catch (error) {
-            console.error('Ошибка импорта:', error);
-            console.error('Ошибка при импорте номенклатуры');
+            // console.error('Ошибка импорта:', error);
+            // console.error('Ошибка при импорте номенклатуры');
         } finally {
             setLoading(false);
         }
@@ -683,7 +683,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             setLoading(true);
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -731,7 +731,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 setItems(itemsData);
             }
         } catch (error) {
-            console.error('Ошибка загрузки номенклатуры:', error);
+            // console.error('Ошибка загрузки номенклатуры:', error);
         } finally {
             setLoading(false);
         }
@@ -776,7 +776,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -802,7 +802,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             await fetchNomenclature();
             handleCloseGroupDialog();
         } catch (error) {
-            console.error('Ошибка сохранения группы:', error);
+            // console.error('Ошибка сохранения группы:', error);
         }
     };
 
@@ -865,7 +865,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -903,7 +903,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             await fetchNomenclature();
             handleCloseItemDialog();
         } catch (error) {
-            console.error('Ошибка сохранения позиции:', error);
+            // console.error('Ошибка сохранения позиции:', error);
         }
     };
 
@@ -915,7 +915,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Токен не найден');
+                // console.error('Токен не найден');
                 return;
             }
 
@@ -935,7 +935,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
 
             await fetchNomenclature();
         } catch (error) {
-            console.error('Ошибка удаления позиции:', error);
+            // console.error('Ошибка удаления позиции:', error);
             alert('Не удалось удалить позицию. Проверьте консоль для подробностей.');
         }
     };
