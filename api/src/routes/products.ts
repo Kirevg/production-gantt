@@ -393,8 +393,8 @@ router.put('/products/reorder', authenticateToken, requireRole(['admin', 'manage
 
     res.json({ success: true });
   } catch (error) {
-    // console.error('Ошибка переупорядочивания изделий:', error);
-    res.status(500).json({ error: 'Failed to reorder products' });
+    console.error('Ошибка переупорядочивания изделий:', error);
+    res.status(500).json({ error: 'Failed to reorder products', details: error instanceof Error ? error.message : String(error) });
   }
 });
 

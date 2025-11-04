@@ -28,6 +28,9 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
     const { productId } = req.params;
 
     try {
+        console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
+        console.log('Product ID (projectProductId):', productId);
+        
         const projectProductSpecificationLists = await prisma.projectProductSpecificationList.findMany({
             where: { projectProductId: productId },
             include: {
@@ -47,22 +50,21 @@ router.get('/products/:productId/specifications', authenticateToken, async (req,
             orderBy: { createdAt: 'desc' },
         });
 
-        // console.log('=== FETCHING PRODUCT SPECIFICATIONS ===');
-        // console.log('Product ID:', productId);
-        // console.log('Found specifications:', projectProductSpecificationLists.length);
-        // projectProductSpecificationLists.forEach(spec => {
-        //     console.log(`Spec: ${spec.name}, isLocked: ${spec.isLocked}, ID: ${spec.id}`);
-        // });
+        console.log('Found specifications:', projectProductSpecificationLists.length);
+        projectProductSpecificationLists.forEach(spec => {
+            console.log(`Spec: ${spec.name}, isLocked: ${spec.isLocked}, ID: ${spec.id}, projectProductId: ${spec.projectProductId}`);
+        });
 
         // Проверяем права доступа
         const userSpecifications = projectProductSpecificationLists.filter(ps =>
             ps.projectProductId === productId
         );
 
+        console.log('Returning specifications:', userSpecifications.length);
         res.json(userSpecifications);
     } catch (error) {
-        // console.error('Ошибка при получении спецификаций изделия:', error);
-        res.status(500).json({ error: 'Ошибка при получении спецификаций изделия' });
+        console.error('Ошибка при получении спецификаций изделия:', error);
+        res.status(500).json({ error: 'Ошибка при получении спецификаций изделия', details: error instanceof Error ? error.message : String(error) });
     }
 });
 
