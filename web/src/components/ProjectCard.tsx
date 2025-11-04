@@ -118,6 +118,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const [productForm, setProductForm] = useState<ProductFormData>({
         productId: '', // ID из справочника (если выбрано)
         productName: '', // Название изделия (ручной ввод или выбор)
+        description: '', // Описание изделия
         serialNumber: '',
         quantity: 1,
         link: ''
@@ -396,6 +397,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         setProductForm({
             productId: '',
             productName: '',
+            description: '',
             serialNumber: '',
             quantity: 1,
             link: ''
@@ -474,6 +476,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
         setProductForm({
             productId: '',
             productName: '',
+            description: '',
             serialNumber: '',
             quantity: 1,
             link: ''
@@ -519,6 +522,24 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                         if (exactMatch) {
                             // Используем существующий ID
                             productId = exactMatch.id;
+                            // Обновляем описание, если оно изменилось
+                            if (productForm.description?.trim() !== (exactMatch.description || '')) {
+                                try {
+                                    await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products/${exactMatch.id}`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({
+                                            description: productForm.description?.trim() || null
+                                        })
+                                    });
+                                } catch (error) {
+                                    // console.('Ошибка обновления описания изделия:', error);
+                                    // Продолжаем работу даже если не удалось обновить описание
+                                }
+                            }
                             // console.(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
                         } else {
                             // Создаём новое изделие только если не найдено точное совпадение
@@ -530,6 +551,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                                 },
                                 body: JSON.stringify({
                                     name: productForm.productName.trim(),
+                                    description: productForm.description?.trim() || undefined,
                                     isActive: true
                                 })
                             });
@@ -552,6 +574,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                             },
                             body: JSON.stringify({
                                 name: productForm.productName.trim(),
+                                description: productForm.description?.trim() || undefined,
                                 isActive: true
                             })
                         });
@@ -637,6 +660,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 }
 
                 throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
+            }
+
+            // Обновляем описание изделия в справочнике, если оно изменилось
+            if (productId && productForm.description !== undefined) {
+                try {
+                    await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products/${productId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            description: productForm.description?.trim() || null
+                        })
+                    });
+                } catch (error) {
+                    // console.('Ошибка обновления описания изделия:', error);
+                    // Не показываем ошибку пользователю, т.к. основное сохранение прошло успешно
+                }
             }
 
             await fetchProducts();

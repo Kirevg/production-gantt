@@ -15,6 +15,7 @@ import '../styles/buttons.css';
 export interface ProductFormData {
     productId: string;      // ID из справочника (если выбрано)
     productName: string;     // Название изделия (ручной ввод или выбор)
+    description: string;     // Описание изделия
     serialNumber: string;    // Серийный номер
     quantity: number;        // Количество
     link: string;           // Ссылка
@@ -130,6 +131,18 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
                             />
                         )}
                         disabled={loading}
+                    />
+
+                    {/* Поле описания */}
+                    <TextField
+                        label="Описание"
+                        value={productForm.description || ''}
+                        onChange={(e) => onChange({ ...productForm, description: e.target.value })}
+                        fullWidth
+                        multiline
+                        rows={3}
+                        placeholder="Введите описание изделия"
+                        InputLabelProps={{ shrink: true }}
                     />
 
                     {/* Поле количества */}

@@ -179,7 +179,6 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [showColumnMapping, setShowColumnMapping] = useState(false);
     const [excelData, setExcelData] = useState<any[][]>([]);
     const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
-    const [excelColumnWidths, setExcelColumnWidths] = useState<number[]>([]);
     const dataTableRef = useRef<HTMLTableElement>(null);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0, skipped: 0 });
@@ -201,79 +200,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         };
     }, []);
 
-    // Синхронизация ширины колонок Excel между заголовками и данными (только для таблицы Excel)
-    useEffect(() => {
-        if (excelData.length > 0 && dataTableRef.current && showColumnMapping) {
-            // Функция измерения ширин на основе содержимого всех ячеек
-            const measureWidths = () => {
-                const table = dataTableRef.current;
-                if (table) {
-                    // Берем все строки (включая заголовки и данные)
-                    const rows = table.querySelectorAll('tbody tr');
-                    if (rows.length > 0) {
-                        const columnCount = excelData[0].length;
-                        const maxWidths: number[] = new Array(columnCount).fill(0);
 
-                        // Временный элемент для измерения текста
-                        const measureEl = document.createElement('div');
-                        measureEl.style.position = 'absolute';
-                        measureEl.style.visibility = 'hidden';
-                        measureEl.style.whiteSpace = 'nowrap';
-                        measureEl.style.fontSize = '12px';
-                        measureEl.style.padding = '2px 4px';
-                        document.body.appendChild(measureEl);
-
-                        // Проходим по строкам данных (пропускаем первые две строки - заголовки)
-                        rows.forEach((row, rowIndex) => {
-                            // Пропускаем первые две строки (строка сопоставления и строка заголовков)
-                            if (rowIndex < 2) return;
-
-                            const cells = row.querySelectorAll('td');
-                            cells.forEach((cell, cellIndex) => {
-                                if (cellIndex < columnCount) {
-                                    // Получаем текстовое содержимое ячейки
-                                    const textContent = cell.textContent || '';
-
-                                    // Измеряем ширину текста
-                                    measureEl.textContent = textContent || 'M'; // Минимальная ширина
-                                    const textWidth = measureEl.offsetWidth;
-
-                                    const cellWidth = Math.max(textWidth + 20, 80); // +20 для padding и borders, минимум 80px
-
-                                    // Сохраняем максимальную ширину для каждой колонки
-                                    maxWidths[cellIndex] = Math.max(maxWidths[cellIndex], cellWidth);
-                                }
-                            });
-                        });
-
-                        document.body.removeChild(measureEl);
-
-                        // Ограничиваем максимальной шириной 400px для каждой колонки
-                        const widths = maxWidths.map(width => Math.min(width, 400));
-
-                        if (widths.length > 0 && widths.length === excelData[0].length) {
-                            setExcelColumnWidths(widths);
-                        }
-                    }
-                }
-            };
-
-            // Ждем, пока таблица отрендерится - используем несколько попыток
-            let timeout2: ReturnType<typeof setTimeout> | null = null;
-            const timeout1 = setTimeout(() => {
-                measureWidths();
-                // Повторяем через еще немного времени для надежности
-                timeout2 = setTimeout(() => {
-                    measureWidths();
-                }, 300);
-            }, 300);
-
-            return () => {
-                clearTimeout(timeout1);
-                if (timeout2) clearTimeout(timeout2);
-            };
-        }
-    }, [excelData, showColumnMapping, columnMapping]);
 
 
 
@@ -460,14 +387,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
         };
     };
 
-    const [columnWidths, setColumnWidths] = useState(getInitialColumnWidths);
-
-    // Функция для получения ширины колонки по индексу
-    const getColumnWidth = (index: number) => {
-        const widths = [columnWidths.number, columnWidths.name, columnWidths.article, columnWidths.quantity, columnWidths.unit, columnWidths.price, columnWidths.total];
-        const width = widths[index];
-        return width === 'auto' ? 'auto' : `${width}px`;
-    };
+    const [columnWidths] = useState(getInitialColumnWidths);
 
     // Фиксированные ширины колонок (без возможности изменения)
 
@@ -999,8 +919,8 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
                         successCount++;
                     } else {
                         errorCount++;
-                        const errorText = await response.text();
-                        // console.('Ошибка API:', response.status, errorText);
+                        await response.text();
+                        // console.('Ошибка API:', response.status);
                     }
                 } catch (error) {
                     // console.('Ошибка импорта позиции:', error);
@@ -1258,8 +1178,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                // console.('Ошибка сервера:', response.status, errorText);
+                await response.text();
+                // console.('Ошибка сервера:', response.status);
                 throw new Error(`Ошибка сервера: ${response.status}`);
             }
 

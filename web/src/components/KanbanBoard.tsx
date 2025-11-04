@@ -436,6 +436,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     const [productForm, setProductForm] = useState<ProductFormData>({
         productId: '',
         productName: '',
+        description: '', // Описание изделия
         serialNumber: '',
         quantity: 1,
         link: ''
@@ -1152,6 +1153,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         setProductForm({
             productId: '',
             productName: '',
+            description: '',
             serialNumber: '',
             quantity: 1,
             link: ''
@@ -1191,6 +1193,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 setProductForm({
                     productId: data.product?.id || '',
                     productName: data.product?.name || '',
+                    description: data.product?.description || '',
                     serialNumber: data.serialNumber || '',
                     quantity: data.quantity || 1,
                     link: data.description || ''
@@ -1257,6 +1260,24 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                         if (exactMatch) {
                             catalogProductId = exactMatch.id;
+                            // Обновляем описание, если оно изменилось
+                            if (productForm.description?.trim() !== (exactMatch.description || '')) {
+                                try {
+                                    await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products/${exactMatch.id}`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({
+                                            description: productForm.description?.trim() || null
+                                        })
+                                    });
+                                } catch (error) {
+                                    // console.error('Ошибка обновления описания изделия:', error);
+                                    // Продолжаем работу даже если не удалось обновить описание
+                                }
+                            }
                         } else {
                             // Создаём новое изделие в справочнике
                             const createProductResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products`, {
@@ -1267,6 +1288,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                 },
                                 body: JSON.stringify({
                                     name: productForm.productName.trim(),
+                                    description: productForm.description?.trim() || undefined,
                                     isActive: true
                                 })
                             });
@@ -1309,6 +1331,24 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 });
 
                 if (response.ok) {
+                    // Обновляем описание изделия в справочнике, если оно изменилось
+                    if (catalogProductId && productForm.description !== undefined) {
+                        try {
+                            await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products/${catalogProductId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    description: productForm.description?.trim() || null
+                                })
+                            });
+                        } catch (error) {
+                            // console.error('Ошибка обновления описания изделия:', error);
+                            // Не показываем ошибку пользователю, т.к. основное сохранение прошло успешно
+                        }
+                    }
                     alert('Изделие успешно обновлено');
                     setOpenProductDialog(false);
                     setEditingProduct(null);
@@ -1333,6 +1373,24 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 });
 
                 if (response.ok) {
+                    // Обновляем описание изделия в справочнике, если оно изменилось
+                    if (catalogProductId && productForm.description !== undefined) {
+                        try {
+                            await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products/${catalogProductId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    description: productForm.description?.trim() || null
+                                })
+                            });
+                        } catch (error) {
+                            // console.error('Ошибка обновления описания изделия:', error);
+                            // Не показываем ошибку пользователю, т.к. основное сохранение прошло успешно
+                        }
+                    }
                     alert('Изделие успешно создано');
                     setOpenProductDialog(false);
                     setEditingProduct(null);
@@ -1354,6 +1412,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         setProductForm({
             productId: '',
             productName: '',
+            description: '',
             serialNumber: '',
             quantity: 1,
             link: ''

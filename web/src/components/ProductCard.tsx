@@ -18,8 +18,7 @@ import {
     IconButton,
     LinearProgress,
     Alert,
-    Chip,
-    Autocomplete
+    Chip
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
@@ -28,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
+import ProductDialog, { type ProductFormData } from './ProductDialog';
 
 // Импорт библиотек для drag-and-drop функциональности
 import {
@@ -160,9 +160,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     }, [currentProductId, projectId]);
 
-    const [productForm, setProductForm] = useState({
+    const [productForm, setProductForm] = useState<ProductFormData>({
         productId: '', // ID из справочника (если выбрано)
         productName: '', // Название изделия (ручной ввод или выбор)
+        description: '', // Описание изделия
         serialNumber: '',
         quantity: 1,
         link: ''
@@ -495,6 +496,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         setProductForm({
             productId: currentProductData?.product?.id || '',
             productName: currentProductData?.product?.name || '',
+            description: currentProductData?.product?.description || '',
             serialNumber: currentProductData?.serialNumber || '',
             quantity: currentProductData?.quantity || 1,
             link: '' // description удалена из ProjectProduct
@@ -539,6 +541,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         if (exactMatch) {
                             // Используем существующий ID
                             finalProductId = exactMatch.id;
+                            // Обновляем описание, если оно изменилось
+                            if (productForm.description?.trim() !== (exactMatch.description || '')) {
+                                try {
+                                    await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products/${exactMatch.id}`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({
+                                            description: productForm.description?.trim() || null
+                                        })
+                                    });
+                                } catch (error) {
+                                    // console.('Ошибка обновления описания изделия:', error);
+                                    // Продолжаем работу даже если не удалось обновить описание
+                                }
+                            }
                             // console.(`Найдено существующее изделие: ${exactMatch.name} (ID: ${exactMatch.id})`);
                         } else {
                             // Создаём новое изделие только если не найдено точное совпадение
@@ -550,6 +570,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 },
                                 body: JSON.stringify({
                                     name: productForm.productName.trim(),
+                                    description: productForm.description?.trim() || undefined,
                                     isActive: true
                                 })
                             });
@@ -575,6 +596,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             },
                             body: JSON.stringify({
                                 name: productForm.productName.trim(),
+                                description: productForm.description?.trim() || undefined,
                                 isActive: true
                             })
                         });
@@ -629,6 +651,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             if (response.ok) {
                 const savedProduct = await response.json();
+
+                // Обновляем описание изделия в справочнике, если оно изменилось
+                if (finalProductId && productForm.description !== undefined) {
+                    try {
+                        await fetch(`${import.meta.env.VITE_API_BASE_URL}/catalog-products/${finalProductId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                description: productForm.description?.trim() || null
+                            })
+                        });
+                    } catch (error) {
+                        // console.('Ошибка обновления описания изделия:', error);
+                        // Не показываем ошибку пользователю, т.к. основное сохранение прошло успешно
+                    }
+                }
 
                 setOpenProductEditDialog(false);
 
@@ -1640,115 +1681,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
             />
 
             {/* Диалог редактирования/создания изделия */}
-            <Dialog
-                key={`product-dialog-${isNewProduct}-${currentProductId}`}
+            <ProductDialog
                 open={openProductEditDialog}
-                onClose={() => { }}
-                maxWidth="sm"
-                fullWidth
-            >
-                <DialogTitle>{isNewProduct ? 'Создать изделие' : 'Редактировать изделие'}</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                        <Autocomplete
-                            freeSolo
-                            options={catalogProducts}
-                            getOptionLabel={(option) => {
-                                if (typeof option === 'string') return option;
-                                return `${option.name}`;
-                            }}
-                            isOptionEqualToValue={(option, value) => {
-                                if (typeof option === 'string' || typeof value === 'string') return option === value;
-                                return option.id === value.id;
-                            }}
-                            renderOption={(props, option) => {
-                                // Явно указываем key на основе id для избежания дубликатов
-                                const key = typeof option === 'string' ? option : option.id;
-                                return (
-                                    <li {...props} key={key}>
-                                        {typeof option === 'string' ? option : option.name}
-                                    </li>
-                                );
-                            }}
-                            value={productForm.productId ? catalogProducts.find(p => p.id === productForm.productId) || null : productForm.productName}
-                            onChange={(_, newValue) => {
-                                if (typeof newValue === 'string') {
-                                    // Ручной ввод
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: '',
-                                        productName: newValue
-                                    });
-                                } else if (newValue && newValue.id) {
-                                    // Выбор из списка
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: newValue.id,
-                                        productName: newValue.name
-                                    });
-                                } else {
-                                    // Очистка
-                                    setProductForm({
-                                        ...productForm,
-                                        productId: '',
-                                        productName: ''
-                                    });
-                                }
-                            }}
-                            onInputChange={(event, newInputValue) => {
-                                // Обновляем productName при вводе текста
-                                if (event && event.type === 'change') {
-                                    setProductForm({
-                                        ...productForm,
-                                        productName: newInputValue,
-                                        productId: '' // Сбрасываем ID при ручном вводе
-                                    });
-                                }
-                            }}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Изделие"
-                                    fullWidth
-                                    required
-                                    InputLabelProps={{ shrink: true }}
-                                    error={!productForm.productId && !productForm.productName}
-                                    helperText="Выберите из списка или введите название вручную"
-                                />
-                            )}
-                            disabled={loadingProducts}
-                        />
-                        <TextField
-                            label="Серийный номер"
-                            value={productForm.serialNumber}
-                            onChange={(e) => setProductForm({ ...productForm, serialNumber: e.target.value })}
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <TextField
-                            label="Количество"
-                            type="number"
-                            value={productForm.quantity}
-                            onChange={(e) => setProductForm({ ...productForm, quantity: parseInt(e.target.value) || 1 })}
-                            InputLabelProps={{ shrink: true }}
-                            required
-                        />
-                        <TextField
-                            label="Ссылка"
-                            value={productForm.link}
-                            onChange={(e) => setProductForm({ ...productForm, link: e.target.value })}
-                            InputLabelProps={{ shrink: true }}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <VolumeButton onClick={handleSaveProduct} color="blue">
-                        {productId?.startsWith('temp-') ? 'Создать' : 'Сохранить'}
-                    </VolumeButton>
-                    <VolumeButton onClick={() => setOpenProductEditDialog(false)} color="orange">
-                        Отмена
-                    </VolumeButton>
-                </DialogActions>
-            </Dialog>
+                editing={!isNewProduct}
+                productForm={productForm}
+                catalogProducts={catalogProducts}
+                loading={loadingProducts}
+                onClose={() => setOpenProductEditDialog(false)}
+                onSave={handleSaveProduct}
+                onChange={setProductForm}
+            />
 
             {/* Диалог сравнения версий */}
             <Dialog
