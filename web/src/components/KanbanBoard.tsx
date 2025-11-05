@@ -1023,7 +1023,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     // Обработчик перетаскивания изделий
     const handleDragEndProducts = async (event: any, _projectId: string, sortedProducts: Array<[string, KanbanTask[]]>) => {
         const { active, over } = event;
-        
+
         // Проверяем, не является ли перетаскиваемый элемент этапом работы
         // Если да, то НЕ обрабатываем здесь - верхний DndContext обработает через handleDragEnd
         const activeTask = kanbanTasks.find((task) => task.id === active.id);
@@ -2826,20 +2826,26 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                                                                                         {/* Карточки этапов работ этого изделия */}
                                                                                         {(() => {
-                                                                                            // Фильтруем только настоящие этапы (не изделия без этапов)
-                                                                                            const actualStages = productTasks
-                                                                                                .filter(task =>
-                                                                                                    task.id &&
-                                                                                                    !task.id.startsWith('product-only-') &&
-                                                                                                    task.name &&
-                                                                                                    task.name.trim() !== ''
-                                                                                                )
-                                                                                                .sort((a, b) => {
-                                                                                                    // Сортируем по orderIndex, если он есть
-                                                                                                    const orderA = a.orderIndex ?? 999999;
-                                                                                                    const orderB = b.orderIndex ?? 999999;
-                                                                                                    return orderA - orderB;
-                                                                                                });
+                                                                                            // Берем этапы из productStagesMap (локальное состояние для правильной анимации)
+                                                                                            // Если их нет, используем productTasks как fallback
+                                                                                            let actualStages = productStagesMap.get(productKey) || [];
+                                                                                            
+                                                                                            // Если в productStagesMap нет этапов, берем из productTasks
+                                                                                            if (actualStages.length === 0) {
+                                                                                                actualStages = productTasks
+                                                                                                    .filter(task =>
+                                                                                                        task.id &&
+                                                                                                        !task.id.startsWith('product-only-') &&
+                                                                                                        task.name &&
+                                                                                                        task.name.trim() !== ''
+                                                                                                    )
+                                                                                                    .sort((a, b) => {
+                                                                                                        // Сортируем по orderIndex, если он есть
+                                                                                                        const orderA = a.orderIndex ?? 999999;
+                                                                                                        const orderB = b.orderIndex ?? 999999;
+                                                                                                        return orderA - orderB;
+                                                                                                    });
+                                                                                            }
                                                                                             // Если нет этапов, карточка должна быть свернута
                                                                                             const hasStages = actualStages.length > 0;
                                                                                             const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
