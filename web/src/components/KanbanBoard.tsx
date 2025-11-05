@@ -922,48 +922,38 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     });
                 });
 
-                // ПОТОМ отправляем на сервер после завершения анимации (через небольшой таймаут)
-                setTimeout(async () => {
-                    try {
-                        const token = localStorage.getItem('token');
-                        if (!token) {
-                            console.error('Токен не найден для сохранения порядка этапов');
-                            return;
+                // Сохраняем порядок на сервере (как в ProductCard - сразу после обновления состояния)
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        return;
+                    }
+
+                    const stagesWithOrder = updatedProductStages.map((task, index) => ({
+                        id: task.id,
+                        order: index
+                    }));
+
+                    const response = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ stages: stagesWithOrder })
                         }
+                    );
 
-                        const stagesWithOrder = updatedProductStages.map((task, index) => ({
-                            id: task.id,
-                            order: index
-                        }));
-
-                        console.log('Отправка порядка этапов на сервер:', { productId, stagesWithOrder });
-
-                        const response = await fetch(
-                            `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
-                            {
-                                method: 'PUT',
-                                headers: {
-                                    'Authorization': `Bearer ${token}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ stages: stagesWithOrder })
-                            }
-                        );
-
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            console.error('Ошибка сохранения порядка этапов:', response.status, response.statusText, errorText);
-                            // При ошибке откатываем изменения (как в ProductCard)
-                            await fetchKanbanData();
-                        } else {
-                            console.log('Порядок этапов успешно сохранен на сервер');
-                        }
-                    } catch (error) {
-                        console.error('Ошибка сохранения порядка этапов:', error);
+                    if (!response.ok) {
                         // При ошибке откатываем изменения (как в ProductCard)
                         await fetchKanbanData();
                     }
-                }, 300); // Задержка 300ms для завершения анимации
+                } catch (error) {
+                    // При ошибке откатываем изменения (как в ProductCard)
+                    await fetchKanbanData();
+                }
             }
         } else {
             // console.log('ℹ️ Перетаскивание отменено или не завершено');
