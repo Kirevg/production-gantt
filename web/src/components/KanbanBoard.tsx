@@ -155,13 +155,11 @@ interface SortableProductCardProps {
     productName: string;
     productOrderIndex: number;
     projectId: string;
-    allProductsCollapsed: boolean; // Флаг: все изделия в проекте свернуты
     children: React.ReactNode;
 }
 
 const SortableProductCard: React.FC<SortableProductCardProps> = ({
     productId,
-    allProductsCollapsed,
     children
 }) => {
     const {
@@ -2524,7 +2522,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     productName={productName}
                                                                                     productOrderIndex={productOrderIndex}
                                                                                     projectId={projectId}
-                                                                                    allProductsCollapsed={allProductsCollapsed}
                                                                                 >
                                                                                     {/* Контейнер изделия с рамкой */}
                                                                                     <Paper
