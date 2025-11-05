@@ -215,21 +215,15 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
         listeners,
         setNodeRef,
         transform,
+        transition,
         isDragging,
         isOver,
     } = useSortable({ id: task.id });
 
-    // Определяем, есть ли смещение для анимации
-    const hasTransform = transform && (transform.x !== 0 || transform.y !== 0);
-
-    // Ограничиваем движение только по горизонтали (только по оси X)
-    const horizontalTransform = transform ? { ...transform, y: 0 } : null;
-
     const style = {
-        transform: horizontalTransform ? CSS.Transform.toString(horizontalTransform) : undefined,
-        transition: isDragging ? 'none' : hasTransform ? 'transform 0.2s ease' : 'none',
-        opacity: isDragging ? 0.8 : 1,
-        zIndex: isDragging ? 1000 : 'auto',
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
     };
 
     return (
@@ -243,14 +237,7 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
                 minWidth: '150px',
                 border: isOver ? '2px solid #1976d2' : '2px solid #616161',
                 cursor: isDragging ? 'grabbing' : 'grab',
-                // Убираем transition: 'all' чтобы не конфликтовал с transform в style
                 backgroundColor: isOver ? 'rgba(25, 118, 210, 0.05)' : 'transparent',
-                '&:hover': {
-                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                    transform: isDragging ? 'none' : 'translateY(-2px)',
-                    transition: 'transform 0.2s ease',
-                    border: isOver ? '2px solid #1976d2' : '2px solid #616161' // Явно указываем border при hover
-                }
             }}
             onDoubleClick={() => onDoubleClick(task)}
             onContextMenu={(e: React.MouseEvent) => onContextMenu(e, task)}
