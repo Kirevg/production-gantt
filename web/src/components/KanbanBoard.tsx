@@ -248,7 +248,8 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
                 '&:hover': {
                     boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                     transform: isDragging ? 'none' : 'translateY(-2px)',
-                    transition: 'transform 0.2s ease'
+                    transition: 'transform 0.2s ease',
+                    border: isOver ? '2px solid #1976d2' : '2px solid #616161' // Явно указываем border при hover
                 }
             }}
             onDoubleClick={() => onDoubleClick(task)}
@@ -2823,8 +2824,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                             alignItems: 'flex-start',
                                                                                                             minHeight: '60px', // Минимальная высота для стабильности
                                                                                                             position: 'relative', // Для правильного позиционирования
-                                                                                                            overflow: 'hidden', // Скрываем карточки, выходящие за границы изделия
-                                                                                                            width: '100%' // Полная ширина контейнера
+                                                                                                            overflow: 'visible', // Изменено на visible, чтобы границы не обрезались при hover
+                                                                                                            width: '100%', // Полная ширина контейнера
+                                                                                                            ml: 2,
+                                                                                                            // mb: 1,
+                                                                                                            mt: 1,
+                                                                                                            pt: '2px' // Добавляем небольшой padding-top, чтобы верхняя граница не обрезалась при hover
                                                                                                         }}>
                                                                                                             {actualStages.map((task) => (
                                                                                                                 <SortableStageCard

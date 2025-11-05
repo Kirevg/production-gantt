@@ -190,19 +190,6 @@ button:focus-visible {
   font-size: 1.0rem;
 }
 
-/* Кастомный класс по запросу */
-.css-o3fzd0 {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: flex-start;
-  min-height: 60px;
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  margin-bottom: 8px;
-  margin-left: 16px;
-}
 
 /* Кастомные классы по запросу */
 .css-12nk8gj {
