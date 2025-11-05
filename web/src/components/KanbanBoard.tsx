@@ -479,6 +479,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         link: ''
     });
     const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]); // Каталог изделий для выпадающего списка
+    // Состояние для хранения ссылок на модели по productId
+    const [productModelLinks, setProductModelLinks] = useState<Record<string, Array<{ id: string; name: string; url: string; createdAt: string }>>>({});
 
     // Сенсоры для drag-and-drop с ограничениями
     const sensors = useSensors(
@@ -590,11 +592,48 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             // Порядок уже отсортирован в API по orderIndex
             setKanbanTasks(tasks);
+
+            // Загружаем ссылки на модели для всех изделий
+            const uniqueProductIds = Array.from(new Set(tasks.map(t => t.productId).filter(Boolean) as string[]));
+            await fetchModelLinksForProducts(uniqueProductIds);
         } catch (err) {
             // console.error('Ошибка загрузки данных канбан-доски:', err);
             setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Функция для загрузки ссылок на модели для всех изделий
+    const fetchModelLinksForProducts = async (productIds: string[]) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token || productIds.length === 0) return;
+
+            const linksMap: Record<string, Array<{ id: string; name: string; url: string; createdAt: string }>> = {};
+
+            // Загружаем ссылки для каждого изделия
+            await Promise.all(productIds.map(async (productId) => {
+                try {
+                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}/model-links`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const links = await response.json();
+                        linksMap[productId] = links;
+                    }
+                } catch (error) {
+                    console.error(`Ошибка загрузки ссылок для изделия ${productId}:`, error);
+                }
+            }));
+
+            setProductModelLinks(linksMap);
+        } catch (error) {
+            console.error('Ошибка загрузки ссылок на модели:', error);
         }
     };
 
@@ -1122,69 +1161,56 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         }
     };
 
-    // Загрузка каталога изделий из всех проектов
-    const fetchCatalogProducts = async () => {
+    // Загрузка каталога изделий из конкретного проекта (только уникальные названия)
+    const fetchCatalogProducts = async (projectId: string) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) return;
 
-            // Загружаем изделия из всех проектов для выпадающего списка
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects`, {
+            // Загружаем изделия только из указанного проекта
+            const productsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/products`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
 
-            if (!response.ok) {
-                // console.error('Ошибка загрузки проектов для каталога изделий');
+            if (!productsResponse.ok) {
+                // console.error('Ошибка загрузки изделий для проекта');
+                setCatalogProducts([]);
                 return;
             }
 
-            const projects = await response.json();
+            const products = await productsResponse.json();
 
-            // Собираем уникальные изделия из всех проектов
+            // Собираем уникальные изделия по названию (только для данного проекта)
             const uniqueProductsMap = new Map<string, { id: string, name: string }>();
 
-            for (const project of projects) {
-                try {
-                    const productsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${project.id}/products`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (productsResponse.ok) {
-                        const products = await productsResponse.json();
-                        products.forEach((product: any) => {
-                            if (product.product?.id && product.product?.name) {
-                                const nameKey = product.product.name.trim().toLowerCase();
-                                if (!uniqueProductsMap.has(nameKey)) {
-                                    uniqueProductsMap.set(nameKey, {
-                                        id: product.product.id,
-                                        name: product.product.name
-                                    });
-                                }
-                            }
+            products.forEach((product: any) => {
+                if (product.product?.id && product.product?.name) {
+                    const nameKey = product.product.name.trim().toLowerCase();
+                    // Если название еще не добавлено, добавляем его
+                    if (!uniqueProductsMap.has(nameKey)) {
+                        uniqueProductsMap.set(nameKey, {
+                            id: product.product.id,
+                            name: product.product.name
                         });
                     }
-                } catch (error) {
-                    // console.error(`Ошибка загрузки изделий для проекта ${project.id}:`, error);
                 }
-            }
+            });
 
             const uniqueProducts = Array.from(uniqueProductsMap.values());
             setCatalogProducts(uniqueProducts);
         } catch (error) {
             // console.error('Ошибка загрузки каталога изделий:', error);
+            setCatalogProducts([]);
         }
     };
 
     // Обработчик открытия диалога создания изделия
     const handleAddProduct = async (projectId: string) => {
-        // Загружаем каталог изделий
-        await fetchCatalogProducts();
+        // Загружаем каталог изделий только для данного проекта
+        await fetchCatalogProducts(projectId);
 
         // Открываем диалог создания изделия
         setProductForm({
@@ -1220,8 +1246,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             if (response.ok) {
                 const data = await response.json();
 
-                // Загружаем каталог изделий
-                await fetchCatalogProducts();
+                // Загружаем каталог изделий только для данного проекта
+                await fetchCatalogProducts(projectId);
 
                 // Заполняем форму данными изделия
                 // data.productId - это ID CatalogProduct (из справочника)
@@ -1814,7 +1840,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         // Отключаем автоматическое возвращение карточек в исходное положение
         // Теперь мы сами управляем позициями через состояние
         >
-            <Box sx={{ width: '100%', minHeight: '600px', minWidth: '1200px' }}>
+            <Box sx={{ minHeight: '600px', minWidth: '1400px', maxWidth: '1400px' }}>
                 {/* Канбан-доска */}
                 <Paper sx={{
                     minHeight: 'calc(100% - 80px)',
@@ -2541,6 +2567,76 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: serialNumber ? '#423189' : '#d32f2f' }}>
                                                                                                     {serialNumber ? `(Сер № ${serialNumber})` : '(Сер № ...)'}
                                                                                                 </Typography>
+                                                                                                {/* Контейнер с кнопками ссылок на модели */}
+                                                                                                <Box sx={{ display: 'flex', gap: 0.5, ml: 1, flexWrap: 'wrap' }}>
+                                                                                                    {(() => {
+                                                                                                        const productIdForLinks = productTasks[0]?.productId;
+                                                                                                        if (!productIdForLinks) return null;
+
+                                                                                                        const links = productModelLinks[productIdForLinks] || [];
+                                                                                                        
+                                                                                                        // Группируем ссылки по названию, берем с самой поздней датой
+                                                                                                        const linksByName = new Map<string, { id: string; name: string; url: string; createdAt: string }>();
+                                                                                                        links.forEach(link => {
+                                                                                                            const existing = linksByName.get(link.name);
+                                                                                                            if (!existing || new Date(link.createdAt) > new Date(existing.createdAt)) {
+                                                                                                                linksByName.set(link.name, link);
+                                                                                                            }
+                                                                                                        });
+
+                                                                                                        const uniqueLinks = Array.from(linksByName.values());
+
+                                                                                                        if (uniqueLinks.length === 0) {
+                                                                                                            return (
+                                                                                                                <Box
+                                                                                                                    component="button"
+                                                                                                                    sx={{
+                                                                                                                        padding: '2px 8px',
+                                                                                                                        fontSize: '11px',
+                                                                                                                        border: '1px solid #ccc',
+                                                                                                                        borderRadius: '4px',
+                                                                                                                        backgroundColor: '#f5f5f5',
+                                                                                                                        cursor: 'default',
+                                                                                                                        color: '#666',
+                                                                                                                        '&:hover': {
+                                                                                                                            backgroundColor: '#e0e0e0'
+                                                                                                                        }
+                                                                                                                    }}
+                                                                                                                >
+                                                                                                                    Ссылки нет
+                                                                                                                </Box>
+                                                                                                            );
+                                                                                                        }
+
+                                                                                                        return uniqueLinks.map(link => (
+                                                                                                            <Box
+                                                                                                                key={link.id}
+                                                                                                                component="a"
+                                                                                                                href={link.url}
+                                                                                                                target="_blank"
+                                                                                                                rel="noopener noreferrer"
+                                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                                sx={{
+                                                                                                                    padding: '2px 8px',
+                                                                                                                    fontSize: '11px',
+                                                                                                                    border: '1px solid #1976d2',
+                                                                                                                    borderRadius: '4px',
+                                                                                                                    backgroundColor: '#e3f2fd',
+                                                                                                                    color: '#1976d2',
+                                                                                                                    textDecoration: 'none',
+                                                                                                                    cursor: 'pointer',
+                                                                                                                    '&:hover': {
+                                                                                                                        backgroundColor: '#bbdefb',
+                                                                                                                        textDecoration: 'none'
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                                title={link.url}
+                                                                                                            >
+                                                                                                                {link.name}
+                                                                                                            </Box>
+                                                                                                        ));
+                                                                                                    })()}
+                                                                                                </Box>
                                                                                             </Box>
                                                                                         </Box>
 

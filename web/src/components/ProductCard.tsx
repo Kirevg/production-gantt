@@ -88,6 +88,17 @@ interface Stage {
     updatedAt: string;
 }
 
+// Интерфейсы для ссылок на модели
+interface ModelLink {
+    id: string;
+    productId: string;
+    name: string;
+    url: string;
+    description?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 // Функция для форматирования суммы в формате "0 000,00"
 const formatSum = (value: string | undefined | null): string => {
     if (!value || value === '') return '';
@@ -108,6 +119,35 @@ const formatSum = (value: string | undefined | null): string => {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
+};
+
+// Функция для сокращения URL - показывает домен и последние символы, если URL слишком длинный
+const shortenUrl = (url: string, maxLength: number = 50): string => {
+    if (!url || url.length <= maxLength) return url;
+
+    try {
+        const urlObj = new URL(url);
+        const domain = urlObj.hostname;
+        const path = urlObj.pathname + urlObj.search;
+        
+        // Если домен + путь короткие, возвращаем как есть
+        if ((domain + path).length <= maxLength) {
+            return domain + path;
+        }
+        
+        // Если путь слишком длинный, показываем домен + начало и конец пути
+        if (path.length > maxLength - domain.length - 10) {
+            const pathStart = path.substring(0, 20);
+            const pathEnd = path.substring(path.length - 15);
+            return `${domain}${pathStart}...${pathEnd}`;
+        }
+        
+        return `${domain}${path}`;
+    } catch {
+        // Если не удалось распарсить URL, просто обрезаем
+        if (url.length <= maxLength) return url;
+        return url.substring(0, maxLength - 3) + '...';
+    }
 };
 
 interface ProductCardProps {
@@ -162,6 +202,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             fetchProductData();
             fetchSpecifications();
             fetchStages();
+            fetchModelLinks();
         }
     }, [currentProductId, projectId]);
 
@@ -209,8 +250,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [versionCompareData, setVersionCompareData] = useState<any>(null);
     const [versionCompareLoading, setVersionCompareLoading] = useState(false);
 
-    // Состояние для активной вкладки (0 - Список спецификаций, 1 - Этапы работ)
+    // Состояние для активной вкладки (0 - Этапы работ, 1 - Список спецификаций, 2 - Ссылки на модели)
     const [activeTab, setActiveTab] = useState(0);
+
+    // Состояние для ссылок на модели
+    const [modelLinks, setModelLinks] = useState<ModelLink[]>([]);
+    const [modelLinksLoading, setModelLinksLoading] = useState(false);
+    const [openModelLinkDialog, setOpenModelLinkDialog] = useState(false);
+    const [editingModelLink, setEditingModelLink] = useState<ModelLink | null>(null);
+    const [modelLinkForm, setModelLinkForm] = useState({
+        name: '',
+        url: '',
+        description: ''
+    });
 
     // Настройка сенсоров для drag-and-drop этапов
     const sensors = useSensors(
@@ -398,6 +450,42 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }
         } catch (error) {
             //// console.('Ошибка загрузки справочников:', error);
+        }
+    };
+
+    // Загрузка ссылок на модели
+    const fetchModelLinks = async () => {
+        try {
+            setModelLinksLoading(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                return;
+            }
+
+            const productIdToUse = currentProductId || productId;
+            if (!productIdToUse || productIdToUse.startsWith('temp-')) {
+                setModelLinks([]);
+                setModelLinksLoading(false);
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products/${productIdToUse}/model-links`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setModelLinks(data);
+        } catch (error) {
+            console.error('Ошибка загрузки ссылок на модели:', error);
+        } finally {
+            setModelLinksLoading(false);
         }
     };
 
@@ -1164,6 +1252,116 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
+    // Обработчики для ссылок на модели
+    const handleOpenModelLinkDialog = (modelLink?: ModelLink) => {
+        if (modelLink) {
+            setEditingModelLink(modelLink);
+            setModelLinkForm({
+                name: modelLink.name,
+                url: modelLink.url,
+                description: modelLink.description || ''
+            });
+        } else {
+            setEditingModelLink(null);
+            setModelLinkForm({
+                name: '',
+                url: '',
+                description: ''
+            });
+        }
+        setOpenModelLinkDialog(true);
+    };
+
+    const handleCloseModelLinkDialog = () => {
+        setOpenModelLinkDialog(false);
+        setEditingModelLink(null);
+        setModelLinkForm({
+            name: '',
+            url: '',
+            description: ''
+        });
+    };
+
+    const handleSaveModelLink = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                return;
+            }
+
+            const productIdToUse = currentProductId || productId;
+            if (!productIdToUse || productIdToUse.startsWith('temp-')) {
+                alert('Сначала сохраните изделие, а затем создавайте ссылки на модели');
+                return;
+            }
+
+            if (!modelLinkForm.name.trim() || !modelLinkForm.url.trim()) {
+                alert('Пожалуйста, заполните название и ссылку');
+                return;
+            }
+
+            const url = editingModelLink
+                ? `${import.meta.env.VITE_API_BASE_URL}/model-links/${editingModelLink.id}`
+                : `${import.meta.env.VITE_API_BASE_URL}/products/${productIdToUse}/model-links`;
+
+            const method = editingModelLink ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: modelLinkForm.name.trim(),
+                    url: modelLinkForm.url.trim(),
+                    description: modelLinkForm.description.trim() || undefined
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                alert(`Ошибка при сохранении ссылки: ${errorData.error || 'Неизвестная ошибка'}`);
+                return;
+            }
+
+            await fetchModelLinks();
+            handleCloseModelLinkDialog();
+        } catch (error) {
+            console.error('Ошибка сохранения ссылки на модель:', error);
+            alert('Произошла ошибка при сохранении ссылки на модель');
+        }
+    };
+
+    const handleDeleteModelLink = async (modelLinkId: string) => {
+        if (!window.confirm('Вы уверены, что хотите удалить эту ссылку на модель?')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                return;
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/model-links/${modelLinkId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await fetchModelLinks();
+        } catch (error) {
+            console.error('Ошибка удаления ссылки на модель:', error);
+            alert('Произошла ошибка при удалении ссылки на модель');
+        }
+    };
+
     // Обработчик завершения перетаскивания для этапов
     const handleDragEnd = async (event: any) => {
         const { active, over } = event;
@@ -1446,6 +1644,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             Добавить
                         </VolumeButton>
                     )}
+                    {activeTab === 2 && canCreate() && (
+                        <VolumeButton
+                            variant="contained"
+                            onClick={() => handleOpenModelLinkDialog()}
+                            color="blue"
+                        >
+                            Добавить
+                        </VolumeButton>
+                    )}
                 </Box>
 
                 {/* Секция этапов работ */}
@@ -1711,9 +1918,116 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 {/* Секция ссылок на модели */}
                 {activeTab === 2 && (
                     <Box>
-                        <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                            Ссылки на модели
-                        </Typography>
+                        {!productId ? (
+                            <Alert severity="info" sx={{ mb: 2 }}>
+                                Для просмотра ссылок на модели необходимо выбрать изделие
+                            </Alert>
+                        ) : (
+                            <>
+                                {/* Таблица ссылок на модели */}
+                                <TableContainer component={Paper}>
+                                    <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                                        <TableHead>
+                                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '300px' }}>Название</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: 'auto' }}>Ссылка</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '300px' }}>Описание</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '150px' }}>Дата создания</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px' }}>
+                                                    <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {modelLinksLoading ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                                        <LinearProgress />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : modelLinks.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                                        <Typography variant="body1" color="text.secondary">
+                                                            Список ссылок на модели пуст
+                                                        </Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                modelLinks.map((modelLink) => (
+                                                    <TableRow 
+                                                        key={modelLink.id} 
+                                                        sx={{ 
+                                                            height: '35px',
+                                                            cursor: canEdit() ? 'pointer' : 'default',
+                                                            '&:hover': canEdit() ? { backgroundColor: '#f5f5f5' } : {}
+                                                        }}
+                                                        onDoubleClick={() => {
+                                                            if (canEdit()) {
+                                                                handleOpenModelLinkDialog(modelLink);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <TableCell sx={{ py: 0.5, width: '300px' }}>
+                                                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                                                {modelLink.name}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell sx={{ py: 0.5, width: 'auto' }}>
+                                                            <Typography
+                                                                variant="body2"
+                                                                component="a"
+                                                                href={modelLink.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title={modelLink.url}
+                                                                sx={{
+                                                                    color: '#1976d2',
+                                                                    textDecoration: 'none',
+                                                                    display: 'block',
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    whiteSpace: 'nowrap',
+                                                                    '&:hover': {
+                                                                        textDecoration: 'underline'
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {shortenUrl(modelLink.url, 60)}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell sx={{ py: 0.5, width: '300px' }}>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {modelLink.description || ''}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
+                                                            {formatDate(modelLink.createdAt)}
+                                                        </TableCell>
+                                                        <TableCell 
+                                                            sx={{ textAlign: 'center', py: 0.5, width: '40px' }}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {canDelete() && (
+                                                                <IconButton
+                                                                    size="small"
+                                                                    onClick={() => handleDeleteModelLink(modelLink.id)}
+                                                                    color="error"
+                                                                    sx={{ minWidth: 'auto', padding: '4px' }}
+                                                                >
+                                                                    <DeleteIcon fontSize="small" />
+                                                                </IconButton>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </>
+                        )}
                     </Box>
                 )}
             </Box>
@@ -1766,6 +2080,55 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 onSave={handleSaveStage}
                 onChange={setStageForm}
             />
+
+            {/* Диалог создания/редактирования ссылки на модель */}
+            <Dialog open={openModelLinkDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
+                <DialogTitle>
+                    {editingModelLink ? 'Редактировать ссылку на модель' : 'Создать ссылку на модель'}
+                </DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Название"
+                        fullWidth
+                        variant="outlined"
+                        value={modelLinkForm.name}
+                        onChange={(e) => setModelLinkForm({ ...modelLinkForm, name: e.target.value })}
+                        required
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Ссылка (URL)"
+                        fullWidth
+                        variant="outlined"
+                        value={modelLinkForm.url}
+                        onChange={(e) => setModelLinkForm({ ...modelLinkForm, url: e.target.value })}
+                        required
+                        placeholder="https://example.com/model"
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Описание"
+                        fullWidth
+                        multiline
+                        rows={3}
+                        variant="outlined"
+                        value={modelLinkForm.description}
+                        onChange={(e) => setModelLinkForm({ ...modelLinkForm, description: e.target.value })}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <VolumeButton onClick={handleSaveModelLink} color="blue">
+                        {editingModelLink ? 'Сохранить' : 'Создать'}
+                    </VolumeButton>
+                    <VolumeButton onClick={handleCloseModelLinkDialog} color="orange">
+                        Отмена
+                    </VolumeButton>
+                </DialogActions>
+            </Dialog>
 
             {/* Диалог редактирования/создания изделия */}
             <ProductDialog
