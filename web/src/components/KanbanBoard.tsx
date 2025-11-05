@@ -119,8 +119,11 @@ const SortableProjectCard: React.FC<SortableProjectCardProps> = ({
     // Определяем, есть ли смещение для анимации
     const hasTransform = transform && (transform.x !== 0 || transform.y !== 0);
 
+    // Ограничиваем движение только по вертикали (только по оси Y)
+    const verticalTransform = transform ? { ...transform, x: 0 } : null;
+
     const style = {
-        transform: CSS.Transform.toString(transform),
+        transform: verticalTransform ? CSS.Transform.toString(verticalTransform) : undefined,
         transition: isDragging ? 'none' : hasTransform ? 'transform 0.2s ease' : 'none',
         opacity: isDragging ? 0.8 : 1,
         zIndex: isDragging ? 1000 : 'auto',
@@ -172,8 +175,11 @@ const SortableProductCard: React.FC<SortableProductCardProps> = ({
     // Определяем, есть ли смещение для анимации
     const hasTransform = transform && (transform.x !== 0 || transform.y !== 0);
 
+    // Ограничиваем движение только по вертикали (только по оси Y)
+    const verticalTransform = transform ? { ...transform, x: 0 } : null;
+
     const style = {
-        transform: CSS.Transform.toString(transform),
+        transform: verticalTransform ? CSS.Transform.toString(verticalTransform) : undefined,
         transition: isDragging ? 'none' : hasTransform ? 'transform 0.2s ease' : 'none',
         opacity: isDragging ? 0.8 : 1,
         zIndex: isDragging ? 1000 : 'auto',
