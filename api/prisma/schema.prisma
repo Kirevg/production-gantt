@@ -130,6 +130,7 @@ model ProjectProduct {
   project                          Project                           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   workStages                       WorkStage[]
   projectProductSpecificationLists ProjectProductSpecificationList[]
+  modelLinks                       ModelLink[]
 
   @@index([projectId])
   @@index([productId])
@@ -159,6 +160,19 @@ model WorkStage {
   @@index([nomenclatureItemId])
   @@index([assigneeId])
   @@index([startDate, endDate])
+}
+
+model ModelLink {
+  id          String         @id @default(uuid())
+  productId   String
+  name        String
+  url         String
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  product     ProjectProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
 }
 
 model ProjectProductSpecificationList {
