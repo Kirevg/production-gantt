@@ -1931,7 +1931,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 borderRadius: '6px',
                                                                 backgroundColor: '#FFE082',
                                                                 color: '#000',
-                                                                width: '90px'
+                                                                width: '80px'
                                                             }}
                                                         />
                                                     }
@@ -1949,7 +1949,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             label="В работе"
                                                             color="primary"
                                                             size="small"
-                                                            sx={{ borderRadius: '6px', width: '90px' }}
+                                                            sx={{ borderRadius: '6px', width: '80px' }}
                                                         />
                                                     }
                                                 />
@@ -1966,7 +1966,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             label="Готово"
                                                             color="success"
                                                             size="small"
-                                                            sx={{ borderRadius: '6px', width: '90px' }}
+                                                            sx={{ borderRadius: '6px', width: '80px' }}
                                                         />
                                                     }
                                                 />
@@ -1983,7 +1983,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             label="Проблемы"
                                                             color="error"
                                                             size="small"
-                                                            sx={{ borderRadius: '6px', width: '90px' }}
+                                                            sx={{ borderRadius: '6px', width: '80px' }}
                                                         />
                                                     }
                                                 />
@@ -2001,7 +2001,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             size="small"
                                                             sx={{ 
                                                                 borderRadius: '6px', 
-                                                                width: '90px',
+                                                                width: '80px',
                                                                 backgroundColor: '#9e9e9e',
                                                                 color: '#fff'
                                                             }}
@@ -2292,7 +2292,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                         sx={{
                                                                             cursor: 'pointer',
                                                                             borderRadius: '6px',
-                                                                            minWidth: '90px',
+                                                                            minWidth: '80px',
                                                                             ...(tasks[0]?.projectStatus === 'InProject' && {
                                                                                 backgroundColor: '#FFE082',
                                                                                 color: '#000'
@@ -2322,7 +2322,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 size="small"
                                                                                 sx={{
                                                                                     borderRadius: '6px',
-                                                                                    width: '90px',
+                                                                                    width: '80px',
                                                                                     backgroundColor: '#FFE082',
                                                                                     color: '#000'
                                                                                 }}
@@ -2338,7 +2338,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 label="В работе"
                                                                                 color="primary"
                                                                                 size="small"
-                                                                                sx={{ borderRadius: '6px', width: '90px' }}
+                                                                                sx={{ borderRadius: '6px', width: '80px' }}
                                                                             />
                                                                         </MenuItem>
                                                                         <MenuItem
@@ -2351,7 +2351,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 label="Готово"
                                                                                 color="success"
                                                                                 size="small"
-                                                                                sx={{ borderRadius: '6px', width: '90px' }}
+                                                                                sx={{ borderRadius: '6px', width: '80px' }}
                                                                             />
                                                                         </MenuItem>
                                                                         <MenuItem
@@ -2364,7 +2364,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 label="Проблемы"
                                                                                 color="error"
                                                                                 size="small"
-                                                                                sx={{ borderRadius: '6px', width: '90px' }}
+                                                                                sx={{ borderRadius: '6px', width: '80px' }}
                                                                             />
                                                                         </MenuItem>
                                                                         <MenuItem
@@ -2378,7 +2378,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 size="small"
                                                                                 sx={{ 
                                                                                     borderRadius: '6px', 
-                                                                                    width: '90px',
+                                                                                    width: '80px',
                                                                                     backgroundColor: '#9e9e9e',
                                                                                     color: '#fff'
                                                                                 }}

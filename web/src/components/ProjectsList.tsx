@@ -454,7 +454,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                         }
                         size="small"
                         sx={{
-                            width: '90px',
+                            width: '80px',
                             borderRadius: '6px',
                             ...(project.status === 'InProject' && {
                                 backgroundColor: '#FFE082',
