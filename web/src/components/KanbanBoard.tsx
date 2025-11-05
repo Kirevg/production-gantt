@@ -1108,16 +1108,40 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Группируем этапы по изделиям для отправки на сервер
             const stagesByProduct = new Map<string, Array<{ id: string; order: number }>>();
 
-            tasks.forEach((task, index) => {
-                if (task.productId) {
+            // Сначала группируем все задачи по productId
+            tasks.forEach((task) => {
+                if (task.productId && task.id && !task.id.startsWith('product-only-') && task.name && task.name.trim() !== '') {
                     if (!stagesByProduct.has(task.productId)) {
                         stagesByProduct.set(task.productId, []);
                     }
                     stagesByProduct.get(task.productId)!.push({
                         id: task.id,
-                        order: index
+                        order: 0 // Временно, будет установлен ниже
                     });
                 }
+            });
+
+            // Для каждого изделия вычисляем порядок этапов внутри этого изделия
+            stagesByProduct.forEach((stages, productId) => {
+                // Фильтруем задачи только для этого изделия и сортируем их по текущему порядку в массиве tasks
+                const productTasks = tasks
+                    .filter(task => 
+                        task.productId === productId && 
+                        task.id && 
+                        !task.id.startsWith('product-only-') && 
+                        task.name && 
+                        task.name.trim() !== ''
+                    )
+                    .map((task) => ({ task, originalIndex: tasks.indexOf(task) }))
+                    .sort((a, b) => a.originalIndex - b.originalIndex);
+
+                // Обновляем порядок для каждого этапа
+                productTasks.forEach(({ task }, index) => {
+                    const stage = stages.find(s => s.id === task.id);
+                    if (stage) {
+                        stage.order = index;
+                    }
+                });
             });
 
             // Отправляем обновления для каждого изделия
