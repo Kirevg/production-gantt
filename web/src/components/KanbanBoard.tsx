@@ -863,6 +863,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                     // Обновляем orderIndex для всех этапов этого изделия в новом порядке
                     const productId = activeTask.productId;
+                    
+                    // Фильтруем только этапы этого изделия и сохраняем их порядок в массиве после arrayMove
                     const productStages = newTasks
                         .filter(task =>
                             task.productId === productId &&
@@ -870,13 +872,17 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             !task.id.startsWith('product-only-') &&
                             task.name &&
                             task.name.trim() !== ''
-                        )
-                        .map((task) => ({ task, originalIndex: newTasks.indexOf(task) }))
-                        .sort((a, b) => a.originalIndex - b.originalIndex);
+                        );
 
-                    // Обновляем orderIndex в локальном состоянии
+                    // Сохраняем порядок элементов в массиве (после arrayMove порядок уже правильный)
+                    const stagesWithOrder = productStages.map((task, index) => ({
+                        id: task.id,
+                        order: index
+                    }));
+
+                    // Обновляем orderIndex в локальном состоянии для всех этапов этого изделия
                     const updatedTasks = newTasks.map(task => {
-                        const stageIndex = productStages.findIndex(({ task: t }) => t.id === task.id);
+                        const stageIndex = stagesWithOrder.findIndex((s) => s.id === task.id);
                         if (stageIndex !== -1 && task.productId === productId) {
                             return {
                                 ...task,
@@ -888,9 +894,33 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                     setKanbanTasks(updatedTasks);
 
-                    // 💾 СОХРАНЯЕМ НОВЫЙ ПОРЯДОК
-                    // console.log('💾 Сохранение порядка при отпускании кнопки мыши');
-                    await saveTaskOrder(updatedTasks);
+                    // 💾 СОХРАНЯЕМ НОВЫЙ ПОРЯДОК НА СЕРВЕРЕ (как в ProductCard)
+                    try {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                            return;
+                        }
+
+                        const response = await fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
+                            {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ stages: stagesWithOrder })
+                            }
+                        );
+
+                        if (!response.ok) {
+                            // При ошибке откатываем изменения
+                            await fetchKanbanData();
+                        }
+                    } catch (error) {
+                        // При ошибке откатываем изменения
+                        await fetchKanbanData();
+                    }
 
                     // console.log('✅ Карточка успешно перемещена и сохранена');
                 }
@@ -1137,95 +1167,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         }
     };
 
-    // Функция сохранения порядка этапов
-    const saveTaskOrder = async (tasks: KanbanTask[]) => {
-        try {
-            // Группируем этапы по изделиям для отправки на сервер
-            const stagesByProduct = new Map<string, Array<{ id: string; order: number }>>();
-
-            // Сначала группируем все задачи по productId
-            tasks.forEach((task) => {
-                if (task.productId && task.id && !task.id.startsWith('product-only-') && task.name && task.name.trim() !== '') {
-                    if (!stagesByProduct.has(task.productId)) {
-                        stagesByProduct.set(task.productId, []);
-                    }
-                    stagesByProduct.get(task.productId)!.push({
-                        id: task.id,
-                        order: 0 // Временно, будет установлен ниже
-                    });
-                }
-            });
-
-            // Для каждого изделия вычисляем порядок этапов внутри этого изделия
-            stagesByProduct.forEach((stages, productId) => {
-                // Фильтруем задачи только для этого изделия
-                // Важно: сохраняем порядок элементов в массиве tasks, который уже обновлен через arrayMove
-                const productTasks = tasks
-                    .filter(task =>
-                        task.productId === productId &&
-                        task.id &&
-                        !task.id.startsWith('product-only-') &&
-                        task.name &&
-                        task.name.trim() !== ''
-                    )
-                    // Сохраняем порядок элементов в массиве tasks (после arrayMove порядок уже правильный)
-                    .map((task) => ({ task, index: tasks.indexOf(task) }))
-                    .sort((a, b) => a.index - b.index);
-
-                // Обновляем порядок для каждого этапа на основе позиции в массиве
-                productTasks.forEach(({ task }, index) => {
-                    const stage = stages.find(s => s.id === task.id);
-                    if (stage) {
-                        stage.order = index;
-                    }
-                });
-            });
-
-            // Отправляем обновления для каждого изделия
-            const token = localStorage.getItem('token');
-            if (!token) {
-                // console.warn('Токен не найден');
-                return;
-            }
-
-            const updatePromises = Array.from(stagesByProduct.entries()).map(async ([productId, stages]) => {
-                try {
-                    const response = await fetch(
-                        `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
-                        {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ stages })
-                        }
-                    );
-
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                        throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
-                    }
-
-                    // console.log(`✅ Порядок этапов для изделия ${productId} сохранен на сервере`);
-                } catch (error) {
-                    // console.error(`❌ Ошибка сохранения порядка для изделия ${productId}:`, error);
-                    // Не прерываем выполнение, продолжаем с другими изделиями
-                }
-            });
-
-            await Promise.all(updatePromises);
-            // console.log('✅ Все обновления порядка этапов завершены');
-
-            // Не обновляем данные с сервера, так как мы уже оптимистично обновили локальное состояние
-            // Это предотвращает "подпрыгивание" элементов
-            // Данные будут обновлены при следующей загрузке или при других действиях
-        } catch (error) {
-            // console.error('Ошибка сохранения порядка этапов:', error);
-            // При ошибке обновляем данные, чтобы восстановить правильное состояние
-            await fetchKanbanData();
-        }
-    };
 
     // Загрузка каталога изделий из конкретного проекта (только уникальные названия)
     const fetchCatalogProducts = async (projectId: string) => {
