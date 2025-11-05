@@ -883,78 +883,85 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 const productId = activeTask.productId;
 
                 // Берем этапы этого изделия из локального состояния (как в ProductCard)
-                const productStages = productStagesMap.get(productId) || [];
+                // Используем функциональное обновление для получения актуального состояния
+                setProductStagesMap((currentMap) => {
+                    const productStages = currentMap.get(productId) || [];
 
-                // Находим индексы для перемещения в массиве этапов этого изделия (как в ProductCard)
-                const oldIndex = productStages.findIndex((task) => task.id === active.id);
-                const newIndex = productStages.findIndex((task) => task.id === over.id);
+                    // Находим индексы для перемещения в массиве этапов этого изделия (как в ProductCard)
+                    const oldIndex = productStages.findIndex((task) => task.id === active.id);
+                    const newIndex = productStages.findIndex((task) => task.id === over.id);
 
-                if (oldIndex === -1 || newIndex === -1) {
-                    return;
-                }
-
-                // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
-                const newProductStages = arrayMove(productStages, oldIndex, newIndex);
-
-                // Обновляем orderIndex для всех этапов
-                const updatedProductStages = newProductStages.map((stage, index) => ({
-                    ...stage,
-                    orderIndex: index
-                }));
-
-                // СНАЧАЛА обновляем локальное состояние для анимации (как в ProductCard)
-                const newProductStagesMap = new Map(productStagesMap);
-                newProductStagesMap.set(productId, updatedProductStages);
-                setProductStagesMap(newProductStagesMap);
-
-                // Обновляем глобальный массив kanbanTasks для синхронизации
-                const updatedTasks = kanbanTasks.map(task => {
-                    if (task.productId === productId &&
-                        task.id &&
-                        !task.id.startsWith('product-only-') &&
-                        task.name &&
-                        task.name.trim() !== '') {
-                        const updatedStage = updatedProductStages.find(s => s.id === task.id);
-                        return updatedStage || task;
+                    if (oldIndex === -1 || newIndex === -1) {
+                        return currentMap; // Возвращаем текущее состояние без изменений
                     }
-                    return task;
-                });
-                setKanbanTasks(updatedTasks);
 
-                // ПОТОМ отправляем на сервер после завершения анимации (через небольшой таймаут)
-                setTimeout(async () => {
-                    try {
-                        const token = localStorage.getItem('token');
-                        if (!token) {
-                            return;
-                        }
+                    // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
+                    const newProductStages = arrayMove(productStages, oldIndex, newIndex);
 
-                        const stagesWithOrder = updatedProductStages.map((task, index) => ({
-                            id: task.id,
-                            order: index
-                        }));
+                    // Обновляем orderIndex для всех этапов
+                    const updatedProductStages = newProductStages.map((stage, index) => ({
+                        ...stage,
+                        orderIndex: index
+                    }));
 
-                        const response = await fetch(
-                            `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
-                            {
-                                method: 'PUT',
-                                headers: {
-                                    'Authorization': `Bearer ${token}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ stages: stagesWithOrder })
+                    // Создаем новую Map с обновленными этапами
+                    const newProductStagesMap = new Map(currentMap);
+                    newProductStagesMap.set(productId, updatedProductStages);
+
+                    // Обновляем глобальный массив kanbanTasks для синхронизации
+                    setKanbanTasks((currentTasks) => {
+                        return currentTasks.map(task => {
+                            if (task.productId === productId &&
+                                task.id &&
+                                !task.id.startsWith('product-only-') &&
+                                task.name &&
+                                task.name.trim() !== '') {
+                                const updatedStage = updatedProductStages.find(s => s.id === task.id);
+                                return updatedStage || task;
                             }
-                        );
+                            return task;
+                        });
+                    });
 
-                        if (!response.ok) {
+                    // ПОТОМ отправляем на сервер после завершения анимации (через небольшой таймаут)
+                    setTimeout(async () => {
+                        try {
+                            const token = localStorage.getItem('token');
+                            if (!token) {
+                                return;
+                            }
+
+                            const stagesWithOrder = updatedProductStages.map((task, index) => ({
+                                id: task.id,
+                                order: index
+                            }));
+
+                            const response = await fetch(
+                                `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ stages: stagesWithOrder })
+                                }
+                            );
+
+                            if (!response.ok) {
+                                console.error('Ошибка сохранения порядка этапов:', response.status, response.statusText);
+                                // При ошибке откатываем изменения (как в ProductCard)
+                                await fetchKanbanData();
+                            }
+                        } catch (error) {
+                            console.error('Ошибка сохранения порядка этапов:', error);
                             // При ошибке откатываем изменения (как в ProductCard)
                             await fetchKanbanData();
                         }
-                    } catch (error) {
-                        // При ошибке откатываем изменения (как в ProductCard)
-                        await fetchKanbanData();
-                    }
-                }, 300); // Задержка 300ms для завершения анимации
+                    }, 300); // Задержка 300ms для завершения анимации
+
+                    return newProductStagesMap;
+                });
             }
         } else {
             // console.log('ℹ️ Перетаскивание отменено или не завершено');
