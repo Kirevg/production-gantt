@@ -866,19 +866,34 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
         // Проверяем, что перетаскивание завершилось успешно
         if (active.id !== over?.id && over?.id) {
+            console.log('🔄 [DRAG-END] Начало перетаскивания', { activeId: active.id, overId: over.id });
+            
             // Находим активную и целевую задачи
             const activeTask = kanbanTasks.find((task) => task.id === active.id);
             const overTask = kanbanTasks.find((task) => task.id === over.id);
 
+            console.log('🔍 [DRAG-END] Найденные задачи', { 
+                activeTask: activeTask ? { id: activeTask.id, name: activeTask.name, productId: activeTask.productId } : null,
+                overTask: overTask ? { id: overTask.id, name: overTask.name, productId: overTask.productId } : null
+            });
+
             // Проверяем, что обе задачи принадлежат одному изделию
             if (activeTask && overTask && activeTask.productId === overTask.productId) {
+                console.log('✅ [DRAG-END] Задачи принадлежат одному изделию:', activeTask.productId);
+                
                 // Находим индексы для перемещения в глобальном массиве
                 const oldIndex = kanbanTasks.findIndex((task) => task.id === active.id);
                 const newIndex = kanbanTasks.findIndex((task) => task.id === over.id);
 
+                console.log('📍 [DRAG-END] Индексы', { oldIndex, newIndex, totalTasks: kanbanTasks.length });
+
                 if (oldIndex !== -1 && newIndex !== -1) {
                     // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ
                     const newTasks = arrayMove(kanbanTasks, oldIndex, newIndex);
+                    console.log('🔄 [DRAG-END] После arrayMove', { 
+                        oldOrder: kanbanTasks.slice(Math.max(0, oldIndex - 2), Math.min(kanbanTasks.length, oldIndex + 3)).map(t => ({ id: t.id, name: t.name })),
+                        newOrder: newTasks.slice(Math.max(0, newIndex - 2), Math.min(newTasks.length, newIndex + 3)).map(t => ({ id: t.id, name: t.name }))
+                    });
                     setKanbanTasks(newTasks);
 
                     // Обновляем productStagesMap для синхронизации
@@ -895,6 +910,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             ...stage,
                             orderIndex: index
                         }));
+                        console.log('📦 [DRAG-END] Обновленные этапы изделия', {
+                            productId,
+                            stages: updatedProductStages.map(s => ({ id: s.id, name: s.name, orderIndex: s.orderIndex }))
+                        });
                         const newProductStagesMap = new Map(productStagesMap);
                         newProductStagesMap.set(productId, updatedProductStages);
                         setProductStagesMap(newProductStagesMap);
@@ -936,6 +955,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         });
 
                         // Отправляем обновления для каждого изделия
+                        console.log('📤 [DRAG-END] Отправка на сервер', Array.from(stagesWithOrder.entries()).map(([prodId, stages]) => ({
+                            productId: prodId,
+                            stagesCount: stages.length,
+                            stages: stages
+                        })));
+                        
                         await Promise.all(Array.from(stagesWithOrder.entries()).map(async ([prodId, stages]) => {
                             const response = await fetch(
                                 `${import.meta.env.VITE_API_BASE_URL}/projects/products/${prodId}/work-stages/order`,
@@ -950,17 +975,25 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             );
 
                             if (!response.ok) {
-                                throw new Error(`Failed to save order for product ${prodId}`);
+                                const errorText = await response.text();
+                                console.error('❌ [DRAG-END] Ошибка сохранения', { productId, status: response.status, error: errorText });
+                                throw new Error(`Failed to save order for product ${prodId}: ${response.status} ${errorText}`);
                             }
+                            console.log('✅ [DRAG-END] Успешно сохранено для изделия', prodId);
                         }));
                     } catch (error) {
+                        console.error('❌ [DRAG-END] Критическая ошибка', error);
                         // При ошибке откатываем изменения
                         await fetchKanbanData();
                     }
+                } else {
+                    console.warn('⚠️ [DRAG-END] Неверные индексы', { oldIndex, newIndex });
                 }
+            } else {
+                console.warn('⚠️ [DRAG-END] Задачи не принадлежат одному изделию или не найдены');
             }
         } else {
-            // console.log('ℹ️ Перетаскивание отменено или не завершено');
+            console.log('ℹ️ [DRAG-END] Перетаскивание отменено или не завершено');
         }
 
         // Сбрасываем состояние перетаскивания в конце
