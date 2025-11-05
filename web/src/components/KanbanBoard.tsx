@@ -215,15 +215,15 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
         listeners,
         setNodeRef,
         transform,
-        transition,
         isDragging,
         isOver,
     } = useSortable({ id: task.id });
 
     const style = {
         transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
+        transition: isDragging ? 'none' : 'transform 0.3s ease',
+        opacity: isDragging ? 0.8 : 1,
+        zIndex: isDragging ? 1000 : 'auto',
     };
 
     return (
@@ -237,7 +237,12 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
                 minWidth: '150px',
                 border: isOver ? '2px solid #1976d2' : '2px solid #616161',
                 cursor: isDragging ? 'grabbing' : 'grab',
+                transition: 'all 0.3s ease',
                 backgroundColor: isOver ? 'rgba(25, 118, 210, 0.05)' : 'transparent',
+                '&:hover': {
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                    transform: isDragging ? 'none' : 'translateY(-2px)'
+                }
             }}
             onDoubleClick={() => onDoubleClick(task)}
             onContextMenu={(e: React.MouseEvent) => onContextMenu(e, task)}
