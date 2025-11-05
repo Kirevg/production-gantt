@@ -189,13 +189,14 @@ const SortableProductCard: React.FC<SortableProductCardProps> = ({
         <Box
             ref={setNodeRef}
             style={style}
-            {...(allProductsCollapsed ? { ...attributes, ...listeners } : {})} // Добавляем listeners только если все изделия в проекте свернуты
+            {...attributes}
+            {...listeners}
             sx={{
                 mb: 2,
                 ml: 2,
-                cursor: allProductsCollapsed ? (isDragging ? 'grabbing' : 'grab') : 'default', // Курсор только если все изделия свернуты
+                cursor: isDragging ? 'grabbing' : 'grab',
                 '&:hover': {
-                    transform: allProductsCollapsed && !isDragging ? 'translateY(-2px)' : 'none',
+                    transform: !isDragging ? 'translateY(-2px)' : 'none',
                     transition: 'transform 0.2s ease'
                 }
             }}
