@@ -871,80 +871,92 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             const overTask = kanbanTasks.find((task) => task.id === over.id);
 
             // Проверяем, что обе задачи принадлежат одному изделию
-            if (activeTask && overTask && activeTask.productId === overTask.productId && activeTask.productId) {
-                const productId = activeTask.productId;
+            if (activeTask && overTask && activeTask.productId === overTask.productId) {
+                // Находим индексы для перемещения в глобальном массиве
+                const oldIndex = kanbanTasks.findIndex((task) => task.id === active.id);
+                const newIndex = kanbanTasks.findIndex((task) => task.id === over.id);
 
-                // Берем этапы этого изделия из локального состояния (как в ProductCard)
-                const productStages = productStagesMap.get(productId) || [];
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ
+                    const newTasks = arrayMove(kanbanTasks, oldIndex, newIndex);
+                    setKanbanTasks(newTasks);
 
-                // Находим индексы для перемещения в массиве этапов этого изделия (как в ProductCard)
-                const oldIndex = productStages.findIndex((task) => task.id === active.id);
-                const newIndex = productStages.findIndex((task) => task.id === over.id);
-
-                if (oldIndex === -1 || newIndex === -1) {
-                    return;
-                }
-
-                // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
-                const newProductStages = arrayMove(productStages, oldIndex, newIndex);
-
-                // Обновляем orderIndex для всех этапов
-                const updatedProductStages = newProductStages.map((stage, index) => ({
-                    ...stage,
-                    orderIndex: index
-                }));
-
-                // СНАЧАЛА обновляем локальное состояние для анимации (как в ProductCard)
-                const newProductStagesMap = new Map(productStagesMap);
-                newProductStagesMap.set(productId, updatedProductStages);
-                setProductStagesMap(newProductStagesMap);
-
-                // Обновляем глобальный массив kanbanTasks для синхронизации
-                setKanbanTasks((currentTasks) => {
-                    return currentTasks.map(task => {
-                        if (task.productId === productId &&
+                    // Обновляем productStagesMap для синхронизации
+                    const productId = activeTask.productId;
+                    if (productId) {
+                        const productStages = newTasks.filter(task =>
+                            task.productId === productId &&
                             task.id &&
                             !task.id.startsWith('product-only-') &&
                             task.name &&
-                            task.name.trim() !== '') {
-                            const updatedStage = updatedProductStages.find(s => s.id === task.id);
-                            return updatedStage || task;
-                        }
-                        return task;
-                    });
-                });
-
-                // Сохраняем порядок на сервере (как в ProductCard - сразу после обновления состояния)
-                try {
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        return;
+                            task.name.trim() !== ''
+                        );
+                        const updatedProductStages = productStages.map((stage, index) => ({
+                            ...stage,
+                            orderIndex: index
+                        }));
+                        const newProductStagesMap = new Map(productStagesMap);
+                        newProductStagesMap.set(productId, updatedProductStages);
+                        setProductStagesMap(newProductStagesMap);
                     }
 
-                    const stagesWithOrder = updatedProductStages.map((task, index) => ({
-                        id: task.id,
-                        order: index
-                    }));
-
-                    const response = await fetch(
-                        `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
-                        {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ stages: stagesWithOrder })
+                    // Сохраняем порядок на сервере
+                    try {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                            return;
                         }
-                    );
 
-                    if (!response.ok) {
-                        // При ошибке откатываем изменения (как в ProductCard)
+                        // Группируем этапы по изделиям для отправки на сервер
+                        const stagesByProduct = new Map<string, KanbanTask[]>();
+                        newTasks.forEach((task) => {
+                            if (task.productId &&
+                                task.id &&
+                                !task.id.startsWith('product-only-') &&
+                                task.name &&
+                                task.name.trim() !== '') {
+                                if (!stagesByProduct.has(task.productId)) {
+                                    stagesByProduct.set(task.productId, []);
+                                }
+                                stagesByProduct.get(task.productId)!.push(task);
+                            }
+                        });
+                        // Вычисляем порядок внутри каждого изделия отдельно
+                        const stagesWithOrder = new Map<string, Array<{ id: string; order: number }>>();
+                        stagesByProduct.forEach((stages, prodId) => {
+                            const sortedStages = stages.sort((a, b) => {
+                                const indexA = newTasks.findIndex(t => t.id === a.id);
+                                const indexB = newTasks.findIndex(t => t.id === b.id);
+                                return indexA - indexB;
+                            });
+                            stagesWithOrder.set(prodId, sortedStages.map((stage, index) => ({
+                                id: stage.id,
+                                order: index
+                            })));
+                        });
+
+                        // Отправляем обновления для каждого изделия
+                        await Promise.all(Array.from(stagesWithOrder.entries()).map(async ([prodId, stages]) => {
+                            const response = await fetch(
+                                `${import.meta.env.VITE_API_BASE_URL}/projects/products/${prodId}/work-stages/order`,
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ stages })
+                                }
+                            );
+
+                            if (!response.ok) {
+                                throw new Error(`Failed to save order for product ${prodId}`);
+                            }
+                        }));
+                    } catch (error) {
+                        // При ошибке откатываем изменения
                         await fetchKanbanData();
                     }
-                } catch (error) {
-                    // При ошибке откатываем изменения (как в ProductCard)
-                    await fetchKanbanData();
                 }
             }
         } else {
@@ -2767,9 +2779,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                                                                                         {/* Карточки этапов работ этого изделия */}
                                                                                         {(() => {
-                                                                                            // Берем этапы из локального состояния (как в ProductCard)
-                                                                                            // Используем productStagesMap для правильной анимации
-                                                                                            const actualStages = productStagesMap.get(productKey) || [];
+                                                                                            // Фильтруем только настоящие этапы (не изделия без этапов)
+                                                                                            const actualStages = productTasks.filter(task =>
+                                                                                                task.id &&
+                                                                                                !task.id.startsWith('product-only-') &&
+                                                                                                task.name &&
+                                                                                                task.name.trim() !== ''
+                                                                                            );
                                                                                             // Если нет этапов, карточка должна быть свернута
                                                                                             const hasStages = actualStages.length > 0;
                                                                                             const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
@@ -2781,11 +2797,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                                                                                             // Если есть этапы, показываем их с SortableContext
                                                                                             if (actualStages.length > 0) {
-                                                                                                // Создаем ключ для принудительного обновления при изменении порядка
-                                                                                                const stagesKey = actualStages.map(s => `${s.id}-${s.orderIndex}`).join(',');
                                                                                                 return (
                                                                                                     <SortableContext
-                                                                                                        key={stagesKey}
                                                                                                         items={actualStages.map(task => task.id)}
                                                                                                         strategy={rectSortingStrategy}
                                                                                                     >
