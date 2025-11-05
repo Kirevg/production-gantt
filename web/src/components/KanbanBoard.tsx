@@ -1931,7 +1931,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 borderRadius: '6px',
                                                                 backgroundColor: '#FFE082',
                                                                 color: '#000',
-                                                                width: '800px',
+                                                                width: '80px',
                                                                 '& .MuiChip-label': {
                                                                     padding: '0px 4px'
                                                                 }
@@ -2351,7 +2351,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     borderRadius: '6px',
                                                                                     width: '80px',
                                                                                     backgroundColor: '#FFE082',
-                                                                                    color: '#000'
+                                                                                    color: '#000',
+                                                                                    '& .MuiChip-label': {
+                                                                                        padding: '0px 4px'
+                                                                                    }
                                                                                 }}
                                                                             />
                                                                         </MenuItem>
@@ -2365,7 +2368,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 label="В работе"
                                                                                 color="primary"
                                                                                 size="small"
-                                                                                sx={{ borderRadius: '6px', width: '80px' }}
+                                                                                sx={{
+                                                                                    borderRadius: '6px',
+                                                                                    width: '80px',
+                                                                                    '& .MuiChip-label': {
+                                                                                        padding: '0px 4px'
+                                                                                    }
+                                                                                }}
                                                                             />
                                                                         </MenuItem>
                                                                         <MenuItem
@@ -2378,7 +2387,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 label="Готово"
                                                                                 color="success"
                                                                                 size="small"
-                                                                                sx={{ borderRadius: '6px', width: '80px' }}
+                                                                                sx={{
+                                                                                    borderRadius: '6px',
+                                                                                    width: '80px',
+                                                                                    '& .MuiChip-label': {
+                                                                                        padding: '0px 4px'
+                                                                                    }
+                                                                                }}
                                                                             />
                                                                         </MenuItem>
                                                                         <MenuItem
@@ -2391,7 +2406,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 label="Проблемы"
                                                                                 color="error"
                                                                                 size="small"
-                                                                                sx={{ borderRadius: '6px', width: '80px' }}
+                                                                                sx={{
+                                                                                    borderRadius: '6px', width: '80px',
+                                                                                    '& .MuiChip-label': {
+                                                                                        padding: '0px 4px'
+                                                                                    }
+                                                                                 }}
                                                                             />
                                                                         </MenuItem>
                                                                         <MenuItem
@@ -2407,7 +2427,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     borderRadius: '6px',
                                                                                     width: '80px',
                                                                                     backgroundColor: '#9e9e9e',
-                                                                                    color: '#fff'
+                                                                                    color: '#fff',
+                                                                                    '& .MuiChip-label': {
+                                                                                        padding: '0px 4px'
+                                                                                    }
                                                                                 }}
                                                                             />
                                                                         </MenuItem>
