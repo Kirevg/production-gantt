@@ -853,38 +853,40 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             // Проверяем, что обе задачи принадлежат одному изделию
             if (activeTask && overTask && activeTask.productId === overTask.productId) {
-                // Находим индексы для перемещения в глобальном массиве
-                const oldIndex = kanbanTasks.findIndex((task) => task.id === active.id);
-                const newIndex = kanbanTasks.findIndex((task) => task.id === over.id);
+                const productId = activeTask.productId;
+                
+                // СНАЧАЛА фильтруем только этапы этого изделия (как в ProductCard)
+                const productStages = kanbanTasks
+                    .filter(task =>
+                        task.productId === productId &&
+                        task.id &&
+                        !task.id.startsWith('product-only-') &&
+                        task.name &&
+                        task.name.trim() !== ''
+                    )
+                    // Сортируем по orderIndex для правильного порядка
+                    .sort((a, b) => {
+                        const orderA = a.orderIndex ?? 999999;
+                        const orderB = b.orderIndex ?? 999999;
+                        return orderA - orderB;
+                    });
+
+                // Находим индексы для перемещения в массиве этапов этого изделия
+                const oldIndex = productStages.findIndex((task) => task.id === active.id);
+                const newIndex = productStages.findIndex((task) => task.id === over.id);
 
                 if (oldIndex !== -1 && newIndex !== -1) {
-                    // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ
-                    const newTasks = arrayMove(kanbanTasks, oldIndex, newIndex);
+                    // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (как в ProductCard)
+                    const newProductStages = arrayMove(productStages, oldIndex, newIndex);
 
-                    // Обновляем orderIndex для всех этапов этого изделия в новом порядке
-                    const productId = activeTask.productId;
-                    
-                    // СНАЧАЛА фильтруем только этапы этого изделия
-                    const productStages = newTasks
-                        .filter(task =>
-                            task.productId === productId &&
-                            task.id &&
-                            !task.id.startsWith('product-only-') &&
-                            task.name &&
-                            task.name.trim() !== ''
-                        )
-                        // ПОТОМ сортируем по позиции в массиве newTasks (после arrayMove порядок уже правильный)
-                        .map((task) => ({ task, index: newTasks.indexOf(task) }))
-                        .sort((a, b) => a.index - b.index);
-
-                    // Вычисляем порядок на основе позиции в отсортированном массиве
-                    const stagesWithOrder = productStages.map(({ task }, index) => ({
+                    // Вычисляем порядок на основе позиции в массиве после arrayMove
+                    const stagesWithOrder = newProductStages.map((task, index) => ({
                         id: task.id,
                         order: index
                     }));
 
                     // Обновляем orderIndex в локальном состоянии для всех этапов этого изделия
-                    const updatedTasks = newTasks.map(task => {
+                    const updatedTasks = kanbanTasks.map(task => {
                         const stageIndex = stagesWithOrder.findIndex((s) => s.id === task.id);
                         if (stageIndex !== -1 && task.productId === productId) {
                             return {
