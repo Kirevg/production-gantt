@@ -136,7 +136,7 @@ const SortableProjectCard: React.FC<SortableProjectCardProps> = ({
             {...attributes}
             {...listeners}
             sx={{
-                mb: 2,
+                mb: 1,
                 cursor: isDragging ? 'grabbing' : 'grab',
                 '&:hover': {
                     transform: !isDragging ? 'translateY(-2px)' : 'none',
@@ -190,8 +190,8 @@ const SortableProductCard: React.FC<SortableProductCardProps> = ({
             {...attributes}
             {...listeners}
             sx={{
-                mb: 2,
-                ml: 2,
+                mb: 1,
+                ml: 1,
                 cursor: isDragging ? 'grabbing' : 'grab',
                 '&:hover': {
                     transform: !isDragging ? 'translateY(-2px)' : 'none',
@@ -1949,7 +1949,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     ) : kanbanTasks.length > 0 ? (
                         <Box sx={{ pt: 2, pb: 2, paddingLeft: '30px', paddingRight: '30px' }}>
                             <Box sx={{ mb: 2 }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    gap: 0,
+                                    flexWrap: 'wrap'
+                                }}
+                                >
                                     <Typography variant="h6" sx={{ minWidth: 'fit-content', fontSize: '22px', fontWeight: 'bold' }}>
                                         Проекты, изделия и этапы работ
                                     </Typography>
@@ -1973,7 +1980,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                         });
 
                                         return (
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', flex: 1, justifyContent: 'center' }}>
+                                            <Box sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 1,
+                                                flexWrap: 'wrap',
+                                                flex: 1,
+                                                justifyContent: 'center'
+                                            }}
+                                            >
+
                                                 <FormControlLabel
                                                     control={
                                                         <Checkbox
@@ -2270,8 +2286,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 flexDirection: 'column',
                                                                 border: '2px solid #3e5f8a',
                                                                 borderRadius: '4px',
-                                                                p: 1,
-                                                                gap: 1
+                                                                p: 0.5,
+                                                                gap: 0
                                                             }}
                                                         >
                                                             {/* Заголовок проекта */}
