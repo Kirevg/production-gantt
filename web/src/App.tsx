@@ -600,13 +600,15 @@ export default function App() {
       const projects = await projectsResponse.json();
 
       // Для каждого проекта получаем изделия с этапами работ
-      // Включаем все проекты, включая архивные (Archived)
       const productsChips: ProductChip[] = [];
 
       for (const project of projects) {
+        // Пропускаем проекты со статусом "Archived"
+        if (project.status === 'Archived') {
+          continue;
+        }
+
         try {
-          // Обрабатываем все проекты, включая архивные
-          // Не фильтруем по статусу - показываем все проекты
           const productsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/projects/${project.id}/products`, {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -637,7 +639,7 @@ export default function App() {
                     id: product.id,
                     projectId: project.id,
                     projectName: project.name,
-                    projectStatus: project.status || 'InProject', // Сохраняем статус проекта, включая 'Archived'
+                    projectStatus: project.status || 'InProject',
                     productStatus: product.status || 'InProject',
                     productName: product.product?.name || 'Не указано',
                     startDate: earliestStart.toISOString(),

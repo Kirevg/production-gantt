@@ -586,7 +586,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     productDescription: stage.productDescription || null, // Описание из Product
                     serialNumber: stage.serialNumber || null,
                     productStatus: stage.productStatus || 'InProject', // Статус изделия
-                    projectStatus: stage.projectStatus || 'InProject', // Статус проекта (с значением по умолчанию на случай если не передан)
+                    projectStatus: stage.projectStatus, // Статус проекта
                     orderIndex: stage.orderIndex || 0, // Индекс порядка этапа работ
                     projectManager: stage.projectManager || null
                 };
@@ -2144,16 +2144,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                 const sortedProjects = Array.from(projectsMap.entries())
                                     .filter(([, tasks]) => {
                                         // Применяем фильтры по статусу
-                                        // Берем статус проекта из первой задачи (у всех задач одного проекта одинаковый статус)
-                                        // Используем значение по умолчанию 'InProject' если статус не передан
                                         const projectStatus = tasks[0]?.projectStatus || 'InProject';
                                         // Проверяем, что фильтр для этого статуса включен
                                         // Используем явное преобразование типов для надежности
                                         const statusKey = projectStatus as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived';
                                         const statusFilterValue = statusFilters[statusKey];
                                         // Если статус не найден в фильтрах, показываем проект (на случай если добавится новый статус)
-                                        // Если статус найден, проверяем значение фильтра (true = показать, false = скрыть)
-                                        return statusFilterValue !== undefined ? statusFilterValue === true : true;
+                                        return statusFilterValue !== undefined ? statusFilterValue : true;
                                     })
                                     .sort((a, b) => {
                                         const orderA = a[1][0]?.projectOrderIndex ?? 999999;
