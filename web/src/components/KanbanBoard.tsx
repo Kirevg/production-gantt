@@ -1931,7 +1931,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 borderRadius: '6px',
                                                                 backgroundColor: '#FFE082',
                                                                 color: '#000',
-                                                                width: '80px'
+                                                                width: '100px',
+                                                                '& .MuiChip-label': {
+                                                                    padding: '0px 4px'
+                                                                }
                                                             }}
                                                         />
                                                     }
@@ -1949,7 +1952,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             label="В работе"
                                                             color="primary"
                                                             size="small"
-                                                            sx={{ borderRadius: '6px', width: '80px' }}
+                                                            sx={{
+                                                                borderRadius: '6px', width: '80px',
+                                                                '& .MuiChip-label': {
+                                                                    padding: '0px 4px'
+                                                                }
+
+                                                             }}
                                                         />
                                                     }
                                                 />
@@ -1966,7 +1975,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             label="Готово"
                                                             color="success"
                                                             size="small"
-                                                            sx={{ borderRadius: '6px', width: '80px' }}
+                                                            sx={{
+                                                                borderRadius: '6px', width: '80px',
+                                                                '& .MuiChip-label': {
+                                                                    padding: '0px 4px'
+                                                                }
+                                                             }}
                                                         />
                                                     }
                                                 />
@@ -1983,7 +1997,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                             label="Проблемы"
                                                             color="error"
                                                             size="small"
-                                                            sx={{ borderRadius: '6px', width: '80px' }}
+                                                            sx={{
+                                                                borderRadius: '6px', width: '80px',
+                                                                '& .MuiChip-label': {
+                                                                    padding: '0px 4px'
+                                                                }
+                                                             }}
                                                         />
                                                     }
                                                 />
@@ -1999,11 +2018,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                         <Chip
                                                             label="Архив"
                                                             size="small"
-                                                            sx={{ 
-                                                                borderRadius: '6px', 
+                                                            sx={{
+                                                                borderRadius: '6px',
                                                                 width: '80px',
                                                                 backgroundColor: '#9e9e9e',
-                                                                color: '#fff'
+                                                                color: '#fff',
+                                                                '& .MuiChip-label': {
+                                                                    padding: '0px 4px'
+                                                                }
                                                             }}
                                                         />
                                                     }
@@ -2123,7 +2145,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                     .filter(([, tasks]) => {
                                         // Применяем фильтры по статусу
                                         const projectStatus = tasks[0]?.projectStatus || 'InProject';
-                                        return statusFilters[projectStatus as keyof typeof statusFilters];
+                                        // Проверяем, что фильтр для этого статуса включен
+                                        // Используем явное преобразование типов для надежности
+                                        const statusKey = projectStatus as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived';
+                                        const statusFilterValue = statusFilters[statusKey];
+                                        // Если статус не найден в фильтрах, показываем проект (на случай если добавится новый статус)
+                                        return statusFilterValue !== undefined ? statusFilterValue : true;
                                     })
                                     .sort((a, b) => {
                                         const orderA = a[1][0]?.projectOrderIndex ?? 999999;
@@ -2376,8 +2403,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                             <Chip
                                                                                 label="Архив"
                                                                                 size="small"
-                                                                                sx={{ 
-                                                                                    borderRadius: '6px', 
+                                                                                sx={{
+                                                                                    borderRadius: '6px',
                                                                                     width: '80px',
                                                                                     backgroundColor: '#9e9e9e',
                                                                                     color: '#fff'
@@ -2621,7 +2648,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                         if (!productIdForLinks) return null;
 
                                                                                                         const links = productModelLinks[productIdForLinks] || [];
-                                                                                                        
+
                                                                                                         // Группируем ссылки по названию, берем с самой поздней датой
                                                                                                         const linksByName = new Map<string, { id: string; name: string; url: string; createdAt: string }>();
                                                                                                         links.forEach(link => {

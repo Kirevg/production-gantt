@@ -440,17 +440,17 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                     <Chip
                         label={
                             project.status === 'InProject' ? 'В проекте' :
-                            project.status === 'InProgress' ? 'В работе' :
-                            project.status === 'Done' ? 'Завершён' :
-                            project.status === 'HasProblems' ? 'Проблемы' :
-                            project.status === 'Archived' ? 'Архив' : 'В проекте'
+                                project.status === 'InProgress' ? 'В работе' :
+                                    project.status === 'Done' ? 'Завершён' :
+                                        project.status === 'HasProblems' ? 'Проблемы' :
+                                            project.status === 'Archived' ? 'Архив' : 'В проекте'
                         }
                         color={
                             project.status === 'InProject' ? undefined :
-                            project.status === 'InProgress' ? 'primary' :
-                            project.status === 'Done' ? 'success' :
-                            project.status === 'HasProblems' ? 'error' :
-                            project.status === 'Archived' ? 'default' : undefined
+                                project.status === 'InProgress' ? 'primary' :
+                                    project.status === 'Done' ? 'success' :
+                                        project.status === 'HasProblems' ? 'error' :
+                                            project.status === 'Archived' ? 'default' : undefined
                         }
                         size="small"
                         sx={{
@@ -802,7 +802,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                                 <Chip
                                     label="Архив"
                                     size="small"
-                                    sx={{ 
+                                    sx={{
                                         borderRadius: '6px',
                                         backgroundColor: '#9e9e9e',
                                         color: '#fff'

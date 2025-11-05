@@ -105,7 +105,11 @@ router.get('/gantt', authenticateToken, async (req, res) => {
             orderIndex: true,
             version: true,
             project: {
-              include: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+                orderIndex: true,
                 projectManager: {
                   select: {
                     firstName: true,
