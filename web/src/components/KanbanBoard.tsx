@@ -882,40 +882,20 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
                 const newProductStages = arrayMove(productStages, oldIndex, newIndex);
 
-                // Обновляем orderIndex и порядок элементов в глобальном массиве kanbanTasks
+                // Обновляем orderIndex в глобальном массиве kanbanTasks (как в ProductCard обновляется stages)
                 // Создаем Map для быстрого поиска этапов в новом порядке с обновленным orderIndex
-                const stagesMap = new Map(newProductStages.map((stage, index) => [stage.id, { ...stage, orderIndex: index }]));
+                const stagesMap = new Map(newProductStages.map((stage, index) => [stage.id, index]));
 
-                // Обновляем глобальный массив: обновляем orderIndex для всех этапов
-                let updatedTasks = kanbanTasks.map(task => {
-                    const updatedStage = stagesMap.get(task.id);
-                    if (updatedStage && task.productId === productId) {
-                        return updatedStage;
+                // Обновляем orderIndex для всех этапов этого изделия
+                const updatedTasks = kanbanTasks.map(task => {
+                    if (task.productId === productId && stagesMap.has(task.id)) {
+                        return {
+                            ...task,
+                            orderIndex: stagesMap.get(task.id)!
+                        };
                     }
                     return task;
                 });
-
-                // Находим индексы всех этапов этого изделия в глобальном массиве (до перестановки)
-                const stageIndices: number[] = [];
-                updatedTasks.forEach((task, index) => {
-                    if (task.productId === productId && 
-                        task.id && 
-                        !task.id.startsWith('product-only-') && 
-                        task.name && 
-                        task.name.trim() !== '') {
-                        stageIndices.push(index);
-                    }
-                });
-
-                // Переставляем этапы в глобальном массиве используя arrayMove на индексах
-                if (stageIndices.length === newProductStages.length) {
-                    // Находим индексы для arrayMove в глобальном массиве
-                    const globalOldIndex = stageIndices[oldIndex];
-                    const globalNewIndex = stageIndices[newIndex];
-                    
-                    // Перемещаем элементы в глобальном массиве
-                    updatedTasks = arrayMove(updatedTasks, globalOldIndex, globalNewIndex);
-                }
 
                 setKanbanTasks(updatedTasks);
 
@@ -2798,8 +2778,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                                                                                             // Если есть этапы, показываем их с SortableContext
                                                                                             if (actualStages.length > 0) {
+                                                                                                // Создаем ключ для принудительного обновления SortableContext при изменении порядка
+                                                                                                const stagesOrderKey = actualStages.map(s => `${s.id}-${s.orderIndex}`).join(',');
                                                                                                 return (
                                                                                                     <SortableContext
+                                                                                                        key={stagesOrderKey}
                                                                                                         items={actualStages.map(task => task.id)}
                                                                                                         strategy={rectSortingStrategy}
                                                                                                     >
