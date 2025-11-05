@@ -889,25 +889,25 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 // Переставляем этапы в глобальном массиве: сначала собираем все элементы, которые НЕ этапы этого изделия
                 const otherTasks: KanbanTask[] = [];
                 const productStageIds = new Set(newProductStages.map(s => s.id));
-                
+
                 // Собираем все задачи, которые НЕ относятся к этапам этого изделия
                 kanbanTasks.forEach(task => {
-                    if (!(task.productId === productId && 
-                          task.id && 
-                          !task.id.startsWith('product-only-') && 
-                          task.name && 
-                          task.name.trim() !== '' &&
-                          productStageIds.has(task.id))) {
+                    if (!(task.productId === productId &&
+                        task.id &&
+                        !task.id.startsWith('product-only-') &&
+                        task.name &&
+                        task.name.trim() !== '' &&
+                        productStageIds.has(task.id))) {
                         otherTasks.push(task);
                     }
                 });
 
                 // Находим позицию, где должны быть этапы этого изделия (позиция первого этапа в исходном массиве)
-                let insertionIndex = kanbanTasks.findIndex(task => 
-                    task.productId === productId && 
-                    task.id && 
-                    !task.id.startsWith('product-only-') && 
-                    task.name && 
+                let insertionIndex = kanbanTasks.findIndex(task =>
+                    task.productId === productId &&
+                    task.id &&
+                    !task.id.startsWith('product-only-') &&
+                    task.name &&
                     task.name.trim() !== '' &&
                     productStageIds.has(task.id)
                 );
@@ -2784,19 +2784,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                         {(() => {
                                                                                             // Фильтруем только настоящие этапы (не изделия без этапов)
                                                                                             // Изделия без этапов имеют ID вида "product-only-${productId}" или пустое name
+                                                                                            // Используем порядок элементов в массиве productTasks для правильной анимации
+                                                                                            // НЕ сортируем - сохраняем порядок из массива, который уже правильно отсортирован
                                                                                             const actualStages = productTasks
                                                                                                 .filter(task =>
                                                                                                     task.id &&
                                                                                                     !task.id.startsWith('product-only-') &&
                                                                                                     task.name &&
                                                                                                     task.name.trim() !== ''
-                                                                                                )
-                                                                                                .sort((a, b) => {
-                                                                                                    // Сортируем по orderIndex для правильного порядка
-                                                                                                    const orderA = a.orderIndex ?? 999999;
-                                                                                                    const orderB = b.orderIndex ?? 999999;
-                                                                                                    return orderA - orderB;
-                                                                                                });
+                                                                                                );
                                                                                             // Если нет этапов, карточка должна быть свернута
                                                                                             const hasStages = actualStages.length > 0;
                                                                                             const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
@@ -2808,11 +2804,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
                                                                                             // Если есть этапы, показываем их с SortableContext
                                                                                             if (actualStages.length > 0) {
-                                                                                                // Создаем ключ для принудительного обновления SortableContext при изменении порядка
-                                                                                                const stagesOrderKey = actualStages.map(s => `${s.id}-${s.orderIndex}`).join(',');
                                                                                                 return (
                                                                                                     <SortableContext
-                                                                                                        key={stagesOrderKey}
                                                                                                         items={actualStages.map(task => task.id)}
                                                                                                         strategy={rectSortingStrategy}
                                                                                                     >
