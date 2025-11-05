@@ -1125,11 +1125,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             stagesByProduct.forEach((stages, productId) => {
                 // Фильтруем задачи только для этого изделия и сортируем их по текущему порядку в массиве tasks
                 const productTasks = tasks
-                    .filter(task => 
-                        task.productId === productId && 
-                        task.id && 
-                        !task.id.startsWith('product-only-') && 
-                        task.name && 
+                    .filter(task =>
+                        task.productId === productId &&
+                        task.id &&
+                        !task.id.startsWith('product-only-') &&
+                        task.name &&
                         task.name.trim() !== ''
                     )
                     .map((task) => ({ task, originalIndex: tasks.indexOf(task) }))
@@ -2495,7 +2495,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 >
                                                                     <SortableContext
                                                                         items={sortedProducts.map(([productKey]) => `product-${productKey}`)}
-                                                                        strategy={rectSortingStrategy}
+                                                                        strategy={verticalListSortingStrategy}
                                                                     >
                                                                         {sortedProducts.map(([productKey, productTasks]) => {
                                                                             const productName = productTasks[0]?.productName || 'Без изделия';
