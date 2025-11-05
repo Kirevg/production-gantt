@@ -854,7 +854,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Проверяем, что обе задачи принадлежат одному изделию
             if (activeTask && overTask && activeTask.productId === overTask.productId) {
                 const productId = activeTask.productId;
-                
+
                 // СНАЧАЛА фильтруем только этапы этого изделия (как в ProductCard)
                 const productStages = kanbanTasks
                     .filter(task =>
@@ -885,8 +885,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         order: index
                     }));
 
-                    // Обновляем orderIndex в локальном состоянии для всех этапов этого изделия
-                    const updatedTasks = kanbanTasks.map(task => {
+                    // Обновляем глобальный массив: сначала обновляем orderIndex, затем переставляем элементы
+                    let updatedTasks = kanbanTasks.map(task => {
                         const stageIndex = stagesWithOrder.findIndex((s) => s.id === task.id);
                         if (stageIndex !== -1 && task.productId === productId) {
                             return {
@@ -896,6 +896,42 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         }
                         return task;
                     });
+
+                    // Переставляем элементы в глобальном массиве в правильном порядке
+                    // Собираем этапы этого изделия в новом порядке (с обновленным orderIndex)
+                    const reorderedStages: KanbanTask[] = [];
+                    newProductStages.forEach(stage => {
+                        const task = updatedTasks.find(task => task.id === stage.id);
+                        if (task) {
+                            const stageIndex = stagesWithOrder.findIndex((s) => s.id === stage.id);
+                            reorderedStages.push({
+                                ...task,
+                                orderIndex: stageIndex
+                            });
+                        }
+                    });
+
+                    // Находим позицию первого этапа этого изделия в глобальном массиве
+                    const firstStageIndex = updatedTasks.findIndex(task => 
+                        task.productId === productId && 
+                        task.id && 
+                        !task.id.startsWith('product-only-') && 
+                        task.name && 
+                        task.name.trim() !== ''
+                    );
+
+                    if (firstStageIndex !== -1) {
+                        // Удаляем старые этапы изделия
+                        const beforeStages = updatedTasks.slice(0, firstStageIndex);
+                        const afterStages = updatedTasks.slice(firstStageIndex + productStages.length);
+                        
+                        // Собираем новый массив с этапами в правильном порядке
+                        updatedTasks = [
+                            ...beforeStages,
+                            ...reorderedStages,
+                            ...afterStages
+                        ];
+                    }
 
                     setKanbanTasks(updatedTasks);
 
