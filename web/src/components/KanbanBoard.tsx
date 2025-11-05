@@ -2225,17 +2225,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                         return orderA - orderB;
                                                     });
 
-                                                // Проверяем, все ли изделия в проекте свернуты
-                                                const allProductsCollapsed = sortedProducts.every(([productKey, productTasks]) => {
-                                                    const actualStages = productTasks.filter(task =>
-                                                        task.id &&
-                                                        !task.id.startsWith('product-only-') &&
-                                                        task.name &&
-                                                        task.name.trim() !== ''
-                                                    );
-                                                    const hasStages = actualStages.length > 0;
-                                                    return collapsedProducts.has(productKey) || !hasStages;
-                                                });
 
                                                 // Определяем, есть ли у проекта изделия
                                                 const hasProducts = productsMap.size > 0;
