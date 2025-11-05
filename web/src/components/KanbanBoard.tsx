@@ -862,7 +862,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     };
 
     const handleDragEnd = async (event: any) => {
+        console.log('🎬 [DRAG-END] ФУНКЦИЯ ВЫЗВАНА', { event });
         const { active, over } = event;
+        console.log('🎬 [DRAG-END] active и over', { activeId: active?.id, overId: over?.id });
 
         // Проверяем, что перетаскивание завершилось успешно
         if (active.id !== over?.id && over?.id) {
@@ -881,7 +883,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             if (activeTask && overTask && activeTask.productId === overTask.productId && activeTask.productId) {
                 const productId = activeTask.productId;
                 console.log('✅ [DRAG-END] Задачи принадлежат одному изделию:', productId);
-                
+
                 // Берем этапы этого изделия из локального состояния (как в ProductCard)
                 const productStages = productStagesMap.get(productId) || [];
                 console.log('📦 [DRAG-END] Этапы изделия до перемещения', {
@@ -1021,6 +1023,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
     // Обработчик перетаскивания изделий
     const handleDragEndProducts = async (event: any, _projectId: string, sortedProducts: Array<[string, KanbanTask[]]>) => {
         const { active, over } = event;
+        
+        // Проверяем, не является ли перетаскиваемый элемент этапом работы
+        // Если да, то перенаправляем на handleDragEnd для этапов
+        const activeTask = kanbanTasks.find((task) => task.id === active.id);
+        if (activeTask && activeTask.id && !activeTask.id.startsWith('product-only-') && !activeTask.id.startsWith('project-only-')) {
+            // Это этап работы, обрабатываем через handleDragEnd
+            console.log('🔄 [DRAG-END-PRODUCTS] Перенаправление на handleDragEnd для этапа', active.id);
+            await handleDragEnd(event);
+            return;
+        }
 
         // Проверяем, что перетаскивание завершилось успешно и это изделие
         if (active.id !== over?.id && over?.id &&
