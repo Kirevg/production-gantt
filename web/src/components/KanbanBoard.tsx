@@ -854,7 +854,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Проверяем, что обе задачи принадлежат одному изделию
             if (activeTask && overTask && activeTask.productId === overTask.productId) {
                 const productId = activeTask.productId;
-                
+
                 // СНАЧАЛА фильтруем только этапы этого изделия (как в ProductCard)
                 const productStages = kanbanTasks
                     .filter(task =>
@@ -882,17 +882,40 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
                 const newProductStages = arrayMove(productStages, oldIndex, newIndex);
 
-                // Обновляем orderIndex в глобальном массиве kanbanTasks (как setStages в ProductCard)
-                const updatedTasks = kanbanTasks.map(task => {
-                    const stageIndex = newProductStages.findIndex((s) => s.id === task.id);
-                    if (stageIndex !== -1 && task.productId === productId) {
-                        return {
-                            ...task,
-                            orderIndex: stageIndex
-                        };
+                // Обновляем orderIndex и порядок элементов в глобальном массиве kanbanTasks
+                // Создаем Map для быстрого поиска этапов в новом порядке с обновленным orderIndex
+                const stagesMap = new Map(newProductStages.map((stage, index) => [stage.id, { ...stage, orderIndex: index }]));
+
+                // Обновляем глобальный массив: обновляем orderIndex для всех этапов
+                let updatedTasks = kanbanTasks.map(task => {
+                    const updatedStage = stagesMap.get(task.id);
+                    if (updatedStage && task.productId === productId) {
+                        return updatedStage;
                     }
                     return task;
                 });
+
+                // Находим индексы всех этапов этого изделия в глобальном массиве (до перестановки)
+                const stageIndices: number[] = [];
+                updatedTasks.forEach((task, index) => {
+                    if (task.productId === productId && 
+                        task.id && 
+                        !task.id.startsWith('product-only-') && 
+                        task.name && 
+                        task.name.trim() !== '') {
+                        stageIndices.push(index);
+                    }
+                });
+
+                // Переставляем этапы в глобальном массиве используя arrayMove на индексах
+                if (stageIndices.length === newProductStages.length) {
+                    // Находим индексы для arrayMove в глобальном массиве
+                    const globalOldIndex = stageIndices[oldIndex];
+                    const globalNewIndex = stageIndices[newIndex];
+                    
+                    // Перемещаем элементы в глобальном массиве
+                    updatedTasks = arrayMove(updatedTasks, globalOldIndex, globalNewIndex);
+                }
 
                 setKanbanTasks(updatedTasks);
 
