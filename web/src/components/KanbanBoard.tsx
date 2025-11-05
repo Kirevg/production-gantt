@@ -222,8 +222,11 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
     // Определяем, есть ли смещение для анимации
     const hasTransform = transform && (transform.x !== 0 || transform.y !== 0);
 
+    // Ограничиваем движение только по горизонтали (только по оси X)
+    const horizontalTransform = transform ? { ...transform, y: 0 } : null;
+
     const style = {
-        transform: CSS.Transform.toString(transform),
+        transform: horizontalTransform ? CSS.Transform.toString(horizontalTransform) : undefined,
         transition: isDragging ? 'none' : hasTransform ? 'transform 0.2s ease' : 'none',
         opacity: isDragging ? 0.8 : 1,
         zIndex: isDragging ? 1000 : 'auto',
@@ -849,18 +852,44 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             // Проверяем, что обе задачи принадлежат одному изделию
             if (activeTask && overTask && activeTask.productId === overTask.productId) {
-                // Находим индексы для перемещения
+                // Находим индексы для перемещения в глобальном массиве
                 const oldIndex = kanbanTasks.findIndex((task) => task.id === active.id);
                 const newIndex = kanbanTasks.findIndex((task) => task.id === over.id);
 
                 if (oldIndex !== -1 && newIndex !== -1) {
                     // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ
                     const newTasks = arrayMove(kanbanTasks, oldIndex, newIndex);
-                    setKanbanTasks(newTasks);
+
+                    // Обновляем orderIndex для всех этапов этого изделия в новом порядке
+                    const productId = activeTask.productId;
+                    const productStages = newTasks
+                        .filter(task =>
+                            task.productId === productId &&
+                            task.id &&
+                            !task.id.startsWith('product-only-') &&
+                            task.name &&
+                            task.name.trim() !== ''
+                        )
+                        .map((task) => ({ task, originalIndex: newTasks.indexOf(task) }))
+                        .sort((a, b) => a.originalIndex - b.originalIndex);
+
+                    // Обновляем orderIndex в локальном состоянии
+                    const updatedTasks = newTasks.map(task => {
+                        const stageIndex = productStages.findIndex(({ task: t }) => t.id === task.id);
+                        if (stageIndex !== -1 && task.productId === productId) {
+                            return {
+                                ...task,
+                                orderIndex: stageIndex
+                            };
+                        }
+                        return task;
+                    });
+
+                    setKanbanTasks(updatedTasks);
 
                     // 💾 СОХРАНЯЕМ НОВЫЙ ПОРЯДОК
                     // console.log('💾 Сохранение порядка при отпускании кнопки мыши');
-                    await saveTaskOrder(newTasks);
+                    await saveTaskOrder(updatedTasks);
 
                     // console.log('✅ Карточка успешно перемещена и сохранена');
                 }
@@ -2758,12 +2787,19 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                         {(() => {
                                                                                             // Фильтруем только настоящие этапы (не изделия без этапов)
                                                                                             // Изделия без этапов имеют ID вида "product-only-${productId}" или пустое name
-                                                                                            const actualStages = productTasks.filter(task =>
-                                                                                                task.id &&
-                                                                                                !task.id.startsWith('product-only-') &&
-                                                                                                task.name &&
-                                                                                                task.name.trim() !== ''
-                                                                                            );
+                                                                                            const actualStages = productTasks
+                                                                                                .filter(task =>
+                                                                                                    task.id &&
+                                                                                                    !task.id.startsWith('product-only-') &&
+                                                                                                    task.name &&
+                                                                                                    task.name.trim() !== ''
+                                                                                                )
+                                                                                                .sort((a, b) => {
+                                                                                                    // Сортируем по orderIndex для правильного порядка
+                                                                                                    const orderA = a.orderIndex ?? 999999;
+                                                                                                    const orderB = b.orderIndex ?? 999999;
+                                                                                                    return orderA - orderB;
+                                                                                                });
                                                                                             // Если нет этапов, карточка должна быть свернута
                                                                                             const hasStages = actualStages.length > 0;
                                                                                             const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
