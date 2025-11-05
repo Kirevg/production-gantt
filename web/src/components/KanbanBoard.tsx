@@ -1931,7 +1931,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 borderRadius: '6px',
                                                                 backgroundColor: '#FFE082',
                                                                 color: '#000',
-                                                                width: '100px',
+                                                                width: '800px',
                                                                 '& .MuiChip-label': {
                                                                     padding: '0px 4px'
                                                                 }
@@ -1958,7 +1958,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                     padding: '0px 4px'
                                                                 }
 
-                                                             }}
+                                                            }}
                                                         />
                                                     }
                                                 />
@@ -1980,7 +1980,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 '& .MuiChip-label': {
                                                                     padding: '0px 4px'
                                                                 }
-                                                             }}
+                                                            }}
                                                         />
                                                     }
                                                 />
@@ -2002,7 +2002,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 '& .MuiChip-label': {
                                                                     padding: '0px 4px'
                                                                 }
-                                                             }}
+                                                            }}
                                                         />
                                                     }
                                                 />

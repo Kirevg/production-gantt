@@ -7,7 +7,7 @@ const router = express.Router();
 
 const projectCreateSchema = z.object({
   name: z.string().min(1).max(200),
-  status: z.enum(['Planned', 'InProgress', 'Done', 'HasProblems']),
+  status: z.enum(['InProject', 'InProgress', 'Done', 'HasProblems', 'Archived']),
   startDate: z.string().transform(str => new Date(str)).optional(),
   endDate: z.string().transform(str => new Date(str)).optional(),
   ownerId: z.string().uuid(),
