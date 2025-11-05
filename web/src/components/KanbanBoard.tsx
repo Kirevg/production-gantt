@@ -2829,7 +2829,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                             // Берем этапы из productStagesMap (локальное состояние для правильной анимации)
                                                                                             // Если их нет, используем productTasks как fallback
                                                                                             let actualStages = productStagesMap.get(productKey) || [];
-                                                                                            
+
                                                                                             // Если в productStagesMap нет этапов, берем из productTasks
                                                                                             if (actualStages.length === 0) {
                                                                                                 actualStages = productTasks
