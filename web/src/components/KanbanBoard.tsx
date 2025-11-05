@@ -2780,12 +2780,19 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                         {/* Карточки этапов работ этого изделия */}
                                                                                         {(() => {
                                                                                             // Фильтруем только настоящие этапы (не изделия без этапов)
-                                                                                            const actualStages = productTasks.filter(task =>
-                                                                                                task.id &&
-                                                                                                !task.id.startsWith('product-only-') &&
-                                                                                                task.name &&
-                                                                                                task.name.trim() !== ''
-                                                                                            );
+                                                                                            const actualStages = productTasks
+                                                                                                .filter(task =>
+                                                                                                    task.id &&
+                                                                                                    !task.id.startsWith('product-only-') &&
+                                                                                                    task.name &&
+                                                                                                    task.name.trim() !== ''
+                                                                                                )
+                                                                                                .sort((a, b) => {
+                                                                                                    // Сортируем по orderIndex, если он есть
+                                                                                                    const orderA = a.orderIndex ?? 999999;
+                                                                                                    const orderB = b.orderIndex ?? 999999;
+                                                                                                    return orderA - orderB;
+                                                                                                });
                                                                                             // Если нет этапов, карточка должна быть свернута
                                                                                             const hasStages = actualStages.length > 0;
                                                                                             const isCollapsed = collapsedProducts.has(productKey) || !hasStages;
