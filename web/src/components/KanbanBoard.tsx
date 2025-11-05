@@ -586,7 +586,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     productDescription: stage.productDescription || null, // Описание из Product
                     serialNumber: stage.serialNumber || null,
                     productStatus: stage.productStatus || 'InProject', // Статус изделия
-                    projectStatus: stage.projectStatus, // Статус проекта
+                    projectStatus: stage.projectStatus || 'InProject', // Статус проекта (с значением по умолчанию на случай если не передан)
                     orderIndex: stage.orderIndex || 0, // Индекс порядка этапа работ
                     projectManager: stage.projectManager || null
                 };
@@ -2144,7 +2144,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                 const sortedProjects = Array.from(projectsMap.entries())
                                     .filter(([, tasks]) => {
                                         // Применяем фильтры по статусу
-                                        const projectStatus = tasks[0]?.projectStatus || 'InProject';
+                                        // Берем статус проекта из первой задачи (у всех задач одного проекта одинаковый статус)
+                                        const projectStatus = tasks[0]?.projectStatus;
+                                        // Если статус не определен, пропускаем проект (не должно быть, но на всякий случай)
+                                        if (!projectStatus) {
+                                            return false;
+                                        }
                                         // Проверяем, что фильтр для этого статуса включен
                                         // Используем явное преобразование типов для надежности
                                         const statusKey = projectStatus as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived';
@@ -2411,7 +2416,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     '& .MuiChip-label': {
                                                                                         padding: '0px 4px'
                                                                                     }
-                                                                                 }}
+                                                                                }}
                                                                             />
                                                                         </MenuItem>
                                                                         <MenuItem
