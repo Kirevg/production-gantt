@@ -886,81 +886,81 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 // Создаем Map для быстрого поиска этапов в новом порядке с обновленным orderIndex
                 const stagesMap = new Map(newProductStages.map((stage, index) => [stage.id, { ...stage, orderIndex: index }]));
 
-                // Находим индексы всех этапов этого изделия в глобальном массиве (в текущем порядке)
-                const stageIndices: number[] = [];
-                kanbanTasks.forEach((task, index) => {
-                    if (task.productId === productId && 
-                        task.id && 
-                        !task.id.startsWith('product-only-') && 
-                        task.name && 
-                        task.name.trim() !== '') {
-                        stageIndices.push(index);
+                // Переставляем этапы в глобальном массиве: сначала собираем все элементы, которые НЕ этапы этого изделия
+                const otherTasks: KanbanTask[] = [];
+                const productStageIds = new Set(newProductStages.map(s => s.id));
+                
+                // Собираем все задачи, которые НЕ относятся к этапам этого изделия
+                kanbanTasks.forEach(task => {
+                    if (!(task.productId === productId && 
+                          task.id && 
+                          !task.id.startsWith('product-only-') && 
+                          task.name && 
+                          task.name.trim() !== '' &&
+                          productStageIds.has(task.id))) {
+                        otherTasks.push(task);
                     }
                 });
 
-                // Создаем новый массив для перестановки этапов
-                let updatedTasks = [...kanbanTasks];
-                
-                // Переставляем этапы в глобальном массиве используя arrayMove
-                // Находим индексы oldIndex и newIndex в глобальном массиве
-                if (stageIndices.length === newProductStages.length && oldIndex < stageIndices.length && newIndex < stageIndices.length) {
-                    const globalOldIndex = stageIndices[oldIndex];
-                    const globalNewIndex = stageIndices[newIndex];
-                    
-                    // Перемещаем элементы в глобальном массиве
-                    updatedTasks = arrayMove(updatedTasks, globalOldIndex, globalNewIndex);
-                    
-                    // Обновляем orderIndex для всех этапов этого изделия
-                    updatedTasks = updatedTasks.map(task => {
-                        if (task.productId === productId && stagesMap.has(task.id)) {
-                            return stagesMap.get(task.id)!;
-                        }
-                        return task;
-                    });
-                } else {
-                    // Если не удалось найти индексы, просто обновляем orderIndex
-                    updatedTasks = updatedTasks.map(task => {
-                        if (task.productId === productId && stagesMap.has(task.id)) {
-                            return stagesMap.get(task.id)!;
-                        }
-                        return task;
-                    });
+                // Находим позицию, где должны быть этапы этого изделия (позиция первого этапа в исходном массиве)
+                let insertionIndex = kanbanTasks.findIndex(task => 
+                    task.productId === productId && 
+                    task.id && 
+                    !task.id.startsWith('product-only-') && 
+                    task.name && 
+                    task.name.trim() !== '' &&
+                    productStageIds.has(task.id)
+                );
+
+                // Если не нашли позицию, вставляем в конец
+                if (insertionIndex === -1) {
+                    insertionIndex = otherTasks.length;
                 }
 
+                // Создаем новый массив: вставляем этапы в правильном порядке на нужную позицию
+                const updatedTasks = [
+                    ...otherTasks.slice(0, insertionIndex),
+                    ...newProductStages.map(stage => stagesMap.get(stage.id)!),
+                    ...otherTasks.slice(insertionIndex)
+                ];
+
+                // СНАЧАЛА обновляем состояние для анимации
                 setKanbanTasks(updatedTasks);
 
-                // 💾 СОХРАНЯЕМ НОВЫЙ ПОРЯДОК НА СЕРВЕРЕ (точно как в ProductCard)
-                try {
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        return;
-                    }
-
-                    const stagesWithOrder = newProductStages.map((task, index) => ({
-                        id: task.id,
-                        order: index
-                    }));
-
-                    const response = await fetch(
-                        `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
-                        {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ stages: stagesWithOrder })
+                // ПОТОМ отправляем на сервер после завершения анимации (через небольшой таймаут)
+                setTimeout(async () => {
+                    try {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                            return;
                         }
-                    );
 
-                    if (!response.ok) {
+                        const stagesWithOrder = newProductStages.map((task, index) => ({
+                            id: task.id,
+                            order: index
+                        }));
+
+                        const response = await fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
+                            {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ stages: stagesWithOrder })
+                            }
+                        );
+
+                        if (!response.ok) {
+                            // При ошибке откатываем изменения (как в ProductCard)
+                            await fetchKanbanData();
+                        }
+                    } catch (error) {
                         // При ошибке откатываем изменения (как в ProductCard)
                         await fetchKanbanData();
                     }
-                } catch (error) {
-                    // При ошибке откатываем изменения (как в ProductCard)
-                    await fetchKanbanData();
-                }
+                }, 300); // Задержка 300ms для завершения анимации
             }
         } else {
             // console.log('ℹ️ Перетаскивание отменено или не завершено');
