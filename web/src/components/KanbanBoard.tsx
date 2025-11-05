@@ -2266,9 +2266,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                         {/* Контейнер проекта с рамкой */}
                                                         <Paper
                                                             sx={{
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
                                                                 border: '2px solid #3e5f8a',
                                                                 borderRadius: '4px',
-                                                                p: 1
+                                                                p: 1,
+                                                                gap: 1
                                                             }}
                                                         >
                                                             {/* Заголовок проекта */}
@@ -2546,8 +2549,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     <Paper
                                                                                         sx={{
                                                                                             border: '2px solid #423189',
-                                                                                            borderRadius: '4px',
-                                                                                            p: 1
+                                                                                            borderRadius: '4px'
                                                                                         }}
                                                                                     >
                                                                                         {/* Заголовок изделия */}
@@ -2820,16 +2822,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                         <Box sx={{
                                                                                                             display: 'flex',
                                                                                                             flexWrap: 'wrap',
-                                                                                                            gap: 1,
+                                                                                                            gap: 0.5,
                                                                                                             alignItems: 'flex-start',
                                                                                                             minHeight: '60px', // Минимальная высота для стабильности
                                                                                                             position: 'relative', // Для правильного позиционирования
                                                                                                             overflow: 'visible', // Изменено на visible, чтобы границы не обрезались при hover
                                                                                                             width: '100%', // Полная ширина контейнера
                                                                                                             ml: 2,
-                                                                                                            // mb: 1,
-                                                                                                            mt: 1,
-                                                                                                            pt: '2px' // Добавляем небольшой padding-top, чтобы верхняя граница не обрезалась при hover
+                                                                                                            mb: 1
                                                                                                         }}>
                                                                                                             {actualStages.map((task) => (
                                                                                                                 <SortableStageCard
