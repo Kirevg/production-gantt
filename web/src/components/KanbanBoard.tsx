@@ -1025,12 +1025,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         const { active, over } = event;
         
         // Проверяем, не является ли перетаскиваемый элемент этапом работы
-        // Если да, то перенаправляем на handleDragEnd для этапов
+        // Если да, то НЕ обрабатываем здесь - верхний DndContext обработает через handleDragEnd
         const activeTask = kanbanTasks.find((task) => task.id === active.id);
         if (activeTask && activeTask.id && !activeTask.id.startsWith('product-only-') && !activeTask.id.startsWith('project-only-')) {
-            // Это этап работы, обрабатываем через handleDragEnd
-            console.log('🔄 [DRAG-END-PRODUCTS] Перенаправление на handleDragEnd для этапа', active.id);
-            await handleDragEnd(event);
+            // Это этап работы, пропускаем - верхний DndContext обработает
+            console.log('⏭️ [DRAG-END-PRODUCTS] Пропускаем этап - обработает верхний DndContext', active.id);
             return;
         }
 
@@ -2548,7 +2547,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                 <DndContext
                                                                     sensors={sensors}
                                                                     collisionDetection={closestCenter}
-                                                                    onDragEnd={(e) => handleDragEndProducts(e, projectId, sortedProducts)}
+                                                                    onDragEnd={(e) => {
+                                                                        // Проверяем, не является ли перетаскиваемый элемент этапом работы
+                                                                        // Если да, то НЕ обрабатываем здесь - верхний DndContext обработает
+                                                                        const activeTask = kanbanTasks.find((task) => task.id === e.active.id);
+                                                                        if (activeTask && activeTask.id && !activeTask.id.startsWith('product-only-') && !activeTask.id.startsWith('project-only-')) {
+                                                                            // Это этап работы, пропускаем - верхний DndContext обработает
+                                                                            return;
+                                                                        }
+                                                                        handleDragEndProducts(e, projectId, sortedProducts);
+                                                                    }}
                                                                 >
                                                                     <SortableContext
                                                                         items={sortedProducts.map(([productKey]) => `product-${productKey}`)}
