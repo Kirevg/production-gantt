@@ -382,10 +382,24 @@ router.post('/', authenticateToken, requireRole(['admin', 'manager']), async (re
   try {
     const data = projectCreateSchema.parse(req.body);
 
+    // Получаем максимальный orderIndex среди всех проектов
+    const maxOrderProject = await prisma.project.findFirst({
+      orderBy: {
+        orderIndex: 'desc'
+      },
+      select: {
+        orderIndex: true
+      }
+    });
+
+    // Устанавливаем orderIndex = максимальный + 1 (или 0, если проектов нет)
+    const nextOrderIndex = maxOrderProject ? (maxOrderProject.orderIndex ?? 0) + 1 : 0;
+
     const project = await prisma.project.create({
       data: {
         ...data,
-        projectManagerId: data.projectManagerId || null
+        projectManagerId: data.projectManagerId || null,
+        orderIndex: nextOrderIndex
       } as any,
       include: {
         owner: {
