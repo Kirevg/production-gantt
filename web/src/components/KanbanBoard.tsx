@@ -2145,17 +2145,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                     .filter(([, tasks]) => {
                                         // Применяем фильтры по статусу
                                         // Берем статус проекта из первой задачи (у всех задач одного проекта одинаковый статус)
-                                        const projectStatus = tasks[0]?.projectStatus;
-                                        // Если статус не определен, пропускаем проект (не должно быть, но на всякий случай)
-                                        if (!projectStatus) {
-                                            return false;
-                                        }
+                                        // Используем значение по умолчанию 'InProject' если статус не передан
+                                        const projectStatus = tasks[0]?.projectStatus || 'InProject';
                                         // Проверяем, что фильтр для этого статуса включен
                                         // Используем явное преобразование типов для надежности
                                         const statusKey = projectStatus as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived';
                                         const statusFilterValue = statusFilters[statusKey];
                                         // Если статус не найден в фильтрах, показываем проект (на случай если добавится новый статус)
-                                        return statusFilterValue !== undefined ? statusFilterValue : true;
+                                        // Если статус найден, проверяем значение фильтра (true = показать, false = скрыть)
+                                        return statusFilterValue !== undefined ? statusFilterValue === true : true;
                                     })
                                     .sort((a, b) => {
                                         const orderA = a[1][0]?.projectOrderIndex ?? 999999;
