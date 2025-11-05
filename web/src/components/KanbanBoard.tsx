@@ -882,20 +882,50 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                 // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
                 const newProductStages = arrayMove(productStages, oldIndex, newIndex);
 
-                // Обновляем orderIndex в глобальном массиве kanbanTasks (как в ProductCard обновляется stages)
+                // Обновляем orderIndex и переставляем этапы в глобальном массиве kanbanTasks
                 // Создаем Map для быстрого поиска этапов в новом порядке с обновленным orderIndex
-                const stagesMap = new Map(newProductStages.map((stage, index) => [stage.id, index]));
+                const stagesMap = new Map(newProductStages.map((stage, index) => [stage.id, { ...stage, orderIndex: index }]));
 
-                // Обновляем orderIndex для всех этапов этого изделия
-                const updatedTasks = kanbanTasks.map(task => {
-                    if (task.productId === productId && stagesMap.has(task.id)) {
-                        return {
-                            ...task,
-                            orderIndex: stagesMap.get(task.id)!
-                        };
+                // Находим индексы всех этапов этого изделия в глобальном массиве (в текущем порядке)
+                const stageIndices: number[] = [];
+                kanbanTasks.forEach((task, index) => {
+                    if (task.productId === productId && 
+                        task.id && 
+                        !task.id.startsWith('product-only-') && 
+                        task.name && 
+                        task.name.trim() !== '') {
+                        stageIndices.push(index);
                     }
-                    return task;
                 });
+
+                // Создаем новый массив для перестановки этапов
+                let updatedTasks = [...kanbanTasks];
+                
+                // Переставляем этапы в глобальном массиве используя arrayMove
+                // Находим индексы oldIndex и newIndex в глобальном массиве
+                if (stageIndices.length === newProductStages.length && oldIndex < stageIndices.length && newIndex < stageIndices.length) {
+                    const globalOldIndex = stageIndices[oldIndex];
+                    const globalNewIndex = stageIndices[newIndex];
+                    
+                    // Перемещаем элементы в глобальном массиве
+                    updatedTasks = arrayMove(updatedTasks, globalOldIndex, globalNewIndex);
+                    
+                    // Обновляем orderIndex для всех этапов этого изделия
+                    updatedTasks = updatedTasks.map(task => {
+                        if (task.productId === productId && stagesMap.has(task.id)) {
+                            return stagesMap.get(task.id)!;
+                        }
+                        return task;
+                    });
+                } else {
+                    // Если не удалось найти индексы, просто обновляем orderIndex
+                    updatedTasks = updatedTasks.map(task => {
+                        if (task.productId === productId && stagesMap.has(task.id)) {
+                            return stagesMap.get(task.id)!;
+                        }
+                        return task;
+                    });
+                }
 
                 setKanbanTasks(updatedTasks);
 
