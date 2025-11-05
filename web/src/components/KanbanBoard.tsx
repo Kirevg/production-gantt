@@ -867,127 +867,121 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         // Проверяем, что перетаскивание завершилось успешно
         if (active.id !== over?.id && over?.id) {
             console.log('🔄 [DRAG-END] Начало перетаскивания', { activeId: active.id, overId: over.id });
-            
+
             // Находим активную и целевую задачи
             const activeTask = kanbanTasks.find((task) => task.id === active.id);
             const overTask = kanbanTasks.find((task) => task.id === over.id);
 
-            console.log('🔍 [DRAG-END] Найденные задачи', { 
+            console.log('🔍 [DRAG-END] Найденные задачи', {
                 activeTask: activeTask ? { id: activeTask.id, name: activeTask.name, productId: activeTask.productId } : null,
                 overTask: overTask ? { id: overTask.id, name: overTask.name, productId: overTask.productId } : null
             });
 
             // Проверяем, что обе задачи принадлежат одному изделию
-            if (activeTask && overTask && activeTask.productId === overTask.productId) {
-                console.log('✅ [DRAG-END] Задачи принадлежат одному изделию:', activeTask.productId);
+            if (activeTask && overTask && activeTask.productId === overTask.productId && activeTask.productId) {
+                const productId = activeTask.productId;
+                console.log('✅ [DRAG-END] Задачи принадлежат одному изделию:', productId);
                 
-                // Находим индексы для перемещения в глобальном массиве
-                const oldIndex = kanbanTasks.findIndex((task) => task.id === active.id);
-                const newIndex = kanbanTasks.findIndex((task) => task.id === over.id);
+                // Берем этапы этого изделия из локального состояния (как в ProductCard)
+                const productStages = productStagesMap.get(productId) || [];
+                console.log('📦 [DRAG-END] Этапы изделия до перемещения', {
+                    productId,
+                    stagesCount: productStages.length,
+                    stages: productStages.map(s => ({ id: s.id, name: s.name, orderIndex: s.orderIndex }))
+                });
 
-                console.log('📍 [DRAG-END] Индексы', { oldIndex, newIndex, totalTasks: kanbanTasks.length });
+                // Находим индексы для перемещения в массиве этапов этого изделия (как в ProductCard)
+                const oldIndex = productStages.findIndex((task) => task.id === active.id);
+                const newIndex = productStages.findIndex((task) => task.id === over.id);
 
-                if (oldIndex !== -1 && newIndex !== -1) {
-                    // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ
-                    const newTasks = arrayMove(kanbanTasks, oldIndex, newIndex);
-                    console.log('🔄 [DRAG-END] После arrayMove', { 
-                        oldOrder: kanbanTasks.slice(Math.max(0, oldIndex - 2), Math.min(kanbanTasks.length, oldIndex + 3)).map(t => ({ id: t.id, name: t.name })),
-                        newOrder: newTasks.slice(Math.max(0, newIndex - 2), Math.min(newTasks.length, newIndex + 3)).map(t => ({ id: t.id, name: t.name }))
-                    });
-                    setKanbanTasks(newTasks);
+                console.log('📍 [DRAG-END] Индексы в массиве этапов изделия', { oldIndex, newIndex, totalStages: productStages.length });
 
-                    // Обновляем productStagesMap для синхронизации
-                    const productId = activeTask.productId;
-                    if (productId) {
-                        const productStages = newTasks.filter(task =>
-                            task.productId === productId &&
+                if (oldIndex === -1 || newIndex === -1) {
+                    console.warn('⚠️ [DRAG-END] Этапы не найдены в массиве изделия');
+                    return;
+                }
+
+                // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
+                const newProductStages = arrayMove(productStages, oldIndex, newIndex);
+                console.log('🔄 [DRAG-END] После arrayMove', {
+                    oldOrder: productStages.map(s => ({ id: s.id, name: s.name })),
+                    newOrder: newProductStages.map(s => ({ id: s.id, name: s.name }))
+                });
+
+                // Обновляем orderIndex для всех этапов
+                const updatedProductStages = newProductStages.map((stage, index) => ({
+                    ...stage,
+                    orderIndex: index
+                }));
+
+                // СНАЧАЛА обновляем локальное состояние для анимации (как в ProductCard)
+                const newProductStagesMap = new Map(productStagesMap);
+                newProductStagesMap.set(productId, updatedProductStages);
+                setProductStagesMap(newProductStagesMap);
+
+                // Обновляем глобальный массив kanbanTasks для синхронизации
+                setKanbanTasks((currentTasks) => {
+                    return currentTasks.map(task => {
+                        if (task.productId === productId &&
                             task.id &&
                             !task.id.startsWith('product-only-') &&
                             task.name &&
-                            task.name.trim() !== ''
-                        );
-                        const updatedProductStages = productStages.map((stage, index) => ({
-                            ...stage,
-                            orderIndex: index
-                        }));
-                        console.log('📦 [DRAG-END] Обновленные этапы изделия', {
-                            productId,
-                            stages: updatedProductStages.map(s => ({ id: s.id, name: s.name, orderIndex: s.orderIndex }))
-                        });
-                        const newProductStagesMap = new Map(productStagesMap);
-                        newProductStagesMap.set(productId, updatedProductStages);
-                        setProductStagesMap(newProductStagesMap);
-                    }
-
-                    // Сохраняем порядок на сервере
-                    try {
-                        const token = localStorage.getItem('token');
-                        if (!token) {
-                            return;
+                            task.name.trim() !== '') {
+                            const updatedStage = updatedProductStages.find(s => s.id === task.id);
+                            return updatedStage || task;
                         }
+                        return task;
+                    });
+                });
 
-                        // Группируем этапы по изделиям для отправки на сервер
-                        const stagesByProduct = new Map<string, KanbanTask[]>();
-                        newTasks.forEach((task) => {
-                            if (task.productId &&
-                                task.id &&
-                                !task.id.startsWith('product-only-') &&
-                                task.name &&
-                                task.name.trim() !== '') {
-                                if (!stagesByProduct.has(task.productId)) {
-                                    stagesByProduct.set(task.productId, []);
-                                }
-                                stagesByProduct.get(task.productId)!.push(task);
-                            }
-                        });
-                        // Вычисляем порядок внутри каждого изделия отдельно
-                        const stagesWithOrder = new Map<string, Array<{ id: string; order: number }>>();
-                        stagesByProduct.forEach((stages, prodId) => {
-                            const sortedStages = stages.sort((a, b) => {
-                                const indexA = newTasks.findIndex(t => t.id === a.id);
-                                const indexB = newTasks.findIndex(t => t.id === b.id);
-                                return indexA - indexB;
-                            });
-                            stagesWithOrder.set(prodId, sortedStages.map((stage, index) => ({
-                                id: stage.id,
-                                order: index
-                            })));
-                        });
+                console.log('📦 [DRAG-END] Обновленные этапы изделия', {
+                    productId,
+                    stages: updatedProductStages.map(s => ({ id: s.id, name: s.name, orderIndex: s.orderIndex }))
+                });
 
-                        // Отправляем обновления для каждого изделия
-                        console.log('📤 [DRAG-END] Отправка на сервер', Array.from(stagesWithOrder.entries()).map(([prodId, stages]) => ({
-                            productId: prodId,
-                            stagesCount: stages.length,
-                            stages: stages
-                        })));
-                        
-                        await Promise.all(Array.from(stagesWithOrder.entries()).map(async ([prodId, stages]) => {
-                            const response = await fetch(
-                                `${import.meta.env.VITE_API_BASE_URL}/projects/products/${prodId}/work-stages/order`,
-                                {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Authorization': `Bearer ${token}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ stages })
-                                }
-                            );
-
-                            if (!response.ok) {
-                                const errorText = await response.text();
-                                console.error('❌ [DRAG-END] Ошибка сохранения', { productId, status: response.status, error: errorText });
-                                throw new Error(`Failed to save order for product ${prodId}: ${response.status} ${errorText}`);
-                            }
-                            console.log('✅ [DRAG-END] Успешно сохранено для изделия', prodId);
-                        }));
-                    } catch (error) {
-                        console.error('❌ [DRAG-END] Критическая ошибка', error);
-                        // При ошибке откатываем изменения
-                        await fetchKanbanData();
+                // Сохраняем порядок на сервере (как в ProductCard - сразу после обновления состояния)
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        console.warn('⚠️ [DRAG-END] Токен не найден');
+                        return;
                     }
-                } else {
-                    console.warn('⚠️ [DRAG-END] Неверные индексы', { oldIndex, newIndex });
+
+                    const stagesWithOrder = updatedProductStages.map((task, index) => ({
+                        id: task.id,
+                        order: index
+                    }));
+
+                    console.log('📤 [DRAG-END] Отправка на сервер', {
+                        productId,
+                        stagesCount: stagesWithOrder.length,
+                        stages: stagesWithOrder
+                    });
+
+                    const response = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ stages: stagesWithOrder })
+                        }
+                    );
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('❌ [DRAG-END] Ошибка сохранения', { productId, status: response.status, error: errorText });
+                        // При ошибке откатываем изменения (как в ProductCard)
+                        await fetchKanbanData();
+                    } else {
+                        console.log('✅ [DRAG-END] Успешно сохранено для изделия', productId);
+                    }
+                } catch (error) {
+                    console.error('❌ [DRAG-END] Критическая ошибка', error);
+                    // При ошибке откатываем изменения (как в ProductCard)
+                    await fetchKanbanData();
                 }
             } else {
                 console.warn('⚠️ [DRAG-END] Задачи не принадлежат одному изделию или не найдены');
