@@ -323,6 +323,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         InProgress: boolean;
         Done: boolean;
         HasProblems: boolean;
+        Archived: boolean;
     }>(() => {
         try {
             const raw = localStorage.getItem(statusFiltersKey);
@@ -333,7 +334,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     InProject: parsed.InProject !== undefined ? parsed.InProject : true,
                     InProgress: parsed.InProgress !== undefined ? parsed.InProgress : true,
                     Done: parsed.Done !== undefined ? parsed.Done : true,
-                    HasProblems: parsed.HasProblems !== undefined ? parsed.HasProblems : true
+                    HasProblems: parsed.HasProblems !== undefined ? parsed.HasProblems : true,
+                    Archived: parsed.Archived !== undefined ? parsed.Archived : true
                 };
             }
         } catch {
@@ -344,7 +346,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             InProject: true,
             InProgress: true,
             Done: true,
-            HasProblems: true
+            HasProblems: true,
+            Archived: true
         };
     });
 
@@ -372,6 +375,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             case 'InProgress': return 'primary';
             case 'Done': return 'success';
             case 'HasProblems': return 'error';
+            case 'Archived': return 'default';
             default: return 'default';
         }
     };
@@ -383,6 +387,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             case 'InProgress': return 'В работе';
             case 'Done': return 'Готово';
             case 'HasProblems': return 'Проблемы';
+            case 'Archived': return 'Архив';
             default: return 'Неизвестно';
         }
     };
@@ -1982,11 +1987,32 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                         />
                                                     }
                                                 />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={statusFilters.Archived}
+                                                            onChange={() => handleStatusFilterChange('Archived')}
+                                                            color="default"
+                                                        />
+                                                    }
+                                                    label={
+                                                        <Chip
+                                                            label="Архив"
+                                                            size="small"
+                                                            sx={{ 
+                                                                borderRadius: '6px', 
+                                                                width: '90px',
+                                                                backgroundColor: '#9e9e9e',
+                                                                color: '#fff'
+                                                            }}
+                                                        />
+                                                    }
+                                                />
                                                 <Tooltip title="Показать все">
                                                     <span>
                                                         <VolumeButton
-                                                            onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true })}
-                                                            disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
+                                                            onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true, Archived: true })}
+                                                            disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems && statusFilters.Archived}
                                                             color="green"
                                                             sx={{
                                                                 width: '30px',
@@ -2007,8 +2033,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                 <Tooltip title="Скрыть все">
                                                     <span>
                                                         <VolumeButton
-                                                            onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false })}
-                                                            disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
+                                                            onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false, Archived: false })}
+                                                            disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems && !statusFilters.Archived}
                                                             sx={{
                                                                 width: '30px',
                                                                 height: '30px',
@@ -2271,6 +2297,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 backgroundColor: '#FFE082',
                                                                                 color: '#000'
                                                                             }),
+                                                                            ...(tasks[0]?.projectStatus === 'Archived' && {
+                                                                                backgroundColor: '#9e9e9e',
+                                                                                color: '#fff'
+                                                                            }),
                                                                             '&:hover': {
                                                                                 opacity: 0.8
                                                                             }
@@ -2335,6 +2365,23 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                 color="error"
                                                                                 size="small"
                                                                                 sx={{ borderRadius: '6px', width: '90px' }}
+                                                                            />
+                                                                        </MenuItem>
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                handleUpdateProjectStatus(projectId, 'Archived');
+                                                                                handleStatusMenuClose(projectId);
+                                                                            }}
+                                                                        >
+                                                                            <Chip
+                                                                                label="Архив"
+                                                                                size="small"
+                                                                                sx={{ 
+                                                                                    borderRadius: '6px', 
+                                                                                    width: '90px',
+                                                                                    backgroundColor: '#9e9e9e',
+                                                                                    color: '#fff'
+                                                                                }}
                                                                             />
                                                                         </MenuItem>
                                                                     </Menu>

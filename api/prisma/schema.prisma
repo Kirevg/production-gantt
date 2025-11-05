@@ -313,6 +313,7 @@ enum ProjectStatus {
   InProgress
   Done
   HasProblems
+  Archived
 }
 
 enum NomenclatureType {

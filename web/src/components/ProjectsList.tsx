@@ -66,7 +66,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
     // Состояние для формы создания нового проекта
     const [newProject, setNewProject] = useState({
         name: '',                    // Название проекта
-        status: 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems',   // Статус по умолчанию
+        status: 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived',   // Статус по умолчанию
         managerId: ''               // ID руководителя проекта
     });
     // Состояние для списка руководителей
@@ -84,7 +84,8 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
         InProject: true,
         InProgress: true,
         Done: true,
-        HasProblems: true
+        HasProblems: true,
+        Archived: true
     });
 
     // Настройка сенсоров для drag-and-drop
@@ -437,12 +438,20 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                 </TableCell>
                 <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
                     <Chip
-                        label={project.status === 'InProject' ? 'В проекте' :
+                        label={
+                            project.status === 'InProject' ? 'В проекте' :
                             project.status === 'InProgress' ? 'В работе' :
-                                project.status === 'Done' ? 'Завершён' : 'Проблемы'}
-                        color={project.status === 'InProject' ? undefined :
+                            project.status === 'Done' ? 'Завершён' :
+                            project.status === 'HasProblems' ? 'Проблемы' :
+                            project.status === 'Archived' ? 'Архив' : 'В проекте'
+                        }
+                        color={
+                            project.status === 'InProject' ? undefined :
                             project.status === 'InProgress' ? 'primary' :
-                                project.status === 'Done' ? 'success' : 'error'}
+                            project.status === 'Done' ? 'success' :
+                            project.status === 'HasProblems' ? 'error' :
+                            project.status === 'Archived' ? 'default' : undefined
+                        }
                         size="small"
                         sx={{
                             width: '90px',
@@ -450,6 +459,10 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                             ...(project.status === 'InProject' && {
                                 backgroundColor: '#FFE082',
                                 color: '#000'
+                            }),
+                            ...(project.status === 'Archived' && {
+                                backgroundColor: '#9e9e9e',
+                                color: '#fff'
                             })
                         }}
                     />
@@ -660,7 +673,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                             select
                             label="Статус"
                             value={newProject.status}
-                            onChange={(e) => setNewProject({ ...newProject, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' })}
+                            onChange={(e) => setNewProject({ ...newProject, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived' })}
                             margin="normal"
                             SelectProps={{ native: true }}
                         >
@@ -668,6 +681,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                             <option value="InProgress">В работе</option>
                             <option value="Done">Завершён</option>
                             <option value="HasProblems">Проблемы</option>
+                            <option value="Archived">Архив</option>
                         </TextField>
                     </DialogContent>
                     <DialogActions>
@@ -775,18 +789,43 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
                             </Box>
                         }
                     />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={statusFilters.Archived}
+                                onChange={() => handleStatusFilterChange('Archived')}
+                                color="default"
+                            />
+                        }
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                <Chip
+                                    label="Архив"
+                                    size="small"
+                                    sx={{ 
+                                        borderRadius: '6px',
+                                        backgroundColor: '#9e9e9e',
+                                        color: '#fff'
+                                    }}
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                    ({projects.filter(p => p.status === 'Archived').length})
+                                </Typography>
+                            </Box>
+                        }
+                    />
 
                     <Button
                         size="small"
-                        onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true })}
-                        disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems}
+                        onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true, Archived: true })}
+                        disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems && statusFilters.Archived}
                     >
                         Показать все
                     </Button>
                     <Button
                         size="small"
-                        onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false })}
-                        disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems}
+                        onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false, Archived: false })}
+                        disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems && !statusFilters.Archived}
                     >
                         Скрыть все
                     </Button>

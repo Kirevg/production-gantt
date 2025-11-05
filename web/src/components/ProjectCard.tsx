@@ -111,7 +111,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
     const [projectData, setProjectData] = useState({
         name: projectName,
         managerId: '',
-        status: 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems'
+        status: 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived'
     });
     const [managers, setManagers] = useState<any[]>([]);
     const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string, name: string }>>([]); // Каталог изделий для выпадающего списка (только из текущего проекта)
@@ -232,7 +232,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                 const updatedProjectData = {
                     name: data.name,
                     managerId: data.projectManager?.id || '',
-                    status: data.status || 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems'
+                    status: data.status || 'InProject' as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived'
                 };
                 setProjectData(updatedProjectData);
             }
@@ -913,7 +913,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                             select
                             label="Статус"
                             value={projectData.status}
-                            onChange={(e) => setProjectData({ ...projectData, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' })}
+                            onChange={(e) => setProjectData({ ...projectData, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived' })}
                             size="small"
                             SelectProps={{ native: true }}
                             sx={{ flex: 1 }}
@@ -923,6 +923,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ projectId, projectName, onClo
                             <option value="InProgress">В работе</option>
                             <option value="Done">Завершён</option>
                             <option value="HasProblems">Проблемы</option>
+                            <option value="Archived">Архив</option>
                         </TextField>
                         <VolumeButton
                             variant="contained"

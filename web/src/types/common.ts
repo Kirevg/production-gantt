@@ -16,7 +16,7 @@ export interface LoginResponse {
 export interface Project {
     id: string;         // Уникальный идентификатор проекта
     name: string;        // Название проекта
-    status: 'InProject' | 'InProgress' | 'Done' | 'HasProblems'; // Статус проекта
+    status: 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived'; // Статус проекта
     startDate: string | null;  // Дата начала проекта
     endDate: string | null;    // Дата окончания проекта
     ownerId: string;    // ID владельца проекта
