@@ -854,7 +854,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
             // Проверяем, что обе задачи принадлежат одному изделию
             if (activeTask && overTask && activeTask.productId === overTask.productId) {
                 const productId = activeTask.productId;
-
+                
                 // СНАЧАЛА фильтруем только этапы этого изделия (как в ProductCard)
                 const productStages = kanbanTasks
                     .filter(task =>
@@ -864,109 +864,70 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         task.name &&
                         task.name.trim() !== ''
                     )
-                    // Сортируем по orderIndex для правильного порядка
+                    // Сортируем по orderIndex для правильного порядка (как в ProductCard)
                     .sort((a, b) => {
                         const orderA = a.orderIndex ?? 999999;
                         const orderB = b.orderIndex ?? 999999;
                         return orderA - orderB;
                     });
 
-                // Находим индексы для перемещения в массиве этапов этого изделия
+                // Находим индексы для перемещения в массиве этапов этого изделия (как в ProductCard)
                 const oldIndex = productStages.findIndex((task) => task.id === active.id);
                 const newIndex = productStages.findIndex((task) => task.id === over.id);
 
-                if (oldIndex !== -1 && newIndex !== -1) {
-                    // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (как в ProductCard)
-                    const newProductStages = arrayMove(productStages, oldIndex, newIndex);
+                if (oldIndex === -1 || newIndex === -1) {
+                    return;
+                }
 
-                    // Вычисляем порядок на основе позиции в массиве после arrayMove
+                // 🔄 ПЕРЕМЕЩАЕМ КАРТОЧКУ В НОВОЕ ПОЛОЖЕНИЕ (точно как в ProductCard)
+                const newProductStages = arrayMove(productStages, oldIndex, newIndex);
+
+                // Обновляем orderIndex в глобальном массиве kanbanTasks (как setStages в ProductCard)
+                const updatedTasks = kanbanTasks.map(task => {
+                    const stageIndex = newProductStages.findIndex((s) => s.id === task.id);
+                    if (stageIndex !== -1 && task.productId === productId) {
+                        return {
+                            ...task,
+                            orderIndex: stageIndex
+                        };
+                    }
+                    return task;
+                });
+
+                setKanbanTasks(updatedTasks);
+
+                // 💾 СОХРАНЯЕМ НОВЫЙ ПОРЯДОК НА СЕРВЕРЕ (точно как в ProductCard)
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        return;
+                    }
+
                     const stagesWithOrder = newProductStages.map((task, index) => ({
                         id: task.id,
                         order: index
                     }));
 
-                    // Обновляем глобальный массив: сначала обновляем orderIndex, затем переставляем элементы
-                    let updatedTasks = kanbanTasks.map(task => {
-                        const stageIndex = stagesWithOrder.findIndex((s) => s.id === task.id);
-                        if (stageIndex !== -1 && task.productId === productId) {
-                            return {
-                                ...task,
-                                orderIndex: stageIndex
-                            };
+                    const response = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ stages: stagesWithOrder })
                         }
-                        return task;
-                    });
-
-                    // Переставляем элементы в глобальном массиве в правильном порядке
-                    // Собираем этапы этого изделия в новом порядке (с обновленным orderIndex)
-                    const reorderedStages: KanbanTask[] = [];
-                    newProductStages.forEach(stage => {
-                        const task = updatedTasks.find(task => task.id === stage.id);
-                        if (task) {
-                            const stageIndex = stagesWithOrder.findIndex((s) => s.id === stage.id);
-                            reorderedStages.push({
-                                ...task,
-                                orderIndex: stageIndex
-                            });
-                        }
-                    });
-
-                    // Находим позицию первого этапа этого изделия в глобальном массиве
-                    const firstStageIndex = updatedTasks.findIndex(task => 
-                        task.productId === productId && 
-                        task.id && 
-                        !task.id.startsWith('product-only-') && 
-                        task.name && 
-                        task.name.trim() !== ''
                     );
 
-                    if (firstStageIndex !== -1) {
-                        // Удаляем старые этапы изделия
-                        const beforeStages = updatedTasks.slice(0, firstStageIndex);
-                        const afterStages = updatedTasks.slice(firstStageIndex + productStages.length);
-                        
-                        // Собираем новый массив с этапами в правильном порядке
-                        updatedTasks = [
-                            ...beforeStages,
-                            ...reorderedStages,
-                            ...afterStages
-                        ];
-                    }
-
-                    setKanbanTasks(updatedTasks);
-
-                    // 💾 СОХРАНЯЕМ НОВЫЙ ПОРЯДОК НА СЕРВЕРЕ (как в ProductCard)
-                    try {
-                        const token = localStorage.getItem('token');
-                        if (!token) {
-                            return;
-                        }
-
-                        const response = await fetch(
-                            `${import.meta.env.VITE_API_BASE_URL}/projects/products/${productId}/work-stages/order`,
-                            {
-                                method: 'PUT',
-                                headers: {
-                                    'Authorization': `Bearer ${token}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ stages: stagesWithOrder })
-                            }
-                        );
-
-                        if (!response.ok) {
-                            // При ошибке откатываем изменения
-                            await fetchKanbanData();
-                        }
-                    } catch (error) {
-                        // При ошибке откатываем изменения
+                    if (!response.ok) {
+                        // При ошибке откатываем изменения (как в ProductCard)
                         await fetchKanbanData();
                     }
-
-                    // console.log('✅ Карточка успешно перемещена и сохранена');
+                } catch (error) {
+                    // При ошибке откатываем изменения (как в ProductCard)
+                    await fetchKanbanData();
                 }
-            } else {
-                // console.log('⚠️ Перетаскивание между разными изделиями или задачи не найдены');
             }
         } else {
             // console.log('ℹ️ Перетаскивание отменено или не завершено');
