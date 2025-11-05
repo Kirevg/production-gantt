@@ -1158,7 +1158,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
 
             // Для каждого изделия вычисляем порядок этапов внутри этого изделия
             stagesByProduct.forEach((stages, productId) => {
-                // Фильтруем задачи только для этого изделия и сортируем их по текущему порядку в массиве tasks
+                // Фильтруем задачи только для этого изделия
+                // Важно: сохраняем порядок элементов в массиве tasks, который уже обновлен через arrayMove
                 const productTasks = tasks
                     .filter(task =>
                         task.productId === productId &&
@@ -1167,10 +1168,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         task.name &&
                         task.name.trim() !== ''
                     )
-                    .map((task) => ({ task, originalIndex: tasks.indexOf(task) }))
-                    .sort((a, b) => a.originalIndex - b.originalIndex);
+                    // Сохраняем порядок элементов в массиве tasks (после arrayMove порядок уже правильный)
+                    .map((task) => ({ task, index: tasks.indexOf(task) }))
+                    .sort((a, b) => a.index - b.index);
 
-                // Обновляем порядок для каждого этапа
+                // Обновляем порядок для каждого этапа на основе позиции в массиве
                 productTasks.forEach(({ task }, index) => {
                     const stage = stages.find(s => s.id === task.id);
                     if (stage) {
