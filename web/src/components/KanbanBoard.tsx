@@ -864,7 +864,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     // Обновляем orderIndex для всех этапов этого изделия в новом порядке
                     const productId = activeTask.productId;
                     
-                    // Фильтруем только этапы этого изделия и сохраняем их порядок в массиве после arrayMove
+                    // СНАЧАЛА фильтруем только этапы этого изделия
                     const productStages = newTasks
                         .filter(task =>
                             task.productId === productId &&
@@ -872,10 +872,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             !task.id.startsWith('product-only-') &&
                             task.name &&
                             task.name.trim() !== ''
-                        );
+                        )
+                        // ПОТОМ сортируем по позиции в массиве newTasks (после arrayMove порядок уже правильный)
+                        .map((task) => ({ task, index: newTasks.indexOf(task) }))
+                        .sort((a, b) => a.index - b.index);
 
-                    // Сохраняем порядок элементов в массиве (после arrayMove порядок уже правильный)
-                    const stagesWithOrder = productStages.map((task, index) => ({
+                    // Вычисляем порядок на основе позиции в отсортированном массиве
+                    const stagesWithOrder = productStages.map(({ task }, index) => ({
                         id: task.id,
                         order: index
                     }));
