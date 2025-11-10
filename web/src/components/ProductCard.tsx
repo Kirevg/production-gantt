@@ -1635,7 +1635,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             Добавить
                         </VolumeButton>
                     )}
-                    {activeTab === 1 && canCreate() && specifications.some(spec => !spec.isLocked) && (
+                    {activeTab === 1 && (
                         <VolumeButton
                             variant="contained"
                             onClick={() => handleOpenSpecificationDialog()}
