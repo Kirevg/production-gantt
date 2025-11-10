@@ -28,7 +28,10 @@ import {
     DragIndicator,
     Build as BuildIcon,
     List as ListIcon,
-    Link as LinkIcon
+    Link as LinkIcon,
+    Layers as LayersIcon,
+    FlashOn as FlashOnIcon,
+    Description as DescriptionIcon
 } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 import EditStageDialog from './EditStageDialog';
@@ -99,6 +102,8 @@ interface ModelLink {
     updatedAt: string;
 }
 
+type DocumentationTabKey = 'specs' | 'pgs' | 'electric';
+
 // Функция для форматирования суммы в формате "0 000,00"
 const formatSum = (value: string | undefined | null): string => {
     if (!value || value === '') return '';
@@ -129,19 +134,19 @@ const shortenUrl = (url: string, maxLength: number = 50): string => {
         const urlObj = new URL(url);
         const domain = urlObj.hostname;
         const path = urlObj.pathname + urlObj.search;
-        
+
         // Если домен + путь короткие, возвращаем как есть
         if ((domain + path).length <= maxLength) {
             return domain + path;
         }
-        
+
         // Если путь слишком длинный, показываем домен + начало и конец пути
         if (path.length > maxLength - domain.length - 10) {
             const pathStart = path.substring(0, 20);
             const pathEnd = path.substring(path.length - 15);
             return `${domain}${pathStart}...${pathEnd}`;
         }
-        
+
         return `${domain}${path}`;
     } catch {
         // Если не удалось распарсить URL, просто обрезаем
@@ -250,8 +255,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const [versionCompareData, setVersionCompareData] = useState<any>(null);
     const [versionCompareLoading, setVersionCompareLoading] = useState(false);
 
-    // Состояние для активной вкладки (0 - Этапы работ, 1 - Список спецификаций, 2 - Ссылки на модели)
+    // Состояние для активной вкладки (0 - Этапы работ, 1 - Ссылки на модели, 2 - Документация)
     const [activeTab, setActiveTab] = useState(0);
+    const documentationTabs: Array<{ key: DocumentationTabKey; label: string; icon: React.ReactElement }> = [
+        { key: 'specs', label: 'Спецификации', icon: <ListIcon sx={{ fontSize: '18px', mb: 0 }} /> },
+        { key: 'pgs', label: 'ПГС', icon: <LayersIcon sx={{ fontSize: '18px', mb: 0 }} /> },
+        { key: 'electric', label: 'Электрика', icon: <FlashOnIcon sx={{ fontSize: '18px', mb: 0 }} /> }
+    ];
+    const [documentationTabIndex, setDocumentationTabIndex] = useState(0);
+    const documentationTabKey = documentationTabs[documentationTabIndex]?.key ?? 'specs';
 
     // Состояние для ссылок на модели
     const [modelLinks, setModelLinks] = useState<ModelLink[]>([]);
@@ -1525,6 +1537,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
         );
     }
 
+    const DOCUMENTATION_TYPES: Array<{ key: string; title: string; description: string }> = [
+        {
+            key: 'cable-journal',
+            title: 'Кабельный журнал',
+            description: 'Сводные данные по кабельным линиям изделия'
+        },
+        {
+            key: 'wire-plates',
+            title: 'Шильды на провода',
+            description: 'Файлы для печати маркировочных табличек и бирк'
+        },
+        {
+            key: 'sp-doc',
+            title: 'СП / Проектные документы',
+            description: 'Схемы проектной документации (СП) по электрике'
+        }
+    ];
+
     return (
         <Box className="page-container">
             {/* Заголовок */}
@@ -1534,7 +1564,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         Карточка изделия проекта «{projectName}»
                         <br />
                         <span
-                            style={{ textDecoration: 'underline', cursor: 'pointer', userSelect: 'none' }}
+                            style={{ color: '#78dbe2', /* Цвет названия изделия */ textDecoration: 'underline', cursor: 'pointer', userSelect: 'none' }}
                             onDoubleClick={(e) => {
                                 e.stopPropagation();
                                 handleOpenProductEdit();
@@ -1551,7 +1581,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             )}
                             {productData?.serialNumber && (
                                 <Typography variant="body2" sx={{ fontSize: '20px' }}>
-                                    Сер. №: {productData.serialNumber}
+                                    Сер. № {productData.serialNumber}
                                 </Typography>
                             )}
                         </Box>
@@ -1576,19 +1606,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         onChange={(_, newValue) => setActiveTab(newValue)}
                         sx={{
                             '& .MuiTab-root': {
-                                color: 'white', // Белый цвет для неактивных вкладок (как в шапке)
+                                color: 'white',
                                 fontWeight: 500,
                                 minHeight: '16px',
-                                border: 'none !important', // Убираем рамку у всех вкладок
+                                border: 'none !important',
                                 outline: 'none !important',
                                 '&.Mui-selected': {
-                                    color: '#1976d2', // Синий цвет для активной вкладки
+                                    color: '#1976d2',
                                     fontWeight: 600,
-                                    border: 'none !important', // Убираем рамку (белые линии сверху, справа и слева) у активной вкладки
+                                    border: 'none !important',
                                     outline: 'none !important'
                                 },
                                 '&:hover': {
-                                    color: '#1976d2', // Синий цвет при наведении
+                                    color: '#1976d2',
                                 },
                                 '&:focus': {
                                     border: 'none !important',
@@ -1604,9 +1634,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 }
                             },
                             '& .MuiTabs-indicator': {
-                                bottom: '8px', // Расстояние между кнопкой и индикатором (чем больше значение, тем больше расстояние)
-                                height: '2px', // Толщина индикатора
-                                backgroundColor: '#1976d2' // Цвет индикатора (синий)
+                                bottom: '8px',
+                                height: '2px',
+                                backgroundColor: '#1976d2'
                             }
                         }}
                     >
@@ -1616,13 +1646,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             iconPosition="start"
                         />
                         <Tab
-                            label="Список спецификаций"
-                            icon={<ListIcon sx={{ fontSize: '18px', mb: 0 }} />}
+                            label="Ссылки на модели"
+                            icon={<LinkIcon sx={{ fontSize: '18px', mb: 0 }} />}
                             iconPosition="start"
                         />
                         <Tab
-                            label="Ссылки на модели"
-                            icon={<LinkIcon sx={{ fontSize: '18px', mb: 0 }} />}
+                            label="Документация"
+                            icon={<DescriptionIcon sx={{ fontSize: '18px', mb: 0 }} />}
                             iconPosition="start"
                         />
                     </Tabs>
@@ -1635,7 +1665,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             Добавить
                         </VolumeButton>
                     )}
-                    {activeTab === 1 && (
+                    {activeTab === 1 && documentationTabKey === 'specs' && (
                         <VolumeButton
                             variant="contained"
                             onClick={() => handleOpenSpecificationDialog()}
@@ -1703,222 +1733,63 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     </Box>
                 )}
 
-                {/* Секция спецификаций */}
-                {activeTab === 1 && (
-                    <Box>
-
-                        {/* Таблица спецификаций */}
-                        <TableContainer component={Paper}>
-                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
-                                <TableHead>
-                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '300px' }}>Название</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '100px' }}>Версия</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '140px' }}>Дата создания</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '100px' }}>Сумма</TableCell>
-                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px' }}>
-                                            <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
-                                        </TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {specificationsLoading ? (
-                                        <TableRow>
-                                            <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
-                                                <LinearProgress />
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : specifications.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
-                                                <Typography variant="body1" color="text.secondary">
-                                                    Список спецификаций пуст
-                                                </Typography>
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        specifications.map((specification) => (
-                                            <TableRow
-                                                key={specification.id}
-                                                sx={{ height: '35px', cursor: 'pointer' }}
-                                                onDoubleClick={() => {
-                                                    // Разрешаем открытие заблокированных спецификаций для просмотра
-                                                    onOpenSpecification(specification.id, specification.name);
-                                                }}
-                                            >
-                                                <TableCell sx={{ py: 0.5, width: '300px' }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                                            {specification.name}
-                                                        </Typography>
-                                                        {specification.isLocked && (
-                                                            <Box
-                                                                sx={{
-                                                                    width: '16px',
-                                                                    height: '16px',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    color: '#d32f2f',
-                                                                    fontSize: '12px'
-                                                                }}
-                                                                title="Спецификация заблокирована (есть дочерние копии)"
-                                                            >
-                                                                🔒
-                                                            </Box>
-                                                        )}
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '100px' }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                                                        <Box
-                                                            onClick={() => {
-                                                                // Проверяем, не заблокирована ли спецификация
-                                                                if (specification.isLocked) {
-                                                                    alert('Эта спецификация заблокирована и не может быть скопирована');
-                                                                    return;
-                                                                }
-                                                                handleCreateSpecificationCopy(specification);
-                                                            }}
-                                                            sx={{
-                                                                width: '20px',
-                                                                height: '20px',
-                                                                p: '2px 2px',
-                                                                cursor: specification.isLocked ? 'not-allowed' : 'pointer',
-                                                                backgroundColor: specification.isLocked ? '#ffebee' : '#f0f0f0',
-                                                                border: specification.isLocked ? '1px solid #f44336' : '1px solid #808080',
-                                                                fontFamily: 'Arial, sans-serif',
-                                                                fontSize: '11px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                opacity: specification.isLocked ? 0.6 : 1,
-                                                                '&:hover': {
-                                                                    backgroundColor: specification.isLocked ? '#ffebee' : '#e8e8e8'
-                                                                },
-                                                                '&:active': {
-                                                                    backgroundColor: specification.isLocked ? '#ffebee' : '#d8d8d8',
-                                                                    border: specification.isLocked ? '1px solid #f44336' : '1px solid #404040'
-                                                                }
-                                                            }}
-                                                        >
-                                                            <Typography variant="body2" sx={{
-                                                                fontWeight: 'bold',
-                                                                color: '#000',
-                                                                fontFamily: 'Arial, sans-serif',
-                                                                fontSize: '12px',
-                                                                textAlign: 'center',
-                                                                lineHeight: 1
-                                                            }}>
-                                                                +
-                                                            </Typography>
-                                                        </Box>
-
-                                                        {/* Кнопка сравнения версий */}
-                                                        {specification.version && specification.version > 1 && (
-                                                            <Box
-                                                                onClick={() => handleOpenVersionCompare(specification)}
-                                                                sx={{
-                                                                    width: '20px',
-                                                                    height: '20px',
-                                                                    p: '2px 2px',
-                                                                    cursor: 'pointer',
-                                                                    backgroundColor: '#e3f2fd',
-                                                                    border: '1px solid #2196f3',
-                                                                    fontFamily: 'Arial, sans-serif',
-                                                                    fontSize: '12px',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    '&:hover': {
-                                                                        backgroundColor: '#bbdefb'
-                                                                    },
-                                                                    '&:active': {
-                                                                        backgroundColor: '#90caf9',
-                                                                        border: '1px solid #1976d2'
-                                                                    }
-                                                                }}
-                                                                title="Сравнить с предыдущей версией"
-                                                            >
-                                                                <BalanceIcon sx={{ fontSize: '18px', color: '#1976d2' }} />
-                                                            </Box>
-                                                        )}
-
-                                                        <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                            {specification.version || '1'}
-                                                        </Typography>
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell
-                                                    sx={{
-                                                        py: 0.5,
-                                                        cursor: canEdit() ? 'pointer' : 'default',
-                                                        position: 'relative'
-                                                    }}
-                                                    onDoubleClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDescriptionClick(specification.id, specification.description || '');
-                                                    }}
-                                                >
-                                                    {editingDescription === specification.id ? (
-                                                        <input
-                                                            type="text"
-                                                            value={descriptionValue}
-                                                            onChange={handleDescriptionChange}
-                                                            onBlur={() => handleDescriptionSave(specification.id)}
-                                                            onKeyDown={(e) => handleDescriptionKeyDown(e, specification.id)}
-                                                            onFocus={(e) => e.target.select()}
-                                                            style={{
-                                                                width: '100%',
-                                                                border: 'none',
-                                                                outline: 'none',
-                                                                background: 'transparent',
-                                                                fontSize: '14px',
-                                                                fontFamily: 'inherit',
-                                                                color: 'inherit'
-                                                            }}
-                                                            autoFocus
-                                                        />
-                                                    ) : (
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {specification.description || ''}
-                                                        </Typography>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '140px' }}>
-                                                    {formatDate(specification.createdAt)}
-                                                </TableCell>
-                                                <TableCell sx={{ py: 0.5, textAlign: 'right', width: '100px' }}>
-                                                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                        {specification.totalSum ? `${specification.totalSum.toLocaleString('ru-RU')} ₽` : '0,00'}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell sx={{ textAlign: 'center', py: 0.5, width: '40px' }}>
-                                                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                        {canDelete() && !specification.isLocked && (
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => handleDeleteSpecification(specification.id)}
-                                                                color="error"
-                                                                sx={{ minWidth: 'auto', padding: '4px' }}
-                                                            >
-                                                                <DeleteIcon fontSize="small" />
-                                                            </IconButton>
-                                                        )}
-                                                    </Box>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                {/* Вложенные вкладки документации */}
+                {activeTab === 2 && (
+                    <Box sx={{ mb: 2 }}>
+                        <Tabs
+                            value={documentationTabIndex}
+                            onChange={(_, newValue) => setDocumentationTabIndex(newValue)}
+                            sx={{
+                                '& .MuiTab-root': {
+                                    color: 'white',
+                                    fontWeight: 500,
+                                    minHeight: '16px',
+                                    border: 'none !important',
+                                    outline: 'none !important',
+                                    '&.Mui-selected': {
+                                        color: '#1976d2',
+                                        fontWeight: 600,
+                                        border: 'none !important',
+                                        outline: 'none !important'
+                                    },
+                                    '&:hover': {
+                                        color: '#1976d2',
+                                    },
+                                    '&:focus': {
+                                        border: 'none !important',
+                                        outline: 'none !important'
+                                    },
+                                    '&:active': {
+                                        border: 'none !important',
+                                        outline: 'none !important'
+                                    },
+                                    '&:focus-visible': {
+                                        border: 'none !important',
+                                        outline: 'none !important'
+                                    }
+                                },
+                                '& .MuiTabs-indicator': {
+                                    bottom: '8px',
+                                    height: '2px',
+                                    backgroundColor: '#1976d2'
+                                }
+                            }}
+                        >
+                            {documentationTabs.map((tab, index) => (
+                                <Tab
+                                    key={tab.key}
+                                    label={tab.label}
+                                    icon={tab.icon}
+                                    iconPosition="start"
+                                    value={index}
+                                />
+                            ))}
+                        </Tabs>
                     </Box>
                 )}
 
                 {/* Секция ссылок на модели */}
-                {activeTab === 2 && (
+                {activeTab === 1 && (
                     <Box>
                         {!productId ? (
                             <Alert severity="info" sx={{ mb: 2 }}>
@@ -1957,9 +1828,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                 </TableRow>
                                             ) : (
                                                 modelLinks.map((modelLink) => (
-                                                    <TableRow 
-                                                        key={modelLink.id} 
-                                                        sx={{ 
+                                                    <TableRow
+                                                        key={modelLink.id}
+                                                        sx={{
                                                             height: '35px',
                                                             cursor: canEdit() ? 'pointer' : 'default',
                                                             '&:hover': canEdit() ? { backgroundColor: '#f5f5f5' } : {}
@@ -2007,7 +1878,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                         <TableCell sx={{ py: 0.5, textAlign: 'center', width: '150px' }}>
                                                             {formatDate(modelLink.createdAt)}
                                                         </TableCell>
-                                                        <TableCell 
+                                                        <TableCell
                                                             sx={{ textAlign: 'center', py: 0.5, width: '40px' }}
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
@@ -2030,6 +1901,66 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 </TableContainer>
                             </>
                         )}
+                    </Box>
+                )}
+
+                {/* Секция ПГС */}
+                {activeTab === 2 && documentationTabKey === 'pgs' && (
+                    <Box>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            Раздел ПГС находится в разработке. Скоро здесь появится список документов и файлов строительства.
+                        </Alert>
+                    </Box>
+                )}
+
+                {/* Секция Электрика */}
+                {activeTab === 2 && documentationTabKey === 'electric' && (
+                    <Box>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            В разделе «Документация» можно хранить технические файлы: кабельный журнал, шильды и проектные схемы.
+                        </Alert>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                        <TableCell sx={{ fontWeight: 'bold', width: '260px' }}>Документ</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Описание</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', width: '220px', textAlign: 'center' }}>Файл</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', width: '220px', textAlign: 'center' }}>Действия</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {DOCUMENTATION_TYPES.map((doc) => (
+                                        <TableRow key={doc.key} sx={{ height: '48px' }}>
+                                            <TableCell sx={{ py: 1.5 }}>
+                                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{doc.title}</Typography>
+                                            </TableCell>
+                                            <TableCell sx={{ py: 1.5 }}>
+                                                <Typography variant="body2" color="text.secondary">{doc.description}</Typography>
+                                            </TableCell>
+                                            <TableCell sx={{ py: 1.5, textAlign: 'center' }}>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Файл не загружен
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell sx={{ py: 1.5, textAlign: 'center' }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                                                    <VolumeButton color="blue" disabled>
+                                                        Загрузить
+                                                    </VolumeButton>
+                                                    <VolumeButton color="orange" disabled>
+                                                        Скачать
+                                                    </VolumeButton>
+                                                </Box>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                            * Файлы будут храниться локально на сервере. Возможность загрузки и скачивания появится после настройки API.
+                        </Typography>
                     </Box>
                 )}
             </Box>
