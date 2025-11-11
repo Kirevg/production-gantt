@@ -2410,59 +2410,63 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 ))}
                                             </TableRow>
                                             {/* Заголовки Excel - закреплены после строки сопоставления */}
-                                            <TableRow sx={{
-                                                position: 'sticky',
-                                                top: '40px',
-                                                backgroundColor: 'white',
-                                                zIndex: 9,
-                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                            }}>
+                                            <TableRow
+                                                sx={{
+                                                    position: 'sticky', // Фиксируем строку заголовков, чтобы она всегда была на виду при прокрутке
+                                                    top: '40px', // Смещаем фиксацию на высоту строки сопоставления, чтобы не перекрывать её
+                                                    backgroundColor: 'white', // Белый фон обеспечивает читаемость поверх данных
+                                                    zIndex: 9, // Поднимаем слой, чтобы заголовки не перекрывались строками данных
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)' // Добавляем лёгкую тень для визуального отделения от данных
+                                                }}
+                                            >
                                                 {excelData[0].map((_: any, index: number) => (
                                                     <TableCell
-                                                        key={index}
+                                                        key={index} // Используем индекс заголовка как уникальный ключ
                                                         sx={{
-                                                            fontWeight: 'bold',
-                                                            fontSize: '12px !important',
-                                                            textAlign: 'center',
-                                                            padding: '4px !important',
-                                                            whiteSpace: 'normal',
-                                                            borderTop: '2px solid #333',
-                                                            borderLeft: index === 0 ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
-                                                            borderRight: index === excelData[0].length - 1 ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
-                                                            borderBottom: '2px solid #333',
-                                                            backgroundColor: 'white',
-                                                            maxWidth: '300px'
+                                                            fontWeight: 'bold', // Делаем текст заголовков жирным для акцента
+                                                            fontSize: '12px !important', // Выравниваем размер шрифта с остальными ячейками
+                                                            textAlign: 'center', // Центрируем подписи столбцов
+                                                            padding: '4px !important', // Добавляем компактные внутренние отступы
+                                                            whiteSpace: 'normal', // Разрешаем перенос текста, чтобы длинные заголовки поместились
+                                                            borderTop: '1px solid #333', // Верхняя граница подчёркивает закреплённый блок
+                                                            borderLeft: '1px solid #333', // Левая граница выделяет начало строки
+                                                            borderBottom: '1px solid #333', // Нижняя граница отделяет заголовок от данных
+                                                            backgroundColor: 'white', // Повторно задаём фон, чтобы цвет не переопределился
+                                                            maxWidth: '300px' // Ограничиваем ширину, чтобы заголовки не растягивали таблицу
                                                         }}
                                                     >
+                                                        {/* Показываем текст заголовка из Excel или запасное значение, если ячейка пустая */}
                                                         {excelData[0][index] || `Колонка ${index + 1}`}
                                                     </TableCell>
                                                 ))}
                                             </TableRow>
                                             {/* Превью данных - прокручиваемые строки */}
                                             {excelData.length > 1 && excelData.slice(1).map((row: any[], rowIndex: number) => (
-                                                <TableRow key={rowIndex}>
+                                                <TableRow key={rowIndex} // Создаём строку предпросмотра для каждой строки данных Excel
+                                                >
                                                     {row.map((cell: any, cellIndex: number) => {
-                                                        const isNumeric = isNumericColumn(cellIndex);
-                                                        const cellValue = isNumeric ? formatNumber(cell) : (cell || '');
+                                                        const isNumeric = isNumericColumn(cellIndex); // Определяем, числовой ли столбец, чтобы задать формат
+                                                        const cellValue = isNumeric ? formatNumber(cell) : (cell || ''); // Форматируем значение с учётом типа
                                                         return (
                                                             <TableCell
-                                                                key={cellIndex}
-                                                                className="excel-table-cell"
+                                                                key={cellIndex} // Используем индекс ячейки как ключ внутри строки
+                                                                className="excel-table-cell" // Применяем общий класс для стилизации мини-таблицы
                                                                 sx={{
-                                                                    fontSize: '12px !important',
-                                                                    padding: '2px 4px !important',
-                                                                    whiteSpace: 'nowrap',
-                                                                    textAlign: isNumeric ? 'right' : 'left',
-                                                                    border: '2px solid #333',
-                                                                    borderTop: '1px solid #e0e0e0',
-                                                                    borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                                    borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                                    borderBottom: '1px solid #e0e0e0',
-                                                                    maxWidth: '350px', // Ограничиваем максимальную ширину данных, оставляя авто-ширину
-                                                                    overflow: 'hidden', // Прячем лишний текст за пределами лимита
-                                                                    textOverflow: 'ellipsis' // Добавляем троеточие к длинным значениям
+                                                                    fontSize: '12px !important', // Поддерживаем единый размер шрифта
+                                                                    padding: '2px 4px !important', // Делаем ячейку компактной
+                                                                    whiteSpace: 'nowrap', // Не позволяем тексту переноситься
+                                                                    textAlign: isNumeric ? 'right' : 'left', // Числа выравниваем по правому краю, остальное — по левому
+                                                                    border: '1px solid #333', // Базовая рамка вокруг ячейки
+                                                                    borderTop: '1px solid #e0e0e0', // Мягкая верхняя граница отделяет строки
+                                                                    borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0', // Усиливаем левую границу для первой колонки
+                                                                    borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0', // Усиливаем правую границу последней колонки
+                                                                    borderBottom: '1px solid #e0e0e0', // Нижняя граница отделяет строку от следующей
+                                                                    maxWidth: '350px', // Ограничиваем ширину, чтобы предпросмотр помещался в экран
+                                                                    overflow: 'hidden', // Скрываем излишки текста
+                                                                    textOverflow: 'ellipsis' // Добавляем троеточие, если значение не помещается
                                                                 }}
                                                             >
+                                                                {/* Отображаем готовое к просмотру значение ячейки */}
                                                                 {cellValue}
                                                             </TableCell>
                                                         );
