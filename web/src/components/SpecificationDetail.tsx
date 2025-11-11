@@ -2317,6 +2317,7 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     boxSizing: 'border-box',
                                     overflow: 'auto',
                                     scrollbarWidth: 'thin', // Сохраняем вертикальный скролл в Firefox
+                                    scrollbarColor: '#d6d6d6 #f7f7f7', // Настраиваем светлые цвета бегунка и дорожки для тонкого режима
                                     '&::-webkit-scrollbar': {
                                         width: '8px',
                                         height: '0px', // Прячем горизонтальный скролл в WebKit-браузерах
