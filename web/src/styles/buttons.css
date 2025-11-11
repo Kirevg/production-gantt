@@ -5,10 +5,13 @@
  * 
  * НАЗНАЧЕНИЕ: Глобальные стили для переиспользуемых компонентов и классов
  * 
- * СТРУКТУРА ФАЙЛА:
- *   1. Стили кнопок (после заголовка)
- *   2. Именованные контейнеры - ВАЖНО: см. .page-container (около строки 65)
- *   3. Другие глобальные стили
+ * СТРУКТУРА ФАЙЛА (по мере вложенности контейнеров):
+ *   1. УРОВЕНЬ ПРИЛОЖЕНИЯ - самые внешние контейнеры
+ *   2. УРОВЕНЬ СТРАНИЦЫ - контейнеры страниц
+ *   3. УРОВЕНЬ СОДЕРЖИМОГО - контейнеры внутри страницы
+ *   4. УРОВЕНЬ ТАБЛИЦЫ - элементы таблиц
+ *   5. УРОВЕНЬ ФОРМ - поля ввода и кнопки
+ *   6. СПЕЦИАЛЬНЫЕ КОМПОНЕНТЫ - специфичные стили
  * 
  * ПРИНЦИП РАБОТЫ СО СТИЛЯМИ:
  *   - БАЗОВЫЕ СТИЛИ (здесь в CSS) - для всех компонентов одинаково
@@ -22,47 +25,60 @@
  * ============================================================================
  */
 
-/* Единый стиль для всех кнопок в проекте */
-.MuiButtonBase-root.MuiButton-root {
-    padding: 8px 8px !important;
+/* ============================================================================
+ * УРОВЕНЬ 1: ПРИЛОЖЕНИЕ - Самые внешние контейнеры
+ * ============================================================================
+ */
+
+/* Основной контейнер приложения */
+.MuiBox-root.app {
+    min-width: 900px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    align-items: left !important;
 }
 
-/* Переопределение для кнопок с size="large" */
-.MuiButtonBase-root.MuiButton-root.MuiButton-sizeLarge {
-    padding: 8px 8px !important;
+/* Header контейнер */
+.MuiPaper-root.header {
+    width: 100% !important;
 }
 
-/* Переопределение для кнопок с size="medium" */
-.MuiButtonBase-root.MuiButton-root.MuiButton-sizeMedium {
-    padding: 8px 8px !important;
+/* Tabs контейнер */
+.MuiTabs-root.tabs {
+    width: 100% !important;
 }
 
-/* Переопределение для кнопок с size="small" */
-.MuiButtonBase-root.MuiButton-root.MuiButton-sizeSmall {
-    padding: 8px 8px !important;
+/* Стиль для Toolbar */
+.MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.css-1utjr9y-MuiToolbar-root {
+    padding-left: 4px !important;
 }
 
-/* Стиль для заголовков таблицы */
-.MuiTableCell-root.MuiTableCell-head.MuiTableCell-sizeMedium {
-    padding: 4px !important;
+/* Стиль для контейнера авторизации */
+.css-ix0dze {
+    display: flex !important;
+    -webkit-box-pack: center !important;
+    justify-content: flex-start !important;
+    -webkit-box-align: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    position: fixed !important;
+    left: 0px !important;
+    right: 0 !important;
+    bottom: 0px !important;
+    flex-direction: column !important;
 }
 
-/* Глобальный стиль для всех ячеек таблиц - изменяем горизонтальный padding с 16px на 4px */
-.MuiTableCell-root {
-    padding: 4px 4px !important;
+/* Контейнер основного контента */
+.MuiBox-root.css-9bf5s1 {
+    min-height: 600px;
 }
 
-/* Стиль для заголовков страниц */
-.css-q5wswh-MuiTypography-root {
-    margin: 0 !important;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
-    line-height: 1.334 !important;
-    letter-spacing: 0em !important;
-    font-weight: 700 !important;
-    font-size: 1.4rem !important;
-}
-
-/* ===== ИМЕНОВАННЫЕ КОНТЕЙНЕРЫ ===== */
+/* ============================================================================
+ * УРОВЕНЬ 2: СТРАНИЦА - Контейнеры страниц
+ * ============================================================================
+ */
 
 /* 
  * ===== ОСНОВНОЙ КОНТЕЙНЕР СТРАНИЦЫ (.page-container) =====
@@ -111,7 +127,32 @@
      * Если нужен отступ - используйте sx={{ mt: X }} в компоненте.
      * Если отступ нужен ВЕЗДЕ - добавьте margin-top: 24px здесь.
      */
+    margin-top: 16px !important;
+    margin-bottom: 30px !important;
+    margin-left: 30px !important;
 }
+
+/* Контейнер содержимого страницы */
+.page-content-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+}
+
+/* Стиль для заголовков страниц */
+.css-q5wswh-MuiTypography-root {
+    margin: 0 !important;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
+    line-height: 1.334 !important;
+    letter-spacing: 0em !important;
+    font-weight: 700 !important;
+    font-size: 1.4rem !important;
+}
+
+/* ============================================================================
+ * УРОВЕНЬ 3: СОДЕРЖИМОЕ СТРАНИЦЫ - Контейнеры внутри страницы
+ * ============================================================================
+ */
 
 /* Заголовок страницы с кнопкой */
 .page-header {
@@ -138,6 +179,11 @@
     width: 100% !important;
     padding: 0 !important;
 }
+
+/* ============================================================================
+ * УРОВЕНЬ 4: ТАБЛИЦА - Элементы таблиц
+ * ============================================================================
+ */
 
 /* Заголовок таблицы */
 .table-header {
@@ -186,54 +232,167 @@
     padding: 4px 0 !important;
 }
 
-/* Контейнер содержимого страницы */
-.page-content-container {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 auto !important;
+/* Глобальный стиль для всех ячеек таблиц - изменяем горизонтальный padding с 16px на 4px */
+.MuiTableCell-root {
+    padding: 4px 4px !important;
 }
 
-/* Основной контейнер приложения */
-.MuiBox-root.app {
-    min-width: 900px !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 auto !important;
-    align-items: center !important;
+/* Стиль для заголовков таблицы */
+.MuiTableCell-root.MuiTableCell-head.MuiTableCell-sizeMedium {
+    padding: 4px !important;
 }
 
-/* Header контейнер */
-.MuiPaper-root.header {
-    width: 100% !important;
+/* Размеры шрифтов для всех таблиц Material-UI */
+/* Заголовки таблиц - 16px */
+.MuiTableHead-root .MuiTableCell-head {
+    font-size: 16px !important;
+    font-weight: 600 !important;
 }
 
-/* Tabs контейнер */
-.MuiTabs-root.tabs {
-    width: 100% !important;
+.MuiTableHead-root .MuiTableCell-head .MuiTypography-root {
+    font-size: 16px !important;
+    font-weight: 600 !important;
 }
 
-/* Дополнительные стили для именованных классов */
+/* Строки таблиц - 14px */
+.MuiTableBody-root .MuiTableCell-root {
+    font-size: 14px !important;
+}
 
-/* Стиль для контейнера авторизации */
-.css-ix0dze {
+.MuiTableBody-root .MuiTableCell-root .MuiTypography-root {
+    font-size: 14px !important;
+}
+
+/* Альтернативные селекторы для заголовков */
+.MuiTableCell-root.MuiTableCell-head {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.MuiTableCell-root.MuiTableCell-head .MuiTypography-root {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+/* Альтернативные селекторы для обычных ячеек */
+.MuiTableCell-root:not(.MuiTableCell-head) {
+    font-size: 14px !important;
+}
+
+.MuiTableCell-root:not(.MuiTableCell-head) .MuiTypography-root {
+    font-size: 14px !important;
+}
+
+/* Дополнительные селекторы для Typography в таблицах */
+.MuiTable-root .MuiTableBody-root .MuiTypography-root {
+    font-size: 14px !important;
+}
+
+.MuiTable-root .MuiTableHead-root .MuiTypography-root {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+/* Устанавливаем line-height: 1 для MuiTableCell-root */
+.css-mi4ox6-MuiTableCell-root {
+    line-height: 1 !important;
+}
+
+/* Убираем выделение текста в input полях таблицы */
+input[type="number"]:focus {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+/* ============================================================================
+ * УРОВЕНЬ 5: ФОРМЫ - Поля ввода и кнопки
+ * ============================================================================
+ */
+
+/* ===== ПОЛЯ ВВОДА ===== */
+
+/* Padding для полей ввода */
+.MuiInputBase-input.MuiOutlinedInput-input {
+    padding: 0px 8px !important;
+    line-height: 1.2 !important;
+    height: 30px !important;
+    box-sizing: border-box !important;
+}
+
+/* Margin для полей ввода */
+.MuiFormControl-root.MuiFormControl-marginNormal.MuiFormControl-fullWidth.MuiTextField-root {
+    margin-top: 6px !important;
+}
+
+/* Line-height для лейблов полей ввода */
+.MuiFormLabel-root.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-outlined {
+    line-height: 1.2 !important;
+}
+
+/* Вертикальная центровка для Material-UI input полей */
+.MuiOutlinedInput-root {
     display: flex !important;
-    -webkit-box-pack: center !important;
-    justify-content: flex-start !important;
-    -webkit-box-align: center !important;
     align-items: center !important;
-    min-height: 100vh !important;
-    width: 100% !important;
-    position: fixed !important;
-    left: 0px !important;
-    right: 0 !important;
-    bottom: 0px !important;
-    flex-direction: column !important;
+    vertical-align: middle !important;
+    min-height: 40px !important;
 }
 
-/* Стиль для Toolbar */
-.MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.css-1utjr9y-MuiToolbar-root {
-    padding-left: 4px !important;
+.MuiOutlinedInput-input {
+    display: flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+    line-height: 1.2 !important;
+    height: 40px !important;
+    min-height: 40px !important;
 }
+
+/* Центровка для всех input элементов */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea {
+    display: flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+    line-height: 1.2 !important;
+    height: 40px !important;
+    min-height: 40px !important;
+}
+
+/* Убираем стрелки у input type="number" */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Стили для границ Material-UI input полей */
+.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline {
+    border-color: #e0e0e0 !important;
+    border-width: 1px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline:hover {
+    border-color: #1976d2 !important;
+    border-width: 1px !important;
+    box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.1) !important;
+}
+
+.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline.Mui-focused {
+    border-color: #1976d2 !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1) !important;
+}
+
+/* ===== DATE PICKER ===== */
 
 /* Стили для DatePicker */
 .date-picker-input {
@@ -372,57 +531,27 @@
     appearance: none !important;
 }
 
-/* Размеры шрифтов для всех таблиц Material-UI */
-/* Заголовки таблиц - 16px */
-.MuiTableHead-root .MuiTableCell-head {
-    font-size: 16px !important;
-    font-weight: 600 !important;
+/* ===== КНОПКИ ===== */
+
+/* Единый стиль для всех кнопок в проекте */
+.MuiButtonBase-root.MuiButton-root {
+    padding: 8px 8px !important;
 }
 
-.MuiTableHead-root .MuiTableCell-head .MuiTypography-root {
-    font-size: 16px !important;
-    font-weight: 600 !important;
+/* Переопределение для кнопок с size="large" */
+.MuiButtonBase-root.MuiButton-root.MuiButton-sizeLarge {
+    padding: 8px 8px !important;
 }
 
-/* Строки таблиц - 14px */
-.MuiTableBody-root .MuiTableCell-root {
-    font-size: 14px !important;
+/* Переопределение для кнопок с size="medium" */
+.MuiButtonBase-root.MuiButton-root.MuiButton-sizeMedium {
+    padding: 8px 8px !important;
 }
 
-.MuiTableBody-root .MuiTableCell-root .MuiTypography-root {
-    font-size: 14px !important;
+/* Переопределение для кнопок с size="small" */
+.MuiButtonBase-root.MuiButton-root.MuiButton-sizeSmall {
+    padding: 8px 8px !important;
 }
-
-/* Альтернативные селекторы для заголовков */
-.MuiTableCell-root.MuiTableCell-head {
-    font-size: 16px !important;
-    font-weight: 600 !important;
-}
-
-.MuiTableCell-root.MuiTableCell-head .MuiTypography-root {
-    font-size: 16px !important;
-    font-weight: 600 !important;
-}
-
-/* Альтернативные селекторы для обычных ячеек */
-.MuiTableCell-root:not(.MuiTableCell-head) {
-    font-size: 14px !important;
-}
-
-.MuiTableCell-root:not(.MuiTableCell-head) .MuiTypography-root {
-    font-size: 14px !important;
-}
-
-/* Дополнительные селекторы для Typography в таблицах */
-.MuiTable-root .MuiTableBody-root .MuiTypography-root {
-    font-size: 14px !important;
-}
-
-.MuiTable-root .MuiTableHead-root .MuiTypography-root {
-    font-size: 16px !important;
-    font-weight: 600 !important;
-}
-
 
 /* Эффект глубины для всех кнопок создания/добавления */
 .depth-button {
@@ -597,78 +726,10 @@
     background-color: #e53935 !important;
 }
 
-/* ===== ПОЛЯ ВВОДА ===== */
-
-/* Padding для полей ввода */
-.MuiInputBase-input.MuiOutlinedInput-input {
-    padding: 0px 8px !important;
-    line-height: 1.2 !important;
-    height: 30px !important;
-    box-sizing: border-box !important;
-}
-
-/* Margin для полей ввода */
-.MuiFormControl-root.MuiFormControl-marginNormal.MuiFormControl-fullWidth.MuiTextField-root {
-    margin-top: 6px !important;
-}
-
-/* Line-height для лейблов полей ввода */
-.MuiFormLabel-root.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-outlined {
-    line-height: 1.2 !important;
-}
-
-/* ===== МЕДИА-ЗАПРОСЫ ===== */
-
-/* Максимальная ширина контейнера для средних экранов */
-@media (min-width: 600px) {
-    .css-yve736-MuiContainer-root {
-        max-width: 400px !important;
-    }
-}
-
-/* Убираем margin-bottom у MuiBox-root с классом css-gdel2o */
-.MuiBox-root.css-gdel2o {
-    margin-bottom: 0 !important;
-    align-items: center !important;
-}
-
-/* Устанавливаем margin-bottom у класса css-15fmfb5 */
-.css-15fmfb5 {
-    margin-bottom: 8px !important;
-}
-
-/* Убираем padding-right у MuiBox-root с классом css-e8yhtp */
-.MuiBox-root.css-e8yhtp {
-    padding-right: 0 !important;
-}
-
-/* Устанавливаем line-height: 1 для MuiTableCell-root */
-.css-mi4ox6-MuiTableCell-root {
-    line-height: 1 !important;
-}
-
-/* Изменяем padding-right для класса css-563s3m */
-.css-563s3m {
-    padding-right: 110px !important;
-}
-
-/* Убираем стрелки у input type="number" */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-input[type="number"] {
-    -moz-appearance: textfield;
-    appearance: textfield;
-}
-
-/* Убираем выделение текста в input полях таблицы */
-input[type="number"]:focus {
-    background-color: transparent !important;
-    color: inherit !important;
-}
+/* ============================================================================
+ * УРОВЕНЬ 6: СПЕЦИАЛЬНЫЕ КОМПОНЕНТЫ - Специфичные стили
+ * ============================================================================
+ */
 
 /* ===== ОКНО ВЫБОРА НОМЕНКЛАТУРЫ ===== */
 
@@ -721,58 +782,32 @@ p.MuiTypography-root.MuiTypography-body2.css-wb3ru3-MuiTypography-root {
     justify-content: center;
 }
 
-/* Стили для границ Material-UI input полей */
-.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline {
-    border-color: #e0e0e0 !important;
-    border-width: 1px !important;
-    border-radius: 6px !important;
-    transition: all 0.2s ease !important;
+/* ===== МЕДИА-ЗАПРОСЫ И ПРОЧИЕ СПЕЦИФИЧНЫЕ СТИЛИ ===== */
+
+/* Максимальная ширина контейнера для средних экранов */
+@media (min-width: 600px) {
+    .css-yve736-MuiContainer-root {
+        max-width: 400px !important;
+    }
 }
 
-.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline:hover {
-    border-color: #1976d2 !important;
-    border-width: 1px !important;
-    box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.1) !important;
-}
-
-.css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline.Mui-focused {
-    border-color: #1976d2 !important;
-    border-width: 2px !important;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1) !important;
-}
-
-/* Вертикальная центровка для Material-UI input полей */
-.MuiOutlinedInput-root {
-    display: flex !important;
+/* Убираем margin-bottom у MuiBox-root с классом css-gdel2o */
+.MuiBox-root.css-gdel2o {
+    margin-bottom: 0 !important;
     align-items: center !important;
-    vertical-align: middle !important;
-    min-height: 40px !important;
 }
 
-.MuiOutlinedInput-input {
-    display: flex !important;
-    align-items: center !important;
-    vertical-align: middle !important;
-    line-height: 1.2 !important;
-    height: 40px !important;
-    min-height: 40px !important;
+/* Устанавливаем margin-bottom у класса css-15fmfb5 */
+.css-15fmfb5 {
+    margin-bottom: 8px !important;
 }
 
-/* Центровка для всех input элементов */
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="password"],
-textarea {
-    display: flex !important;
-    align-items: center !important;
-    vertical-align: middle !important;
-    line-height: 1.2 !important;
-    height: 40px !important;
-    min-height: 40px !important;
+/* Убираем padding-right у MuiBox-root с классом css-e8yhtp */
+.MuiBox-root.css-e8yhtp {
+    padding-right: 0 !important;
 }
 
-/* Контейнер основного контента */
-.MuiBox-root.css-9bf5s1 {
-    min-height: 600px;
+/* Изменяем padding-right для класса css-563s3m */
+.css-563s3m {
+    padding-right: 110px !important;
 }
