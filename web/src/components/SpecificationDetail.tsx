@@ -2312,12 +2312,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                     width: '100%',
                                     maxWidth: '1400px',
                                     maxHeight: '700px',
-                                    border: '2px solid #333',
+                                    border: '1px solid #333',
                                     borderRadius: '4px',
                                     boxSizing: 'border-box',
                                     overflow: 'auto',
                                     scrollbarWidth: 'thin', // Сохраняем вертикальный скролл в Firefox
-                                    scrollbarColor: '#d6d6d6 #f7f7f7', // Настраиваем светлые цвета бегунка и дорожки для тонкого режима
+                                    scrollbarColor: '#666666 #d6d6d6', // Настраиваем светлые цвета бегунка и дорожки для тонкого режима
                                     '&::-webkit-scrollbar': {
                                         width: '8px',
                                         height: '0px', // Прячем горизонтальный скролл в WebKit-браузерах
@@ -2426,13 +2426,12 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                             textAlign: 'center',
                                                             padding: '4px !important',
                                                             whiteSpace: 'normal',
-                                                            border: '2px solid #333',
                                                             borderTop: '2px solid #333',
-                                                            borderLeft: '2px solid #333',
-                                                            borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                            borderLeft: index === 0 ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
+                                                            borderRight: index === excelData[0].length - 1 ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
                                                             borderBottom: '2px solid #333',
                                                             backgroundColor: 'white',
-                                                            maxWidth: '300px' // Ограничиваем максимальную ширину заголовка при авто-вычислении ширины
+                                                            maxWidth: '300px'
                                                         }}
                                                     >
                                                         {excelData[0][index] || `Колонка ${index + 1}`}
