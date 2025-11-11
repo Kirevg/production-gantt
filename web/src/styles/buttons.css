@@ -32,11 +32,12 @@
 
 /* Основной контейнер приложения */
 .MuiBox-root.app {
-    min-width: 900px !important;
-    width: 100% !important;
-    max-width: none !important;
+    min-width: 1400px !important;
+    /* width: 100% !important; */
+    max-width: 1400px !important;
     margin: 0 auto !important;
     align-items: left !important;
+    border: 1px solid red !important;
 }
 
 /* Header контейнер */
@@ -129,7 +130,7 @@
      */
     margin-top: 16px !important;
     margin-bottom: 30px !important;
-    margin-left: 30px !important;
+    /* margin-left: 30px !important; */
 }
 
 /* Контейнер содержимого страницы */

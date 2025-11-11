@@ -219,10 +219,51 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
         isOver,
     } = useSortable({ id: task.id });
 
+    /* 
+     * ===== АНИМАЦИЯ КАРТОЧКИ ЭТАПА РАБОТЫ =====
+     * 
+     * ЛОГИКА АНИМАЦИИ:
+     *   1. hasTransform - проверяет, есть ли смещение карточки (для плавной анимации)
+     *   2. horizontalTransform - ограничивает движение только по горизонтали (ось X)
+     *      - Это нужно, т.к. карточки этапов перемещаются только между колонками
+     *      - Вертикальное движение (ось Y) блокируется для предотвращения смещения вверх/вниз
+     * 
+     * СТИЛИ АНИМАЦИИ (style объект):
+     *   - transform: применяет горизонтальное смещение при перетаскивании
+     *   - transition: плавная анимация перемещения (0.2s ease)
+     *     * 'none' во время перетаскивания - для мгновенной реакции на движение мыши
+     *     * 'transform 0.2s ease' когда есть смещение - для плавного возврата на место
+     *     * 'none' когда нет смещения - без анимации в покое
+     *   - opacity: уменьшение прозрачности при перетаскивании (0.8) для визуальной обратной связи
+     *   - zIndex: поднятие карточки наверх при перетаскивании (1000) для отображения поверх других
+     * 
+     * ДОПОЛНИТЕЛЬНЫЕ СТИЛИ (sx prop):
+     *   - transition: 'all 0.3s ease' - плавные переходы для всех свойств (border, background и т.д.)
+     *   - hover: поднятие карточки на 2px вверх при наведении (translateY(-2px))
+     *   - isDragging: отключение hover-эффекта во время перетаскивания
+     */
+    
+    // Определяем, есть ли смещение для анимации
+    const hasTransform = transform && (transform.x !== 0 || transform.y !== 0);
+
+    // Ограничиваем движение только по горизонтали (только по оси X)
+    // Это нужно, т.к. карточки этапов перемещаются только между колонками канбана
+    const horizontalTransform = transform ? { ...transform, y: 0 } : null;
+
     const style = {
-        transform: CSS.Transform.toString(transform),
-        transition: isDragging ? 'none' : 'transform 0.3s ease',
+        // Применяем горизонтальное смещение при перетаскивании
+        transform: horizontalTransform ? CSS.Transform.toString(horizontalTransform) : undefined,
+        
+        // Плавная анимация перемещения:
+        // - 'none' во время перетаскивания - для мгновенной реакции на движение мыши
+        // - 'transform 0.2s ease' когда есть смещение - для плавного возврата на место
+        // - 'none' когда нет смещения - без анимации в покое
+        transition: isDragging ? 'none' : hasTransform ? 'transform 0.2s ease' : 'none',
+        
+        // Уменьшение прозрачности при перетаскивании для визуальной обратной связи
         opacity: isDragging ? 0.8 : 1,
+        
+        // Поднятие карточки наверх при перетаскивании для отображения поверх других элементов
         zIndex: isDragging ? 1000 : 'auto',
     };
 
@@ -237,10 +278,15 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
                 minWidth: '150px',
                 border: isOver ? '2px solid #1976d2' : '2px solid #616161',
                 cursor: isDragging ? 'grabbing' : 'grab',
+                
+                // Плавные переходы для всех свойств (border, background и т.д.)
+                // Используется отдельно от transition в style, т.к. отвечает за другие свойства
                 transition: 'all 0.3s ease',
+                
                 backgroundColor: isOver ? 'rgba(25, 118, 210, 0.05)' : 'transparent',
                 '&:hover': {
                     boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                    // Поднятие карточки на 2px вверх при наведении (если не перетаскивается)
                     transform: isDragging ? 'none' : 'translateY(-2px)'
                 }
             }}
