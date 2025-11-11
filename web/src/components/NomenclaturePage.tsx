@@ -648,12 +648,44 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                 return undefined;
             };
 
-            const resolveUnitId = (unitName?: string): string | undefined => {
-                const key = toNormalizedKey(unitName);
-                if (!key) {
+            const ensureUnitId = async (unitName?: string): Promise<string | undefined> => {
+                const normalized = toNormalizedKey(unitName);
+                if (!normalized || !unitName) {
                     return undefined;
                 }
-                return unitCache.get(key);
+                if (unitCache.has(normalized)) {
+                    return unitCache.get(normalized);
+                }
+
+                const generatedCode = unitName
+                    .trim()
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]+/g, '_')
+                    .replace(/^_+|_+$/g, '') || `UNIT_${Date.now()}`;
+
+                const createUnitResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/units`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: generatedCode,
+                        name: unitName.trim()
+                    })
+                });
+
+                if (createUnitResponse.ok) {
+                    const createdUnit = await createUnitResponse.json();
+                    const nameKey = toNormalizedKey(createdUnit.name);
+                    const codeKey = toNormalizedKey(createdUnit.code);
+                    if (nameKey) unitCache.set(nameKey, createdUnit.id);
+                    if (codeKey) unitCache.set(codeKey, createdUnit.id);
+                    setUnits(prev => [...prev, createdUnit]);
+                    return createdUnit.id;
+                }
+
+                return undefined;
             };
 
             // Фильтруем данные в зависимости от выбора пользователя
@@ -678,7 +710,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         if (item.price && parseFloat(item.price) !== item.existingItem.price) {
                             nomenclatureItem.price = parseFloat(item.price);
                         }
-                        const resolvedUnitId = resolveUnitId(item.unit);
+                        const resolvedUnitId = await ensureUnitId(item.unit);
                         const existingUnitId = item.existingItem.unitId || item.existingItem.unit?.id;
                         if (resolvedUnitId && resolvedUnitId !== existingUnitId) {
                             nomenclatureItem.unitId = resolvedUnitId;
@@ -731,7 +763,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     if (item.description) nomenclatureItem.description = item.description;
                     if (item.price) nomenclatureItem.price = parseFloat(item.price);
 
-                    const resolvedUnitId = resolveUnitId(item.unit);
+                    const resolvedUnitId = await ensureUnitId(item.unit);
                     if (resolvedUnitId) {
                         nomenclatureItem.unitId = resolvedUnitId;
                     }
