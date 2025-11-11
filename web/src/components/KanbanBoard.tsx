@@ -91,16 +91,41 @@ interface StageForm {
 }
 
 
-// Компонент для сортируемой карточки этапа
+/* 
+ * ===== ИНТЕРФЕЙС: SortableStageCardProps =====
+ * Описание пропсов для компонента сортируемой карточки этапа работ
+ */
 interface SortableStageCardProps {
+    // Данные задачи (этапа работы) для отображения в карточке
+    // Содержит всю информацию о задаче: название, даты, исполнитель, статус и т.д.
     task: KanbanTask;
+
+    // Обработчик двойного клика по карточке этапа
+    // Вызывается при двойном клике на карточку для открытия диалога редактирования
+    // Параметр: task - объект задачи, по которой был выполнен двойной клик
     onDoubleClick: (task: KanbanTask) => void;
+
+    // Обработчик контекстного меню (правый клик) по карточке этапа
+    // Вызывается при правом клике на карточку для открытия контекстного меню
+    // Параметры:
+    //   - event - событие мыши (React.MouseEvent) для предотвращения стандартного поведения браузера
+    //   - task - объект задачи, по которой был выполнен правый клик
     onContextMenu: (event: React.MouseEvent, task: KanbanTask) => void;
 }
 
-// Компонент для сортируемой карточки проекта
+/* 
+ * ===== ИНТЕРФЕЙС: SortableProjectCardProps =====
+ * Описание пропсов для компонента сортируемой карточки проекта
+ */
 interface SortableProjectCardProps {
+    // Уникальный идентификатор проекта
+    // Используется для идентификации проекта в системе drag-and-drop
+    // Формат: строка (UUID проекта из базы данных)
     projectId: string;
+
+    // Дочерние элементы компонента (React-элементы)
+    // Содержит содержимое карточки проекта: название, колонки с этапами работ и т.д.
+    // Тип React.ReactNode позволяет передавать любые React-элементы: компоненты, строки, числа и т.д.
     children: React.ReactNode;
 }
 
@@ -242,7 +267,7 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
      *   - hover: поднятие карточки на 2px вверх при наведении (translateY(-2px))
      *   - isDragging: отключение hover-эффекта во время перетаскивания
      */
-    
+
     // Определяем, есть ли смещение для анимации
     const hasTransform = transform && (transform.x !== 0 || transform.y !== 0);
 
@@ -253,16 +278,18 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
     const style = {
         // Применяем горизонтальное смещение при перетаскивании
         transform: horizontalTransform ? CSS.Transform.toString(horizontalTransform) : undefined,
-        
+
         // Плавная анимация перемещения:
         // - 'none' во время перетаскивания - для мгновенной реакции на движение мыши
         // - 'transform 0.2s ease' когда есть смещение - для плавного возврата на место
         // - 'none' когда нет смещения - без анимации в покое
         transition: isDragging ? 'none' : hasTransform ? 'transform 0.2s ease' : 'none',
-        
+
         // Уменьшение прозрачности при перетаскивании для визуальной обратной связи
-        opacity: isDragging ? 0.8 : 1,
-        
+        // Значение 0.5 (50% прозрачности) делает карточку полупрозрачной во время перетаскивания
+        // Это помогает визуально отличить перетаскиваемую карточку от остальных
+        opacity: isDragging ? 0.5 : 1,
+
         // Поднятие карточки наверх при перетаскивании для отображения поверх других элементов
         zIndex: isDragging ? 1000 : 'auto',
     };
@@ -278,11 +305,11 @@ const SortableStageCard: React.FC<SortableStageCardProps> = ({
                 minWidth: '150px',
                 border: isOver ? '2px solid #1976d2' : '2px solid #616161',
                 cursor: isDragging ? 'grabbing' : 'grab',
-                
+
                 // Плавные переходы для всех свойств (border, background и т.д.)
                 // Используется отдельно от transition в style, т.к. отвечает за другие свойства
                 transition: 'all 0.3s ease',
-                
+
                 backgroundColor: isOver ? 'rgba(25, 118, 210, 0.05)' : 'transparent',
                 '&:hover': {
                     boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
