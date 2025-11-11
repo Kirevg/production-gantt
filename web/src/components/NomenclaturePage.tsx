@@ -196,6 +196,21 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
         return trimmed.length ? trimmed.toLowerCase() : undefined;
     };
 
+    // Расширенная нормализация для alias единиц измерения
+    const normalizeAliasKey = (value: string | undefined): string | undefined => {
+        if (!value) {
+            return undefined;
+        }
+        const trimmed = value.trim().toLowerCase();
+        if (!trimmed.length) {
+            return undefined;
+        }
+        return trimmed
+            .replace(/[\.\,;:]+/g, '') // Удаляем знаки пунктуации
+            .replace(/\s+/g, ' ') // Схлопываем множественные пробелы
+            .trim();
+    };
+
     const [noHeaders, setNoHeaders] = useState(false);
     const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
@@ -608,14 +623,20 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             // Кэш для единиц измерения (по коду и названию)
             const unitCache = new Map<string, string>();
             units.forEach(unit => {
-                const nameKey = toNormalizedKey(unit.name);
+                const nameKey = normalizeAliasKey(unit.name);
                 if (nameKey) {
                     unitCache.set(nameKey, unit.id);
                 }
-                const codeKey = toNormalizedKey(unit.code);
+                const codeKey = normalizeAliasKey(unit.code);
                 if (codeKey) {
                     unitCache.set(codeKey, unit.id);
                 }
+                unit.aliases?.forEach(alias => {
+                    const aliasKey = normalizeAliasKey(alias.normalizedAlias || alias.alias);
+                    if (aliasKey) {
+                        unitCache.set(aliasKey, unit.id);
+                    }
+                });
             });
 
             const ensureGroupId = async (groupName?: string): Promise<string | undefined> => {
@@ -649,7 +670,7 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             };
 
             const ensureUnitId = async (unitName?: string): Promise<string | undefined> => {
-                const normalized = toNormalizedKey(unitName);
+                const normalized = normalizeAliasKey(unitName);
                 if (!normalized || !unitName) {
                     return undefined;
                 }
@@ -677,8 +698,8 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
 
                 if (createUnitResponse.ok) {
                     const createdUnit = await createUnitResponse.json();
-                    const nameKey = toNormalizedKey(createdUnit.name);
-                    const codeKey = toNormalizedKey(createdUnit.code);
+                    const nameKey = normalizeAliasKey(createdUnit.name);
+                    const codeKey = normalizeAliasKey(createdUnit.code);
                     if (nameKey) unitCache.set(nameKey, createdUnit.id);
                     if (codeKey) unitCache.set(codeKey, createdUnit.id);
                     setUnits(prev => [...prev, createdUnit]);

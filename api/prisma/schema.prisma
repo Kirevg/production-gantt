@@ -75,9 +75,11 @@ model Unit {
   updatedAt         DateTime           @updatedAt
   nomenclatureItems NomenclatureItem[]
   specifications    Specification[]
+  aliases           UnitAlias[]
 
   @@index([code])
 }
+
 
 model Project {
   id               String           @id @default(uuid())
