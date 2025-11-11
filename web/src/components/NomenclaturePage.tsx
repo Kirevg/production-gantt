@@ -175,6 +175,27 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
     const [showColumnMapping, setShowColumnMapping] = useState(false);
     const [excelData, setExcelData] = useState<any[][]>([]);
     const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
+    // Приведение значений из Excel к строковому виду с обрезкой пробелов
+    const normalizeExcelString = (value: unknown): string | undefined => {
+        if (value === undefined || value === null) {
+            return undefined;
+        }
+        if (typeof value === 'number') {
+            return value.toString();
+        }
+        const trimmed = value.toString().trim();
+        return trimmed.length > 0 ? trimmed : undefined;
+    };
+
+    // Нормализация ключей (для поиска по названиям, без регистра и лишних пробелов)
+    const toNormalizedKey = (value: string | undefined): string | undefined => {
+        if (!value) {
+            return undefined;
+        }
+        const trimmed = value.trim();
+        return trimmed.length ? trimmed.toLowerCase() : undefined;
+    };
+
     const [noHeaders, setNoHeaders] = useState(false);
     const [showPreviewDialog, setShowPreviewDialog] = useState(false);
     const [previewData, setPreviewData] = useState<any[]>([]);
@@ -286,15 +307,47 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     const nomenclatureData: any = {};
 
                     Object.entries(columnMapping).forEach(([columnIndex, fieldName]) => {
-                        const value = row[parseInt(columnIndex)];
-                        if (value !== undefined && value !== null && value !== '') {
-                            if (fieldName === 'price') {
-                                nomenclatureData[fieldName] = parseFloat(value) || undefined;
-                            } else {
-                                nomenclatureData[fieldName] = value.toString();
+                        const rawValue = row[parseInt(columnIndex)];
+                        if (fieldName === 'price') {
+                            if (rawValue !== undefined && rawValue !== null && rawValue !== '') {
+                                const normalizedPrice = typeof rawValue === 'number'
+                                    ? rawValue
+                                    : parseFloat(rawValue.toString().replace(/\s+/g, '').replace(',', '.'));
+                                if (!Number.isNaN(normalizedPrice)) {
+                                    nomenclatureData[fieldName] = normalizedPrice;
+                                }
                             }
+                            return;
+                        }
+
+                        const normalizedString = normalizeExcelString(rawValue);
+                        if (normalizedString) {
+                            nomenclatureData[fieldName] = normalizedString;
                         }
                     });
+
+                    // Дополнительно нормализуем ключевые поля (наименование и т.д.)
+                    if (nomenclatureData.name) {
+                        nomenclatureData.name = nomenclatureData.name.trim();
+                    }
+                    if (nomenclatureData.designation) {
+                        nomenclatureData.designation = nomenclatureData.designation.trim();
+                    }
+                    if (nomenclatureData.article) {
+                        nomenclatureData.article = nomenclatureData.article.trim();
+                    }
+                    if (nomenclatureData.code1c) {
+                        nomenclatureData.code1c = nomenclatureData.code1c.trim();
+                    }
+                    if (nomenclatureData.manufacturer) {
+                        nomenclatureData.manufacturer = nomenclatureData.manufacturer.trim();
+                    }
+                    if (nomenclatureData.group) {
+                        nomenclatureData.group = nomenclatureData.group.trim();
+                    }
+                    if (nomenclatureData.unit) {
+                        nomenclatureData.unit = nomenclatureData.unit.trim();
+                    }
 
                     // Проверяем обязательные поля
                     if (!nomenclatureData.name) {
@@ -535,6 +588,74 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
             let successCount = 0;
             let errorCount = 0;
 
+            // Подготавливаем кэш для групп (по названию в нижнем регистре)
+            const groupCache = new Map<string, string>();
+            const fillGroupCache = (groupList: any[]) => {
+                groupList.forEach(group => {
+                    if (group?.name) {
+                        const key = toNormalizedKey(group.name);
+                        if (key) {
+                            groupCache.set(key, group.id);
+                        }
+                    }
+                    if (group?.children?.length) {
+                        fillGroupCache(group.children);
+                    }
+                });
+            };
+            fillGroupCache(groups);
+
+            // Кэш для единиц измерения (по коду и названию)
+            const unitCache = new Map<string, string>();
+            units.forEach(unit => {
+                const nameKey = toNormalizedKey(unit.name);
+                if (nameKey) {
+                    unitCache.set(nameKey, unit.id);
+                }
+                const codeKey = toNormalizedKey(unit.code);
+                if (codeKey) {
+                    unitCache.set(codeKey, unit.id);
+                }
+            });
+
+            const ensureGroupId = async (groupName?: string): Promise<string | undefined> => {
+                const normalized = toNormalizedKey(groupName);
+                if (!normalized || !groupName) {
+                    return undefined;
+                }
+                if (groupCache.has(normalized)) {
+                    return groupCache.get(normalized);
+                }
+
+                const newGroupResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: groupName })
+                });
+
+                if (newGroupResponse.ok) {
+                    const newGroup = await newGroupResponse.json();
+                    const newKey = toNormalizedKey(newGroup.name);
+                    if (newKey) {
+                        groupCache.set(newKey, newGroup.id);
+                    }
+                    return newGroup.id;
+                }
+
+                return undefined;
+            };
+
+            const resolveUnitId = (unitName?: string): string | undefined => {
+                const key = toNormalizedKey(unitName);
+                if (!key) {
+                    return undefined;
+                }
+                return unitCache.get(key);
+            };
+
             // Фильтруем данные в зависимости от выбора пользователя
             const itemsToImport = includeNewItems
                 ? previewData
@@ -556,6 +677,20 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                         if (item.description !== item.existingItem.description) nomenclatureItem.description = item.description;
                         if (item.price && parseFloat(item.price) !== item.existingItem.price) {
                             nomenclatureItem.price = parseFloat(item.price);
+                        }
+                        const resolvedUnitId = resolveUnitId(item.unit);
+                        const existingUnitId = item.existingItem.unitId || item.existingItem.unit?.id;
+                        if (resolvedUnitId && resolvedUnitId !== existingUnitId) {
+                            nomenclatureItem.unitId = resolvedUnitId;
+                        } else if (!resolvedUnitId && item.existingItem.unitId && !item.unit) {
+                            nomenclatureItem.unitId = null;
+                        }
+
+                        const resolvedGroupId = await ensureGroupId(item.group);
+                        if (resolvedGroupId && resolvedGroupId !== item.existingItem.groupId) {
+                            nomenclatureItem.groupId = resolvedGroupId;
+                        } else if (!resolvedGroupId && item.existingItem.groupId && !item.group) {
+                            nomenclatureItem.groupId = null;
                         }
 
                         // Отправляем PUT запрос для обновления
@@ -594,42 +729,18 @@ const NomenclaturePage: React.FC<NomenclaturePageProps> = ({
                     if (item.code1c) nomenclatureItem.code1c = item.code1c;
                     if (item.manufacturer) nomenclatureItem.manufacturer = item.manufacturer;
                     if (item.description) nomenclatureItem.description = item.description;
-                    if (item.unit) nomenclatureItem.unit = item.unit;
                     if (item.price) nomenclatureItem.price = parseFloat(item.price);
+
+                    const resolvedUnitId = resolveUnitId(item.unit);
+                    if (resolvedUnitId) {
+                        nomenclatureItem.unitId = resolvedUnitId;
+                    }
 
                     // Обработка группы (если указана)
                     if (item.group) {
-                        // Ищем группу по названию
-                        const groupsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-
-                        if (groupsResponse.ok) {
-                            const groups = await groupsResponse.json();
-                            const foundGroup = groups.find((g: any) =>
-                                g.name.toLowerCase() === item.group.toLowerCase()
-                            );
-
-                            if (foundGroup) {
-                                nomenclatureItem.groupId = foundGroup.id;
-                            } else {
-                                // Создаём новую группу
-                                const newGroupResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/nomenclature/groups`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Authorization': `Bearer ${token}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ name: item.group })
-                                });
-
-                                if (newGroupResponse.ok) {
-                                    const newGroup = await newGroupResponse.json();
-                                    nomenclatureItem.groupId = newGroup.id;
-                                }
-                            }
+                        const groupId = await ensureGroupId(item.group);
+                        if (groupId) {
+                            nomenclatureItem.groupId = groupId;
                         }
                     }
 
