@@ -210,6 +210,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Код</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Название</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Полное название</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Аналоги</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '12px' }}>Межд. код</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '60px', fontSize: '12px' }}>
                                     <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
@@ -227,6 +228,7 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
                                     <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{unit.code}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{unit.name}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{unit.fullName || '-'}</TableCell>
+                                    <TableCell sx={{ py: 0.5 }}>{'-'}</TableCell>
                                     <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{unit.internationalCode || '-'}</TableCell>
                                     <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
                                         {canDelete() && (
