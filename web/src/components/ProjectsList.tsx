@@ -606,371 +606,388 @@ const ProjectsList: React.FC<ProjectsListProps> = ({ onOpenProjectComposition, o
 
     // Основной рендер компонента списка проектов
     return (
-        <Box className="page-container">
-            {/* Заголовок и кнопка создания проекта */}
-            <Box className="page-header">
-                <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>Список проектов</Typography>
-                {canCreate() && (
-                    <Button
-                        variant="contained"
-                        size="large"
-                        onClick={onOpenCreateProject}
-                        className="depth-button"
-                        sx={{ fontSize: '14px' }}
-                    >
-                        Создать проект
-                    </Button>
-                )}
-            </Box>
+        <>
+            {/* 
+             * КОНТЕЙНЕР СТРАНИЦЫ - СТАНДАРТНОЕ ИСПОЛЬЗОВАНИЕ
+             * 
+             * БАЗОВЫЕ СТИЛИ: Определены в web/src/styles/buttons.css (.page-container)
+             *   - min-width: 1200px - минимальная ширина контейнера
+             *   - max-width: 1200px - максимальная ширина контейнера
+             * 
+             * ЛОКАЛЬНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ: НЕТ (используются только базовые стили)
+             * 
+             * ЭТО СТАНДАРТНЫЙ СЛУЧАЙ:
+             *   - Используются только базовые стили из CSS
+             *   - Не требуется дополнительных отступов или специальной компоновки
+             *   - Если нужно изменить ширину - редактируйте в buttons.css
+             *   - Если нужно добавить отступы - используйте sx prop (см. примеры в App.tsx)
+             */}
+            <Box className="page-container">
+                {/* Заголовок и кнопка создания проекта */}
+                <Box className="page-header">
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>Список проектов</Typography>
+                    {canCreate() && (
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={onOpenCreateProject}
+                            className="depth-button"
+                            sx={{ fontSize: '14px' }}
+                        >
+                            Создать проект
+                        </Button>
+                    )}
+                </Box>
 
-            {/* Форма создания нового проекта */}
-            <Dialog
-                open={showCreateForm}
-                onClose={() => { }}
-                maxWidth="sm"
-                fullWidth
-                hideBackdrop={true}
-                disablePortal={true}
-                disableScrollLock={true}
-                keepMounted={false}
-                disableEnforceFocus={true}
-                disableAutoFocus={true}
-                disableEscapeKeyDown={true}
-            >
-                <DialogTitle>Создать новый проект</DialogTitle>
-                <form onSubmit={handleCreateProject}>
-                    <DialogContent>
-                        {/* Поле для названия проекта */}
-                        <TextField
-                            autoFocus
-                            fullWidth
-                            label="Название проекта"
-                            value={newProject.name}
-                            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                            margin="normal"
-                            required
+                {/* Форма создания нового проекта */}
+                <Dialog
+                    open={showCreateForm}
+                    onClose={() => { }}
+                    maxWidth="sm"
+                    fullWidth
+                    hideBackdrop={true}
+                    disablePortal={true}
+                    disableScrollLock={true}
+                    keepMounted={false}
+                    disableEnforceFocus={true}
+                    disableAutoFocus={true}
+                    disableEscapeKeyDown={true}
+                >
+                    <DialogTitle>Создать новый проект</DialogTitle>
+                    <form onSubmit={handleCreateProject}>
+                        <DialogContent>
+                            {/* Поле для названия проекта */}
+                            <TextField
+                                autoFocus
+                                fullWidth
+                                label="Название проекта"
+                                value={newProject.name}
+                                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                                margin="normal"
+                                required
+                            />
+                            {/* Выпадающий список для выбора руководителя проекта */}
+                            <TextField
+                                fullWidth
+                                select
+                                label="Руководитель проекта"
+                                value={newProject.managerId}
+                                onChange={(e) => setNewProject({ ...newProject, managerId: e.target.value })}
+                                margin="normal"
+                                SelectProps={{ native: true }}
+                            >
+                                <option value=""></option>
+                                {managers.map((manager) => (
+                                    <option key={manager.id} value={manager.id}>
+                                        {manager.lastName} {manager.firstName} {manager.middleName || ''}
+                                    </option>
+                                ))}
+                            </TextField>
+                            {/* Выпадающий список для выбора статуса */}
+                            <TextField
+                                fullWidth
+                                select
+                                label="Статус"
+                                value={newProject.status}
+                                onChange={(e) => setNewProject({ ...newProject, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived' })}
+                                margin="normal"
+                                SelectProps={{ native: true }}
+                            >
+                                <option value="InProject">В проекте</option>
+                                <option value="InProgress">В работе</option>
+                                <option value="Done">Завершён</option>
+                                <option value="HasProblems">Проблемы</option>
+                                <option value="Archived">Архив</option>
+                            </TextField>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setShowCreateForm(false)} variant="contained" size="large" sx={{ fontSize: '14px' }}>Отмена</Button>
+                            <Button type="submit" variant="contained" size="large" className="depth-button" sx={{ fontSize: '14px' }}>Создать</Button>
+                        </DialogActions>
+                    </form>
+                </Dialog>
+
+                {/* Фильтры статусов */}
+                <Paper sx={{ p: 0, mb: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', height: '56px', overflow: 'hidden', width: '100%' }}>
+                        <Typography variant="body2" color="text.secondary">
+                            Показано: {getFilteredProjects().length} из {projects.length}
+                        </Typography>
+
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={statusFilters.InProject}
+                                    onChange={() => handleStatusFilterChange('InProject')}
+                                    color="default"
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                    <Chip
+                                        label="В проекте"
+                                        size="small"
+                                        sx={{
+                                            borderRadius: '6px',
+                                            backgroundColor: '#FFE082',
+                                            color: '#000'
+                                        }}
+                                    />
+                                    <Typography variant="body2" color="text.secondary">
+                                        ({projects.filter(p => p.status === 'InProject').length})
+                                    </Typography>
+                                </Box>
+                            }
                         />
-                        {/* Выпадающий список для выбора руководителя проекта */}
-                        <TextField
-                            fullWidth
-                            select
-                            label="Руководитель проекта"
-                            value={newProject.managerId}
-                            onChange={(e) => setNewProject({ ...newProject, managerId: e.target.value })}
-                            margin="normal"
-                            SelectProps={{ native: true }}
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={statusFilters.InProgress}
+                                    onChange={() => handleStatusFilterChange('InProgress')}
+                                    color="primary"
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                    <Chip
+                                        label="В работе"
+                                        color="primary"
+                                        size="small"
+                                        sx={{ borderRadius: '6px' }}
+                                    />
+                                    <Typography variant="body2" color="text.secondary">
+                                        ({projects.filter(p => p.status === 'InProgress').length})
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={statusFilters.Done}
+                                    onChange={() => handleStatusFilterChange('Done')}
+                                    color="success"
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                    <Chip
+                                        label="Завершён"
+                                        color="success"
+                                        size="small"
+                                        sx={{ borderRadius: '6px' }}
+                                    />
+                                    <Typography variant="body2" color="text.secondary">
+                                        ({projects.filter(p => p.status === 'Done').length})
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={statusFilters.HasProblems}
+                                    onChange={() => handleStatusFilterChange('HasProblems')}
+                                    color="error"
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                    <Chip
+                                        label="Проблемы"
+                                        color="error"
+                                        size="small"
+                                        sx={{ borderRadius: '6px' }}
+                                    />
+                                    <Typography variant="body2" color="text.secondary">
+                                        ({projects.filter(p => p.status === 'HasProblems').length})
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={statusFilters.Archived}
+                                    onChange={() => handleStatusFilterChange('Archived')}
+                                    color="default"
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                    <Chip
+                                        label="Архив"
+                                        size="small"
+                                        sx={{
+                                            borderRadius: '6px',
+                                            backgroundColor: '#9e9e9e',
+                                            color: '#fff'
+                                        }}
+                                    />
+                                    <Typography variant="body2" color="text.secondary">
+                                        ({projects.filter(p => p.status === 'Archived').length})
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+
+                        <Button
+                            size="small"
+                            onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true, Archived: true })}
+                            disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems && statusFilters.Archived}
                         >
-                            <option value=""></option>
-                            {managers.map((manager) => (
-                                <option key={manager.id} value={manager.id}>
-                                    {manager.lastName} {manager.firstName} {manager.middleName || ''}
-                                </option>
-                            ))}
-                        </TextField>
-                        {/* Выпадающий список для выбора статуса */}
-                        <TextField
-                            fullWidth
-                            select
-                            label="Статус"
-                            value={newProject.status}
-                            onChange={(e) => setNewProject({ ...newProject, status: e.target.value as 'InProject' | 'InProgress' | 'Done' | 'HasProblems' | 'Archived' })}
-                            margin="normal"
-                            SelectProps={{ native: true }}
+                            Показать все
+                        </Button>
+                        <Button
+                            size="small"
+                            onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false, Archived: false })}
+                            disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems && !statusFilters.Archived}
                         >
-                            <option value="InProject">В проекте</option>
-                            <option value="InProgress">В работе</option>
-                            <option value="Done">Завершён</option>
-                            <option value="HasProblems">Проблемы</option>
-                            <option value="Archived">Архив</option>
-                        </TextField>
+                            Скрыть все
+                        </Button>
+                    </Box>
+                </Paper>
+
+                {/* Таблица с проектами */}
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <TableContainer
+                        component={Paper}
+                        sx={{
+                            width: '100%',
+                            p: 0,
+                            '& .MuiTable-root': {
+                                minWidth: 'max-content' // Минимальная ширина таблицы
+                            }
+                        }}
+                    >
+                        <Table sx={{
+                            minWidth: 'max-content',
+                            tableLayout: 'fixed',
+                            '& .MuiTableCell-root': {
+                                borderRight: '1px solid #e0e0e0',
+                                '&:last-child': {
+                                    borderRight: 'none'
+                                }
+                            },
+                            '& .MuiTableCell-root:first-of-type': {
+                                width: '40px !important',
+                                minWidth: '40px !important',
+                                maxWidth: '40px !important',
+                                flex: '0 0 40px !important'
+                            },
+                            '& .MuiTableBody-root .MuiTableCell-root': {
+                                padding: '4px 4px !important'
+                            },
+                            '& .MuiTableBody-root .MuiTableCell-root:first-of-type': {
+                                textAlign: 'center !important'
+                            },
+                            '& .MuiTableCell-root:nth-of-type(4)': {
+                                width: '100px !important',
+                                minWidth: '100px !important',
+                                maxWidth: '100px !important'
+                            },
+                            '& .MuiTableCell-root:nth-of-type(5)': {
+                                width: '100px !important',
+                                minWidth: '100px !important',
+                                maxWidth: '100px !important'
+                            },
+                            '& .MuiTableCell-root:nth-of-type(3)': {
+                                width: '120px !important',
+                                minWidth: '120px !important',
+                                maxWidth: '120px !important'
+                            },
+                            '& .MuiTableCell-root:nth-of-type(7)': {
+                                width: '140px !important',
+                                minWidth: '140px !important',
+                                maxWidth: '140px !important'
+                            },
+                            '& .MuiTableCell-root:nth-of-type(6)': {
+                                width: '200px !important',
+                                minWidth: '200px !important',
+                                maxWidth: '200px !important',
+                                whiteSpace: 'normal !important'
+                            },
+                            '& .MuiIconButton-root': {
+                                '&:active': {
+                                    transform: 'none !important',
+                                    boxShadow: 'none !important',
+                                    backgroundColor: 'transparent !important'
+                                },
+                                '&:focus': {
+                                    outline: 'none !important',
+                                    backgroundColor: 'transparent !important'
+                                },
+                                '&:hover': {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.04) !important'
+                                },
+                                '&:focus-visible': {
+                                    outline: 'none !important'
+                                }
+                            }
+                        }}>
+                            {/* Заголовок таблицы */}
+                            <TableHead>
+                                <TableRow sx={{ backgroundColor: '#f5f5f5', height: '56px' }}>
+                                    <TableCell sx={{ fontWeight: 'bold', width: '40px', minWidth: '40px', maxWidth: '40px', textAlign: 'center', px: 0 }}>
+                                        <Typography sx={{ fontSize: '18px', fontWeight: 900 }}>
+                                            ↑↓
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0 }}>Название</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '120px' }}>Статус</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Старт</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Финиш</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '200px' }}>Руководитель проекта</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '140px' }}>Телефон</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '60px' }}>
+                                        <Delete sx={{ color: 'error.main' }} />
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            {/* Тело таблицы с данными проектов */}
+                            <TableBody>
+                                <SortableContext items={getFilteredProjects().map(p => p.id)} strategy={verticalListSortingStrategy}>
+                                    {getFilteredProjects().map((project) => (
+                                        <SortableTableRow key={project.id} project={project} />
+                                    ))}
+                                </SortableContext>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </DndContext>
+
+                {/* Диалог удаления проекта */}
+                <Dialog
+                    open={showDeleteDialog}
+                    onClose={() => { }}
+                    hideBackdrop={true}
+                    disablePortal={true}
+                    disableScrollLock={true}
+                    keepMounted={false}
+                    disableEnforceFocus={true}
+                    disableAutoFocus={true}
+                    disableEscapeKeyDown={true}
+                >
+                    <DialogTitle>Удалить проект</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            Вы уверены, что хотите удалить проект "{deletingProject?.name}"?
+                            Это действие нельзя отменить.
+                        </Typography>
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => setShowCreateForm(false)} variant="contained" size="large" sx={{ fontSize: '14px' }}>Отмена</Button>
-                        <Button type="submit" variant="contained" size="large" className="depth-button" sx={{ fontSize: '14px' }}>Создать</Button>
+                        <Button onClick={() => setShowDeleteDialog(false)} variant="contained" size="large" sx={{ fontSize: '14px' }}>Отмена</Button>
+                        <Button onClick={confirmDeleteProject} color="error" variant="contained" size="large">
+                            Удалить
+                        </Button>
                     </DialogActions>
-                </form>
-            </Dialog>
-
-            {/* Фильтры статусов */}
-            <Paper sx={{ p: 0, mb: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', height: '56px', overflow: 'hidden', width: '100%' }}>
-                    <Typography variant="body2" color="text.secondary">
-                        Показано: {getFilteredProjects().length} из {projects.length}
-                    </Typography>
-
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={statusFilters.InProject}
-                                onChange={() => handleStatusFilterChange('InProject')}
-                                color="default"
-                            />
-                        }
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                <Chip
-                                    label="В проекте"
-                                    size="small"
-                                    sx={{
-                                        borderRadius: '6px',
-                                        backgroundColor: '#FFE082',
-                                        color: '#000'
-                                    }}
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                    ({projects.filter(p => p.status === 'InProject').length})
-                                </Typography>
-                            </Box>
-                        }
-                    />
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={statusFilters.InProgress}
-                                onChange={() => handleStatusFilterChange('InProgress')}
-                                color="primary"
-                            />
-                        }
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                <Chip
-                                    label="В работе"
-                                    color="primary"
-                                    size="small"
-                                    sx={{ borderRadius: '6px' }}
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                    ({projects.filter(p => p.status === 'InProgress').length})
-                                </Typography>
-                            </Box>
-                        }
-                    />
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={statusFilters.Done}
-                                onChange={() => handleStatusFilterChange('Done')}
-                                color="success"
-                            />
-                        }
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                <Chip
-                                    label="Завершён"
-                                    color="success"
-                                    size="small"
-                                    sx={{ borderRadius: '6px' }}
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                    ({projects.filter(p => p.status === 'Done').length})
-                                </Typography>
-                            </Box>
-                        }
-                    />
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={statusFilters.HasProblems}
-                                onChange={() => handleStatusFilterChange('HasProblems')}
-                                color="error"
-                            />
-                        }
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                <Chip
-                                    label="Проблемы"
-                                    color="error"
-                                    size="small"
-                                    sx={{ borderRadius: '6px' }}
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                    ({projects.filter(p => p.status === 'HasProblems').length})
-                                </Typography>
-                            </Box>
-                        }
-                    />
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={statusFilters.Archived}
-                                onChange={() => handleStatusFilterChange('Archived')}
-                                color="default"
-                            />
-                        }
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                <Chip
-                                    label="Архив"
-                                    size="small"
-                                    sx={{
-                                        borderRadius: '6px',
-                                        backgroundColor: '#9e9e9e',
-                                        color: '#fff'
-                                    }}
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                    ({projects.filter(p => p.status === 'Archived').length})
-                                </Typography>
-                            </Box>
-                        }
-                    />
-
-                    <Button
-                        size="small"
-                        onClick={() => setStatusFilters({ InProject: true, InProgress: true, Done: true, HasProblems: true, Archived: true })}
-                        disabled={statusFilters.InProject && statusFilters.InProgress && statusFilters.Done && statusFilters.HasProblems && statusFilters.Archived}
-                    >
-                        Показать все
-                    </Button>
-                    <Button
-                        size="small"
-                        onClick={() => setStatusFilters({ InProject: false, InProgress: false, Done: false, HasProblems: false, Archived: false })}
-                        disabled={!statusFilters.InProject && !statusFilters.InProgress && !statusFilters.Done && !statusFilters.HasProblems && !statusFilters.Archived}
-                    >
-                        Скрыть все
-                    </Button>
-                </Box>
-            </Paper>
-
-            {/* Таблица с проектами */}
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-            >
-                <TableContainer
-                    component={Paper}
-                    sx={{
-                        width: '100%',
-                        p: 0,
-                        '& .MuiTable-root': {
-                            minWidth: 'max-content' // Минимальная ширина таблицы
-                        }
-                    }}
-                >
-                    <Table sx={{
-                        minWidth: 'max-content',
-                        tableLayout: 'fixed',
-                        '& .MuiTableCell-root': {
-                            borderRight: '1px solid #e0e0e0',
-                            '&:last-child': {
-                                borderRight: 'none'
-                            }
-                        },
-                        '& .MuiTableCell-root:first-of-type': {
-                            width: '40px !important',
-                            minWidth: '40px !important',
-                            maxWidth: '40px !important',
-                            flex: '0 0 40px !important'
-                        },
-                        '& .MuiTableBody-root .MuiTableCell-root': {
-                            padding: '4px 4px !important'
-                        },
-                        '& .MuiTableBody-root .MuiTableCell-root:first-of-type': {
-                            textAlign: 'center !important'
-                        },
-                        '& .MuiTableCell-root:nth-of-type(4)': {
-                            width: '100px !important',
-                            minWidth: '100px !important',
-                            maxWidth: '100px !important'
-                        },
-                        '& .MuiTableCell-root:nth-of-type(5)': {
-                            width: '100px !important',
-                            minWidth: '100px !important',
-                            maxWidth: '100px !important'
-                        },
-                        '& .MuiTableCell-root:nth-of-type(3)': {
-                            width: '120px !important',
-                            minWidth: '120px !important',
-                            maxWidth: '120px !important'
-                        },
-                        '& .MuiTableCell-root:nth-of-type(7)': {
-                            width: '140px !important',
-                            minWidth: '140px !important',
-                            maxWidth: '140px !important'
-                        },
-                        '& .MuiTableCell-root:nth-of-type(6)': {
-                            width: '200px !important',
-                            minWidth: '200px !important',
-                            maxWidth: '200px !important',
-                            whiteSpace: 'normal !important'
-                        },
-                        '& .MuiIconButton-root': {
-                            '&:active': {
-                                transform: 'none !important',
-                                boxShadow: 'none !important',
-                                backgroundColor: 'transparent !important'
-                            },
-                            '&:focus': {
-                                outline: 'none !important',
-                                backgroundColor: 'transparent !important'
-                            },
-                            '&:hover': {
-                                backgroundColor: 'rgba(0, 0, 0, 0.04) !important'
-                            },
-                            '&:focus-visible': {
-                                outline: 'none !important'
-                            }
-                        }
-                    }}>
-                        {/* Заголовок таблицы */}
-                        <TableHead>
-                            <TableRow sx={{ backgroundColor: '#f5f5f5', height: '56px' }}>
-                                <TableCell sx={{ fontWeight: 'bold', width: '40px', minWidth: '40px', maxWidth: '40px', textAlign: 'center', px: 0 }}>
-                                    <Typography sx={{ fontSize: '18px', fontWeight: 900 }}>
-                                        ↑↓
-                                    </Typography>
-                                </TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0 }}>Название</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '120px' }}>Статус</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Старт</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '100px' }}>Финиш</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '200px' }}>Руководитель проекта</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '140px' }}>Телефон</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', px: 0, width: '60px' }}>
-                                    <Delete sx={{ color: 'error.main' }} />
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        {/* Тело таблицы с данными проектов */}
-                        <TableBody>
-                            <SortableContext items={getFilteredProjects().map(p => p.id)} strategy={verticalListSortingStrategy}>
-                                {getFilteredProjects().map((project) => (
-                                    <SortableTableRow key={project.id} project={project} />
-                                ))}
-                            </SortableContext>
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </DndContext>
-
-            {/* Диалог удаления проекта */}
-            <Dialog
-                open={showDeleteDialog}
-                onClose={() => { }}
-                hideBackdrop={true}
-                disablePortal={true}
-                disableScrollLock={true}
-                keepMounted={false}
-                disableEnforceFocus={true}
-                disableAutoFocus={true}
-                disableEscapeKeyDown={true}
-            >
-                <DialogTitle>Удалить проект</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Вы уверены, что хотите удалить проект "{deletingProject?.name}"?
-                        Это действие нельзя отменить.
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setShowDeleteDialog(false)} variant="contained" size="large" sx={{ fontSize: '14px' }}>Отмена</Button>
-                    <Button onClick={confirmDeleteProject} color="error" variant="contained" size="large">
-                        Удалить
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
+                </Dialog>
+            </Box>
+        </>
     );
 };
 

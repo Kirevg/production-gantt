@@ -2125,7 +2125,23 @@ export default function App() {
             {user && <UsersList currentUser={user} canEdit={canEdit} canCreate={canCreate} canDelete={canDelete} />}
 
             {/* Управление правами доступа */}
-            <Box className="page-container" sx={{ mt: 3 }}>
+            {/* 
+             * КОНТЕЙНЕР СТРАНИЦЫ С ЛОКАЛЬНЫМ ПЕРЕОПРЕДЕЛЕНИЕМ СТИЛЕЙ
+             * 
+             * БАЗОВЫЕ СТИЛИ: Определены в web/src/styles/buttons.css (.page-container)
+             *   - min-width: 1200px
+             *   - max-width: 1200px
+             * 
+             * ЛОКАЛЬНОЕ ПЕРЕОПРЕДЕЛЕНИЕ (sx prop):
+             *   - mt: 2 = margin-top: 16px (отступ сверху для этого конкретного раздела)
+             * 
+             * ПОЧЕМУ ЗДЕСЬ sx, А НЕ В CSS:
+             *   - Не всем страницам нужен отступ сверху
+             *   - Это локальное исключение для раздела "Управление правами доступа"
+             *   - Если нужно изменить отступ - редактируйте ЗДЕСЬ (mt: 2)
+             *   - Если нужно изменить ширину - редактируйте в buttons.css
+             */}
+            <Box className="page-container" sx={{ mt: 2 }}>
               <Box className="page-header">
                 <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                   Управление правами доступа
@@ -2954,6 +2970,22 @@ export default function App() {
             </Box>
 
             {/* Управление базами данных */}
+            {/* 
+             * КОНТЕЙНЕР СТРАНИЦЫ С ЛОКАЛЬНЫМ ПЕРЕОПРЕДЕЛЕНИЕМ СТИЛЕЙ
+             * 
+             * БАЗОВЫЕ СТИЛИ: Определены в web/src/styles/buttons.css (.page-container)
+             *   - min-width: 1200px
+             *   - max-width: 1200px
+             * 
+             * ЛОКАЛЬНОЕ ПЕРЕОПРЕДЕЛЕНИЕ (sx prop):
+             *   - mt: 3 = margin-top: 24px (отступ сверху для этого конкретного раздела)
+             * 
+             * ПОЧЕМУ ЗДЕСЬ sx, А НЕ В CSS:
+             *   - Не всем страницам нужен отступ сверху
+             *   - Это локальное исключение для раздела "Управление базами данных"
+             *   - Если нужно изменить отступ - редактируйте ЗДЕСЬ (mt: 3)
+             *   - Если нужно изменить ширину - редактируйте в buttons.css
+             */}
             <Box className="page-container" sx={{ mt: 3 }}>
               <Box className="page-header">
                 <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>

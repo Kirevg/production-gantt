@@ -1264,1097 +1264,1136 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
 
     if (loading) {
         return (
-            <Box className="page-container">
-                <LinearProgress />
-            </Box>
+            <>
+                {/* 
+                 * КОНТЕЙНЕР СТРАНИЦЫ - СОСТОЯНИЕ ЗАГРУЗКИ
+                 * 
+                 * БАЗОВЫЕ СТИЛИ: Определены в web/src/styles/buttons.css (.page-container)
+                 *   - min-width: 1200px
+                 *   - max-width: 1200px
+                 * 
+                 * ЛОКАЛЬНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ: НЕТ (используются только базовые стили)
+                 * 
+                 * ЭТО ВРЕМЕННОЕ СОСТОЯНИЕ:
+                 *   - Показывается только во время загрузки данных
+                 *   - Использует стандартные стили без переопределений
+                 *   - После загрузки заменяется на основной контейнер со сложными стилями
+                 */}
+                    <Box className="page-container">
+                    <LinearProgress />
+                </Box>
+            </>
         );
     }
 
     return (
-        <Box className="page-container" sx={{
-            overflow: 'hidden',
-            height: 'auto !important',
-            maxHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column'
-        }}>
-            <Box className="page-header" sx={{ flexShrink: 0 }}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
-                    Спецификация: {productName}
-                    {isSpecificationLocked && (
-                        <Box
-                            component="span"
-                            sx={{
-                                ml: 2,
-                                px: 1,
-                                py: 0.5,
-                                backgroundColor: '#ffebee',
-                                color: '#d32f2f',
-                                borderRadius: 1,
-                                fontSize: '12px',
-                                fontWeight: 'normal'
-                            }}
-                        >
-                            🔒 Заблокирована
-                        </Box>
-                    )}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                    {canCreate() && !isSpecificationLocked && (
-                        <VolumeButton
-                            variant="contained"
-                            onClick={handleAddEmptyRow}
-                            color="blue"
-                        >
-                            Добавить
-                        </VolumeButton>
-                    )}
-                    {canCreate() && !isSpecificationLocked && (
-                        <VolumeButton
-                            variant="contained"
-                            onClick={handleImport}
-                            color="green"
-                        >
-                            Импорт
-                        </VolumeButton>
-                    )}
-                    {canDelete() && specifications.length > 0 && !isSpecificationLocked && (
-                        <VolumeButton
-                            variant="contained"
-                            onClick={handleClearAll}
-                            color="red"
-                        >
-                            Очистить
-                        </VolumeButton>
-                    )}
-                    {canCreate() && !isSpecificationLocked && (
-                        <VolumeButton
-                            variant="contained"
-                            onClick={handleOpenCreateForm}
-                            color="purple"
-                        >
-                            Подбор
-                        </VolumeButton>
-                    )}
-                    <VolumeButton
-                        variant="contained"
-                        onClick={onBack}
-                        color="orange"
-                    >
-                        Назад
-                    </VolumeButton>
-                </Box>
-            </Box>
-
-            {error && (
-                <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>
-                    {error}
-                </Alert>
-            )}
-
-
-            <TableContainer
-                component={Paper}
-                sx={{
-                    width: '100%',
-                    flex: 1,
-                    height: '600px !important',
-                    maxHeight: '600px !important',
-                    overflowY: editingCell ? 'hidden' : 'auto', // Блокируем прокрутку когда открыто окно выбора номенклатуры
-                    overflowX: 'hidden', // Без горизонтальной прокрутки
-                    border: '1px solid #ddd',
-                    borderRadius: 1,
-                    // Ограничиваем ширину таблицы
-                    '& .MuiTable-root': {
-                        width: '100%',
-                        maxWidth: '100%',
-                        tableLayout: 'fixed' // Фиксированная ширина колонок
-                    },
-                    '&::-webkit-scrollbar': {
-                        width: '8px',
-                        height: '0px' // Убираем горизонтальную прокрутку
-                    },
-                    '&::-webkit-scrollbar-track': {
-                        backgroundColor: '#f1f1f1',
-                        borderRadius: '4px'
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: '#c1c1c1',
-                        borderRadius: '4px',
-                        '&:hover': {
-                            backgroundColor: '#a8a8a8'
-                        }
-                    }
-                }}
-                onClick={handleCancelCellEdit}
-            >
-                <Table
-                    stickyHeader
-                    sx={{
-                        '& .MuiTableCell-root': { borderRight: '1px solid #bdbdbd' },
-                        '& .MuiTableHead-root .MuiTableCell-root': {
-                            fontSize: '12px !important',
-                            backgroundColor: '#f5f5f5 !important',
-                            position: 'sticky',
-                            top: 0,
-                            zIndex: 1
-                        },
-                        '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' },
-                        '& .MuiTableRow-root': { height: '30px !important' },
-                        '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important' },
-                        '& .MuiButtonBase-root-MuiIconButton-root': { padding: '0 !important' },
-                        '& .MuiIconButton-root': { padding: '0 !important' },
-                        tableLayout: 'fixed', // Фиксированная ширина колонок
-                        width: '100%',
-                        maxWidth: '100%', // Таблица не выезжает за контейнер
-                        minWidth: '100%' // Минимальная ширина = ширина контейнера
-                    }}>
-                    <TableHead>
-                        <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                            <TableCell
+        <>
+            {/* 
+             * КОНТЕЙНЕР СТРАНИЦЫ СО СЛОЖНЫМИ ЛОКАЛЬНЫМИ ПЕРЕОПРЕДЕЛЕНИЯМИ СТИЛЕЙ
+             * 
+             * БАЗОВЫЕ СТИЛИ: Определены в web/src/styles/buttons.css (.page-container)
+             *   - min-width: 1200px
+             *   - max-width: 1200px
+             * 
+             * ЛОКАЛЬНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ (sx prop) - ОСОБЫЙ СЛУЧАЙ:
+             *   Этот компонент требует специальной компоновки для работы со спецификациями:
+             *   
+             *   - overflow: 'hidden' - скрывает переполнение контента
+             *   - height: 'auto !important' - автоматическая высота с приоритетом
+             *   - maxHeight: '100vh' - ограничение максимальной высоты экраном
+             *   - display: 'flex' - flex-контейнер для вертикальной компоновки
+             *   - flexDirection: 'column' - вертикальное направление flex-элементов
+             * 
+             * ПОЧЕМУ ЗДЕСЬ sx, А НЕ В CSS:
+             *   - Эти стили нужны ТОЛЬКО для страницы спецификаций
+             *   - Другие страницы используют стандартную компоновку
+             *   - Если нужно изменить эти стили - редактируйте ЗДЕСЬ
+             *   - Если нужно изменить ширину - редактируйте в buttons.css
+             */}
+            <Box className="page-container" sx={{
+                overflow: 'hidden',
+                height: 'auto !important',
+                maxHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+                <Box className="page-header" sx={{ flexShrink: 0 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
+                        Спецификация: {productName}
+                        {isSpecificationLocked && (
+                            <Box
+                                component="span"
                                 sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
+                                    ml: 2,
+                                    px: 1,
+                                    py: 0.5,
+                                    backgroundColor: '#ffebee',
+                                    color: '#d32f2f',
+                                    borderRadius: 1,
                                     fontSize: '12px',
-                                    width: `${columnWidths.number}px`,
-                                    position: 'relative'
+                                    fontWeight: 'normal'
                                 }}
-                            >№</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`,
-                                    position: 'relative'
-                                }}
-                            >Наименование</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.article}px`,
-                                    position: 'relative'
-                                }}
-                            >Артикул</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.quantity}px`,
-                                    position: 'relative'
-                                }}
-                            >Кол-во</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.unit}px`,
-                                    position: 'relative'
-                                }}
-                            >Ед. изм.</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.price}px`,
-                                    position: 'relative'
-                                }}
-                            >Цена за ед.</TableCell>
-                            <TableCell
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '12px',
-                                    width: `${columnWidths.total}px`,
-                                    minWidth: '80px',
-                                    position: 'relative'
-                                }}
-                            >Сумма</TableCell>
-                            <TableCell sx={{
-                                fontWeight: 'bold',
-                                textAlign: 'center',
-                                verticalAlign: 'middle', // Вертикальное центрирование
-                                width: '40px',
-                                fontSize: '12px',
-                                p: 0.5,
-                                whiteSpace: 'nowrap',
-                                cursor: 'default' // Заблокированное изменение размера
-                            }}>
-                                <Delete
-                                    fontSize="small"
-                                    sx={{
-                                        color: '#d32f2f' // Красный цвет как в ячейках
-                                    }}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {specifications.map((specification, index) => (
-                            <TableRow
-                                key={specification.id}
-                                sx={{ height: '30px !important' }}
                             >
-                                <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
+                                🔒 Заблокирована
+                            </Box>
+                        )}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        {canCreate() && !isSpecificationLocked && (
+                            <VolumeButton
+                                variant="contained"
+                                onClick={handleAddEmptyRow}
+                                color="blue"
+                            >
+                                Добавить
+                            </VolumeButton>
+                        )}
+                        {canCreate() && !isSpecificationLocked && (
+                            <VolumeButton
+                                variant="contained"
+                                onClick={handleImport}
+                                color="green"
+                            >
+                                Импорт
+                            </VolumeButton>
+                        )}
+                        {canDelete() && specifications.length > 0 && !isSpecificationLocked && (
+                            <VolumeButton
+                                variant="contained"
+                                onClick={handleClearAll}
+                                color="red"
+                            >
+                                Очистить
+                            </VolumeButton>
+                        )}
+                        {canCreate() && !isSpecificationLocked && (
+                            <VolumeButton
+                                variant="contained"
+                                onClick={handleOpenCreateForm}
+                                color="purple"
+                            >
+                                Подбор
+                            </VolumeButton>
+                        )}
+                        <VolumeButton
+                            variant="contained"
+                            onClick={onBack}
+                            color="orange"
+                        >
+                            Назад
+                        </VolumeButton>
+                    </Box>
+                </Box>
+
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>
+                        {error}
+                    </Alert>
+                )}
+
+
+                <TableContainer
+                    component={Paper}
+                    sx={{
+                        width: '100%',
+                        flex: 1,
+                        height: '600px !important',
+                        maxHeight: '600px !important',
+                        overflowY: editingCell ? 'hidden' : 'auto', // Блокируем прокрутку когда открыто окно выбора номенклатуры
+                        overflowX: 'hidden', // Без горизонтальной прокрутки
+                        border: '1px solid #ddd',
+                        borderRadius: 1,
+                        // Ограничиваем ширину таблицы
+                        '& .MuiTable-root': {
+                            width: '100%',
+                            maxWidth: '100%',
+                            tableLayout: 'fixed' // Фиксированная ширина колонок
+                        },
+                        '&::-webkit-scrollbar': {
+                            width: '8px',
+                            height: '0px' // Убираем горизонтальную прокрутку
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            backgroundColor: '#f1f1f1',
+                            borderRadius: '4px'
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: '#c1c1c1',
+                            borderRadius: '4px',
+                            '&:hover': {
+                                backgroundColor: '#a8a8a8'
+                            }
+                        }
+                    }}
+                    onClick={handleCancelCellEdit}
+                >
+                    <Table
+                        stickyHeader
+                        sx={{
+                            '& .MuiTableCell-root': { borderRight: '1px solid #bdbdbd' },
+                            '& .MuiTableHead-root .MuiTableCell-root': {
+                                fontSize: '12px !important',
+                                backgroundColor: '#f5f5f5 !important',
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 1
+                            },
+                            '& .MuiTableBody-root .MuiTableCell-root': { fontSize: '12px !important' },
+                            '& .MuiTableRow-root': { height: '30px !important' },
+                            '& .MuiTableBody-root .MuiTableRow-root': { height: '30px !important' },
+                            '& .MuiButtonBase-root-MuiIconButton-root': { padding: '0 !important' },
+                            '& .MuiIconButton-root': { padding: '0 !important' },
+                            tableLayout: 'fixed', // Фиксированная ширина колонок
+                            width: '100%',
+                            maxWidth: '100%', // Таблица не выезжает за контейнер
+                            minWidth: '100%' // Минимальная ширина = ширина контейнера
+                        }}>
+                        <TableHead>
+                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        width: `${columnWidths.number}px`,
+                                        position: 'relative'
+                                    }}
+                                >№</TableCell>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        width: columnWidths.name === 'auto' ? 'auto' : `${columnWidths.name}px`,
+                                        position: 'relative'
+                                    }}
+                                >Наименование</TableCell>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        width: `${columnWidths.article}px`,
+                                        position: 'relative'
+                                    }}
+                                >Артикул</TableCell>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        width: `${columnWidths.quantity}px`,
+                                        position: 'relative'
+                                    }}
+                                >Кол-во</TableCell>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        width: `${columnWidths.unit}px`,
+                                        position: 'relative'
+                                    }}
+                                >Ед. изм.</TableCell>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        width: `${columnWidths.price}px`,
+                                        position: 'relative'
+                                    }}
+                                >Цена за ед.</TableCell>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        fontSize: '12px',
+                                        width: `${columnWidths.total}px`,
+                                        minWidth: '80px',
+                                        position: 'relative'
+                                    }}
+                                >Сумма</TableCell>
                                 <TableCell sx={{
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    verticalAlign: 'middle', // Вертикальное центрирование
+                                    width: '40px',
+                                    fontSize: '12px',
                                     p: 0.5,
-                                    position: 'relative',
-                                    wordWrap: 'break-word',
-                                    whiteSpace: 'normal'
+                                    whiteSpace: 'nowrap',
+                                    cursor: 'default' // Заблокированное изменение размера
                                 }}>
-                                    {editingCell === specification.id ? (
-                                        <Box
-                                            className="nomenclature-selection-window"
-                                            sx={{
-                                                position: 'relative'
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <TextField
-                                                fullWidth
-                                                size="small"
-                                                value={cellSearchQuery}
-                                                onChange={(e) => handleCellSearchChange(e.target.value)}
-                                                onClick={(e) => e.stopPropagation()}
-                                                placeholder="Поиск номенклатуры..."
+                                    <Delete
+                                        fontSize="small"
+                                        sx={{
+                                            color: '#d32f2f' // Красный цвет как в ячейках
+                                        }}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {specifications.map((specification, index) => (
+                                <TableRow
+                                    key={specification.id}
+                                    sx={{ height: '30px !important' }}
+                                >
+                                    <TableCell sx={{ p: 0.5, textAlign: 'center', width: '40px' }}>{index + 1}</TableCell>
+                                    <TableCell sx={{
+                                        p: 0.5,
+                                        position: 'relative',
+                                        wordWrap: 'break-word',
+                                        whiteSpace: 'normal'
+                                    }}>
+                                        {editingCell === specification.id ? (
+                                            <Box
+                                                className="nomenclature-selection-window"
                                                 sx={{
-                                                    '& .MuiInputBase-root': {
-                                                        height: '24px !important', // Уменьшаем высоту TextField
-                                                        fontSize: '12px !important',
-                                                        minHeight: '24px !important' // Минимальная высота
-                                                    },
-                                                    '& .MuiInputBase-input': {
-                                                        fontSize: '12px !important',
-                                                        padding: '2px 8px !important' // Уменьшаем padding
-                                                    }
+                                                    position: 'relative'
                                                 }}
-                                            />
-                                            {editingCell === specification.id && (
-                                                <Box
-                                                    className="nomenclature-selection-window"
-                                                    sx={{
-                                                        position: 'fixed', // Fixed позиционирование для полной независимости от ячейки
-                                                        top: `${windowPosition.top}px`, // Вычисленная позиция сверху
-                                                        left: `${windowPosition.left}px`, // Вычисленная позиция слева
-                                                        // right: 0, // Убираем привязку к правому краю
-                                                        // width: '400px', // Убираем фиксированную ширину
-                                                        minWidth: '300px', // Минимальная ширина для читаемости
-                                                        maxWidth: '80vw', // Максимальная ширина = 80% от ширины экрана
-                                                        zIndex: 1000,
-                                                        backgroundColor: 'white',
-                                                        border: '1px solid #ccc',
-                                                        borderRadius: 1,
-                                                        maxHeight: '200px',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                                                    }}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <TextField
+                                                    fullWidth
+                                                    size="small"
+                                                    value={cellSearchQuery}
+                                                    onChange={(e) => handleCellSearchChange(e.target.value)}
                                                     onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    {/* Контейнер для прокрутки списка */}
+                                                    placeholder="Поиск номенклатуры..."
+                                                    sx={{
+                                                        '& .MuiInputBase-root': {
+                                                            height: '24px !important', // Уменьшаем высоту TextField
+                                                            fontSize: '12px !important',
+                                                            minHeight: '24px !important' // Минимальная высота
+                                                        },
+                                                        '& .MuiInputBase-input': {
+                                                            fontSize: '12px !important',
+                                                            padding: '2px 8px !important' // Уменьшаем padding
+                                                        }
+                                                    }}
+                                                />
+                                                {editingCell === specification.id && (
                                                     <Box
+                                                        className="nomenclature-selection-window"
                                                         sx={{
-                                                            flex: 1,
-                                                            overflow: 'auto',
-                                                            maxHeight: '150px',
-                                                            // Стили ползунка как у основной таблицы
-                                                            '&::-webkit-scrollbar': {
-                                                                width: '8px',
-                                                                height: '0px' // Убираем горизонтальную прокрутку
-                                                            },
-                                                            '&::-webkit-scrollbar-track': {
-                                                                backgroundColor: '#f1f1f1',
-                                                                borderRadius: '4px'
-                                                            },
-                                                            '&::-webkit-scrollbar-thumb': {
-                                                                backgroundColor: '#c1c1c1',
-                                                                borderRadius: '4px',
-                                                                '&:hover': {
-                                                                    backgroundColor: '#a8a8a8'
-                                                                }
-                                                            }
+                                                            position: 'fixed', // Fixed позиционирование для полной независимости от ячейки
+                                                            top: `${windowPosition.top}px`, // Вычисленная позиция сверху
+                                                            left: `${windowPosition.left}px`, // Вычисленная позиция слева
+                                                            // right: 0, // Убираем привязку к правому краю
+                                                            // width: '400px', // Убираем фиксированную ширину
+                                                            minWidth: '300px', // Минимальная ширина для читаемости
+                                                            maxWidth: '80vw', // Максимальная ширина = 80% от ширины экрана
+                                                            zIndex: 1000,
+                                                            backgroundColor: 'white',
+                                                            border: '1px solid #ccc',
+                                                            borderRadius: 1,
+                                                            maxHeight: '200px',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                                                         }}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        {/* Отфильтрованные элементы */}
-                                                        {cellFilteredItems.length > 0 ? (
-                                                            cellFilteredItems.slice(0, 10).map((item) => (
-                                                                <Box
-                                                                    key={item.id}
-                                                                    onClick={() => handleSelectCellNomenclatureItem(item)}
-                                                                    sx={{
-                                                                        p: 1,
-                                                                        cursor: 'pointer',
-                                                                        borderBottom: '1px solid #f0f0f0',
-                                                                        '&:hover': {
-                                                                            backgroundColor: '#f5f5f5'
-                                                                        },
-                                                                        '&:last-child': {
-                                                                            borderBottom: 'none'
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <Typography
-                                                                        variant="body2"
+                                                        {/* Контейнер для прокрутки списка */}
+                                                        <Box
+                                                            sx={{
+                                                                flex: 1,
+                                                                overflow: 'auto',
+                                                                maxHeight: '150px',
+                                                                // Стили ползунка как у основной таблицы
+                                                                '&::-webkit-scrollbar': {
+                                                                    width: '8px',
+                                                                    height: '0px' // Убираем горизонтальную прокрутку
+                                                                },
+                                                                '&::-webkit-scrollbar-track': {
+                                                                    backgroundColor: '#f1f1f1',
+                                                                    borderRadius: '4px'
+                                                                },
+                                                                '&::-webkit-scrollbar-thumb': {
+                                                                    backgroundColor: '#c1c1c1',
+                                                                    borderRadius: '4px',
+                                                                    '&:hover': {
+                                                                        backgroundColor: '#a8a8a8'
+                                                                    }
+                                                                }
+                                                            }}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {/* Отфильтрованные элементы */}
+                                                            {cellFilteredItems.length > 0 ? (
+                                                                cellFilteredItems.slice(0, 10).map((item) => (
+                                                                    <Box
+                                                                        key={item.id}
+                                                                        onClick={() => handleSelectCellNomenclatureItem(item)}
                                                                         sx={{
-                                                                            fontSize: '12px !important',
-                                                                            fontWeight: 'normal !important',
-                                                                            '&.MuiTypography-root': {
-                                                                                fontSize: '12px !important',
-                                                                                fontWeight: 'normal !important'
+                                                                            p: 1,
+                                                                            cursor: 'pointer',
+                                                                            borderBottom: '1px solid #f0f0f0',
+                                                                            '&:hover': {
+                                                                                backgroundColor: '#f5f5f5'
                                                                             },
-                                                                            '&.MuiTypography-body2': {
-                                                                                fontSize: '12px !important',
-                                                                                fontWeight: 'normal !important'
+                                                                            '&:last-child': {
+                                                                                borderBottom: 'none'
                                                                             }
                                                                         }}
                                                                     >
-                                                                        {item.name}
-                                                                        {item.code1c && ` (${item.code1c})`}
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            sx={{
+                                                                                fontSize: '12px !important',
+                                                                                fontWeight: 'normal !important',
+                                                                                '&.MuiTypography-root': {
+                                                                                    fontSize: '12px !important',
+                                                                                    fontWeight: 'normal !important'
+                                                                                },
+                                                                                '&.MuiTypography-body2': {
+                                                                                    fontSize: '12px !important',
+                                                                                    fontWeight: 'normal !important'
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            {item.name}
+                                                                            {item.code1c && ` (${item.code1c})`}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                ))
+                                                            ) : (
+                                                                <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
+                                                                    <Typography variant="body2">
+                                                                        Ничего не найдено
                                                                     </Typography>
                                                                 </Box>
-                                                            ))
-                                                        ) : (
-                                                            <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-                                                                <Typography variant="body2">
-                                                                    Ничего не найдено
-                                                                </Typography>
-                                                            </Box>
-                                                        )}
-                                                    </Box>
-
-                                                    {/* Кнопки внизу окна */}
-                                                    <Box sx={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center',
-                                                        borderTop: '1px solid #ccc',
-                                                        position: 'sticky',
-                                                        bottom: 0,
-                                                        p: '4px 8px'
-                                                    }}>
-                                                        {/* Кнопка "Показать все" в стиле 1С - как ссылка */}
-                                                        <Box
-                                                            onClick={() => {
-                                                                setCellFilteredItems(allNomenclatureItems);
-                                                                setCellSearchQuery('');
-                                                            }}
-                                                            sx={{
-                                                                p: '4px 8px',
-                                                                cursor: 'pointer',
-                                                                backgroundColor: 'transparent', // Прозрачный фон
-                                                                border: 'none', // Убираем все границы
-                                                                borderRadius: '0px', // Убираем скругления
-                                                                fontFamily: 'Arial, sans-serif',
-                                                                fontSize: '11px',
-                                                                '&:hover': {
-                                                                    backgroundColor: 'transparent' // Прозрачный фон при наведении
-                                                                },
-                                                                '&:active': {
-                                                                    backgroundColor: 'transparent', // Прозрачный фон при нажатии
-                                                                    border: 'none' // Убираем границы при нажатии
-                                                                }
-                                                            }}
-                                                        >
-                                                            <Typography variant="body2" sx={{
-                                                                fontWeight: 'normal',
-                                                                color: '#0000ff',
-                                                                fontFamily: 'Arial, sans-serif',
-                                                                fontSize: '11px',
-                                                                textAlign: 'center',
-                                                                textDecoration: 'underline',
-                                                                '&:hover': {
-                                                                    textDecoration: 'underline'
-                                                                }
-                                                            }}>
-                                                                Показать все
-                                                            </Typography>
+                                                            )}
                                                         </Box>
 
-                                                        {/* Кнопка с плюсом в стиле 1С - небольшая прямоугольная */}
-                                                        {!specification.isLocked && (
+                                                        {/* Кнопки внизу окна */}
+                                                        <Box sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            borderTop: '1px solid #ccc',
+                                                            position: 'sticky',
+                                                            bottom: 0,
+                                                            p: '4px 8px'
+                                                        }}>
+                                                            {/* Кнопка "Показать все" в стиле 1С - как ссылка */}
                                                             <Box
-                                                                onClick={() => handleCopySpecification()}
+                                                                onClick={() => {
+                                                                    setCellFilteredItems(allNomenclatureItems);
+                                                                    setCellSearchQuery('');
+                                                                }}
                                                                 sx={{
-                                                                    width: '30px',
-                                                                    height: '20px',
-                                                                    p: '2px 4px',
+                                                                    p: '4px 8px',
                                                                     cursor: 'pointer',
-                                                                    backgroundColor: '#f0f0f0',
-                                                                    border: '1px solid #808080',
+                                                                    backgroundColor: 'transparent', // Прозрачный фон
+                                                                    border: 'none', // Убираем все границы
+                                                                    borderRadius: '0px', // Убираем скругления
                                                                     fontFamily: 'Arial, sans-serif',
                                                                     fontSize: '11px',
                                                                     '&:hover': {
-                                                                        backgroundColor: '#e8e8e8'
+                                                                        backgroundColor: 'transparent' // Прозрачный фон при наведении
                                                                     },
                                                                     '&:active': {
-                                                                        backgroundColor: '#d8d8d8',
-                                                                        border: '1px solid #404040'
+                                                                        backgroundColor: 'transparent', // Прозрачный фон при нажатии
+                                                                        border: 'none' // Убираем границы при нажатии
                                                                     }
                                                                 }}
                                                             >
                                                                 <Typography variant="body2" sx={{
-                                                                    fontWeight: 'bold',
-                                                                    color: '#000',
+                                                                    fontWeight: 'normal',
+                                                                    color: '#0000ff',
                                                                     fontFamily: 'Arial, sans-serif',
-                                                                    fontSize: '12px',
+                                                                    fontSize: '11px',
                                                                     textAlign: 'center',
-                                                                    lineHeight: 1
+                                                                    textDecoration: 'underline',
+                                                                    '&:hover': {
+                                                                        textDecoration: 'underline'
+                                                                    }
                                                                 }}>
-                                                                    +
+                                                                    Показать все
                                                                 </Typography>
                                                             </Box>
-                                                        )}
+
+                                                            {/* Кнопка с плюсом в стиле 1С - небольшая прямоугольная */}
+                                                            {!specification.isLocked && (
+                                                                <Box
+                                                                    onClick={() => handleCopySpecification()}
+                                                                    sx={{
+                                                                        width: '30px',
+                                                                        height: '20px',
+                                                                        p: '2px 4px',
+                                                                        cursor: 'pointer',
+                                                                        backgroundColor: '#f0f0f0',
+                                                                        border: '1px solid #808080',
+                                                                        fontFamily: 'Arial, sans-serif',
+                                                                        fontSize: '11px',
+                                                                        '&:hover': {
+                                                                            backgroundColor: '#e8e8e8'
+                                                                        },
+                                                                        '&:active': {
+                                                                            backgroundColor: '#d8d8d8',
+                                                                            border: '1px solid #404040'
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <Typography variant="body2" sx={{
+                                                                        fontWeight: 'bold',
+                                                                        color: '#000',
+                                                                        fontFamily: 'Arial, sans-serif',
+                                                                        fontSize: '12px',
+                                                                        textAlign: 'center',
+                                                                        lineHeight: 1
+                                                                    }}>
+                                                                        +
+                                                                    </Typography>
+                                                                </Box>
+                                                            )}
+                                                        </Box>
                                                     </Box>
-                                                </Box>
-                                            )}
-                                        </Box>
-                                    ) : (
-                                        <Box
-                                            onDoubleClick={(e) => handleReplaceNomenclatureItem(specification, e)}
-                                            sx={{
-                                                cursor: canEdit() && !isSpecificationLocked ? 'pointer' : 'default',
-                                                '&:hover': canEdit() && !isSpecificationLocked ? { backgroundColor: '#f5f5f5' } : {}
-                                            }}
-                                        >
-                                            {specification.nomenclatureItem?.name || specification.name || '-'}
-                                        </Box>
-                                    )}
-                                </TableCell>
-                                <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}
-                                >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
-                                <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={() => handleQuantityClick(specification.id, specification.quantity)}
-                                >
-                                    {editingQuantity === specification.id ? (
-                                        <input
-                                            type="number"
-                                            value={quantityValue}
-                                            onChange={handleQuantityChange}
-                                            onBlur={() => handleQuantitySave(specification.id)}
-                                            onKeyDown={(e) => handleQuantityKeyDown(e, specification.id)}
-                                            onFocus={(e) => e.target.select()}
-                                            style={{
-                                                width: '100%',
-                                                border: 'none',
-                                                outline: 'none',
-                                                textAlign: 'center',
-                                                fontSize: '12px',
-                                                backgroundColor: 'transparent',
-                                                // Убираем стрелки вверх/вниз
-                                                MozAppearance: 'textfield',
-                                                WebkitAppearance: 'none',
-                                                appearance: 'none'
-                                            }}
-                                            autoFocus
-                                        />
-                                    ) : (
-                                        specification.quantity
-                                    )}
-                                </TableCell>
-                                <TableCell
-                                    sx={{ p: 0.5, textAlign: 'center' }}
-                                >
-                                    {(specification.nomenclatureItem as any)?.unit?.name ||
-                                        (specification.nomenclatureItem as any)?.unit?.code ||
-                                        specification.unit || '-'}
-                                </TableCell>
-                                <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
-                                    onDoubleClick={() => handlePriceClick(specification.id, specification.price || 0)}
-                                >
-                                    {editingPrice === specification.id ? (
-                                        <input
-                                            type="number"
-                                            value={priceValue}
-                                            onChange={handlePriceChange}
-                                            onBlur={() => handlePriceSave(specification.id)}
-                                            onKeyDown={(e) => handlePriceKeyDown(e, specification.id)}
-                                            onFocus={(e) => e.target.select()}
-                                            style={{
-                                                width: '100%',
-                                                border: 'none',
-                                                outline: 'none',
-                                                background: 'transparent',
-                                                textAlign: 'right',
-                                                fontSize: '12px',
-                                                fontFamily: 'inherit',
-                                                // Убираем стрелки вверх/вниз
-                                                MozAppearance: 'textfield',
-                                                WebkitAppearance: 'none',
-                                                appearance: 'none'
-                                            }}
-                                            autoFocus
-                                        />
-                                    ) : (
-                                        formatCurrency(specification.price)
-                                    )}
-                                </TableCell>
-                                <TableCell
-                                    sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}
-                                >
-                                    {formatCurrency(specification.totalPrice)}
-                                </TableCell>
-                                <TableCell sx={{
-                                    textAlign: 'center',
-                                    p: 0.5,
-                                    width: '40px',
-                                    cursor: 'default' // Заблокированное изменение размера
-                                }}>
-                                    {canDelete() && !specification.isLocked && !isSpecificationLocked && (
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleDeleteSpecification(specification)}
-                                            color="error"
-                                            sx={{ minWidth: 'auto', padding: '4px' }}
-                                        >
-                                            <Delete fontSize="small" />
-                                        </IconButton>
-                                    )}
-                                    {specification.isLocked && (
-                                        <Box
-                                            sx={{
-                                                width: '24px',
-                                                height: '24px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: '#666',
-                                                fontSize: '12px'
-                                            }}
-                                            title="Спецификация заблокирована (есть дочерние копии)"
-                                        >
-                                            🔒
-                                        </Box>
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                                                )}
+                                            </Box>
+                                        ) : (
+                                            <Box
+                                                onDoubleClick={(e) => handleReplaceNomenclatureItem(specification, e)}
+                                                sx={{
+                                                    cursor: canEdit() && !isSpecificationLocked ? 'pointer' : 'default',
+                                                    '&:hover': canEdit() && !isSpecificationLocked ? { backgroundColor: '#f5f5f5' } : {}
+                                                }}
+                                            >
+                                                {specification.nomenclatureItem?.name || specification.name || '-'}
+                                            </Box>
+                                        )}
+                                    </TableCell>
+                                    <TableCell
+                                        sx={{ p: 0.5, textAlign: 'center', wordWrap: 'break-word', whiteSpace: 'normal' }}
+                                    >{specification.nomenclatureItem?.article || specification.article || '-'}</TableCell>
+                                    <TableCell
+                                        sx={{ p: 0.5, textAlign: 'center', cursor: canEdit() ? 'pointer' : 'default' }}
+                                        onDoubleClick={() => handleQuantityClick(specification.id, specification.quantity)}
+                                    >
+                                        {editingQuantity === specification.id ? (
+                                            <input
+                                                type="number"
+                                                value={quantityValue}
+                                                onChange={handleQuantityChange}
+                                                onBlur={() => handleQuantitySave(specification.id)}
+                                                onKeyDown={(e) => handleQuantityKeyDown(e, specification.id)}
+                                                onFocus={(e) => e.target.select()}
+                                                style={{
+                                                    width: '100%',
+                                                    border: 'none',
+                                                    outline: 'none',
+                                                    textAlign: 'center',
+                                                    fontSize: '12px',
+                                                    backgroundColor: 'transparent',
+                                                    // Убираем стрелки вверх/вниз
+                                                    MozAppearance: 'textfield',
+                                                    WebkitAppearance: 'none',
+                                                    appearance: 'none'
+                                                }}
+                                                autoFocus
+                                            />
+                                        ) : (
+                                            specification.quantity
+                                        )}
+                                    </TableCell>
+                                    <TableCell
+                                        sx={{ p: 0.5, textAlign: 'center' }}
+                                    >
+                                        {(specification.nomenclatureItem as any)?.unit?.name ||
+                                            (specification.nomenclatureItem as any)?.unit?.code ||
+                                            specification.unit || '-'}
+                                    </TableCell>
+                                    <TableCell
+                                        sx={{ p: 0.5, textAlign: 'right', cursor: canEdit() ? 'pointer' : 'default' }}
+                                        onDoubleClick={() => handlePriceClick(specification.id, specification.price || 0)}
+                                    >
+                                        {editingPrice === specification.id ? (
+                                            <input
+                                                type="number"
+                                                value={priceValue}
+                                                onChange={handlePriceChange}
+                                                onBlur={() => handlePriceSave(specification.id)}
+                                                onKeyDown={(e) => handlePriceKeyDown(e, specification.id)}
+                                                onFocus={(e) => e.target.select()}
+                                                style={{
+                                                    width: '100%',
+                                                    border: 'none',
+                                                    outline: 'none',
+                                                    background: 'transparent',
+                                                    textAlign: 'right',
+                                                    fontSize: '12px',
+                                                    fontFamily: 'inherit',
+                                                    // Убираем стрелки вверх/вниз
+                                                    MozAppearance: 'textfield',
+                                                    WebkitAppearance: 'none',
+                                                    appearance: 'none'
+                                                }}
+                                                autoFocus
+                                            />
+                                        ) : (
+                                            formatCurrency(specification.price)
+                                        )}
+                                    </TableCell>
+                                    <TableCell
+                                        sx={{ p: 0.5, textAlign: 'right', minWidth: '80px' }}
+                                    >
+                                        {formatCurrency(specification.totalPrice)}
+                                    </TableCell>
+                                    <TableCell sx={{
+                                        textAlign: 'center',
+                                        p: 0.5,
+                                        width: '40px',
+                                        cursor: 'default' // Заблокированное изменение размера
+                                    }}>
+                                        {canDelete() && !specification.isLocked && !isSpecificationLocked && (
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleDeleteSpecification(specification)}
+                                                color="error"
+                                                sx={{ minWidth: 'auto', padding: '4px' }}
+                                            >
+                                                <Delete fontSize="small" />
+                                            </IconButton>
+                                        )}
+                                        {specification.isLocked && (
+                                            <Box
+                                                sx={{
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#666',
+                                                    fontSize: '12px'
+                                                }}
+                                                title="Спецификация заблокирована (есть дочерние копии)"
+                                            >
+                                                🔒
+                                            </Box>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
 
-            {/* Общая сумма под таблицей */}
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                mt: 1,
-                pr: 2 // Отступ справа для выравнивания с колонкой "Сумма"
-            }}>
-                <Typography variant="h6" sx={{
-                    fontWeight: 'bold',
-                    color: '#1976d2',
-                    fontSize: '16px'
+                {/* Общая сумма под таблицей */}
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    mt: 1,
+                    pr: 2 // Отступ справа для выравнивания с колонкой "Сумма"
                 }}>
-                    Итого: {formatCurrency(specifications.reduce((sum, spec) => sum + (spec.totalPrice || 0), 0))}
-                </Typography>
-            </Box>
-
-            {/* Диалог выбора номенклатуры */}
-            <Dialog
-                open={showNomenclatureDialog}
-                onClose={() => { }} // Отключаем закрытие при клике вне диалога
-                maxWidth="lg"
-                fullWidth
-                hideBackdrop={false}
-                disablePortal={true}
-                disableScrollLock={true}
-                keepMounted={false}
-                disableEnforceFocus={true}
-                disableAutoFocus={true}
-                disableEscapeKeyDown={true} // Отключаем закрытие по Escape
-                BackdropProps={{
-                    onClick: (e) => e.stopPropagation() // Предотвращаем закрытие при клике на backdrop
-                }}
-            >
-                <DialogTitle
-                    sx={{
-                        backgroundColor: '#f5f5f5',
-                        borderBottom: '1px solid #ddd',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ marginRight: '8px' }}>📦</span>
-                        Подбор номенклатуры
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                        {selectedItems.length} на сумму {getTotalSum().toLocaleString('ru-RU')} ₽
+                    <Typography variant="h6" sx={{
+                        fontWeight: 'bold',
+                        color: '#1976d2',
+                        fontSize: '16px'
+                    }}>
+                        Итого: {formatCurrency(specifications.reduce((sum, spec) => sum + (spec.totalPrice || 0), 0))}
                     </Typography>
-                </DialogTitle>
+                </Box>
 
-                <DialogContent
-                    sx={{ p: 0, height: '600px', display: 'flex', flexDirection: 'column' }}
-                    onClick={(e) => e.stopPropagation()}
+                {/* Диалог выбора номенклатуры */}
+                <Dialog
+                    open={showNomenclatureDialog}
+                    onClose={() => { }} // Отключаем закрытие при клике вне диалога
+                    maxWidth="lg"
+                    fullWidth
+                    hideBackdrop={false}
+                    disablePortal={true}
+                    disableScrollLock={true}
+                    keepMounted={false}
+                    disableEnforceFocus={true}
+                    disableAutoFocus={true}
+                    disableEscapeKeyDown={true} // Отключаем закрытие по Escape
+                    BackdropProps={{
+                        onClick: (e) => e.stopPropagation() // Предотвращаем закрытие при клике на backdrop
+                    }}
                 >
-                    {/* Верхняя панель с выбранными позициями */}
-                    <Box
-                        sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#fafafa' }}
+                    <DialogTitle
+                        sx={{
+                            backgroundColor: '#f5f5f5',
+                            borderBottom: '1px solid #ddd',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-                            <TextField
-                                label="Номенклатура"
-                                multiline
-                                rows={2}
-                                value={selectedItems.map(item => `${item.item.name} (${item.quantity} ${item.unit})`).join('\n')}
-                                sx={{ flex: 1 }}
-                                InputProps={{ readOnly: true }}
-                            />
-                            <TextField
-                                label="Количество"
-                                type="number"
-                                size="small"
-                                sx={{ width: '120px' }}
-                                disabled={selectedItems.length === 0}
-                            />
-                            <TextField
-                                label="Ед."
-                                size="small"
-                                sx={{ width: '80px' }}
-                                disabled={selectedItems.length === 0}
-                            />
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <span style={{ marginRight: '8px' }}>📦</span>
+                            Подбор номенклатуры
                         </Box>
+                        <Typography variant="body2" color="text.secondary">
+                            {selectedItems.length} на сумму {getTotalSum().toLocaleString('ru-RU')} ₽
+                        </Typography>
+                    </DialogTitle>
 
-                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={transferToDocument}
-                                disabled={selectedItems.length === 0}
-                                sx={{ backgroundColor: '#ffc107', color: 'black' }}
-                            >
-                                Перенести в документ
-                            </Button>
-                            <Button variant="outlined" onClick={clearSelectedItems} disabled={selectedItems.length === 0}>
-                                Очистить
-                            </Button>
-                            <Button variant="outlined">
-                                Показать в списке
-                            </Button>
-                        </Box>
-                    </Box>
-
-                    {/* Панель фильтров и поиска */}
-                    <Box sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#f9f9f9' }}>
-                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1 }}>
-                            <Button
-                                variant="text"
-                                onClick={() => setShowFilters(!showFilters)}
-                                sx={{ textTransform: 'none', color: 'black' }}
-                            >
-                                {showFilters ? '▼' : '▶'} Фильтры
-                            </Button>
-                            <Button variant="outlined" size="small">Создать</Button>
-                            <Box sx={{ flex: 1 }} />
-                            <TextField
-                                placeholder="Поиск (Ctrl+F)"
-                                size="small"
-                                value={searchQuery}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                                sx={{ width: '300px' }}
-                                InputProps={{
-                                    startAdornment: <span style={{ marginRight: '8px' }}>🔍</span>,
-                                    endAdornment: searchQuery && (
-                                        <IconButton size="small" onClick={() => handleSearchChange('')}>
-                                            ✕
-                                        </IconButton>
-                                    )
-                                }}
-                            />
-                        </Box>
-
-                        {showFilters && (
-                            <Box sx={{ mt: 2, p: 2, backgroundColor: 'white', borderRadius: 1, border: '1px solid #ddd' }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Дополнительные фильтры будут здесь
-                                </Typography>
-                            </Box>
-                        )}
-                    </Box>
-
-                    {/* Основное содержимое - две колонки */}
-                    <Box
-                        sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}
+                    <DialogContent
+                        sx={{ p: 0, height: '600px', display: 'flex', flexDirection: 'column' }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Левая колонка - список номенклатуры */}
+                        {/* Верхняя панель с выбранными позициями */}
                         <Box
-                            sx={{ flex: 1, borderRight: '1px solid #ddd' }}
+                            sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#fafafa' }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {nomenclatureLoading ? (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                                    <LinearProgress />
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+                                <TextField
+                                    label="Номенклатура"
+                                    multiline
+                                    rows={2}
+                                    value={selectedItems.map(item => `${item.item.name} (${item.quantity} ${item.unit})`).join('\n')}
+                                    sx={{ flex: 1 }}
+                                    InputProps={{ readOnly: true }}
+                                />
+                                <TextField
+                                    label="Количество"
+                                    type="number"
+                                    size="small"
+                                    sx={{ width: '120px' }}
+                                    disabled={selectedItems.length === 0}
+                                />
+                                <TextField
+                                    label="Ед."
+                                    size="small"
+                                    sx={{ width: '80px' }}
+                                    disabled={selectedItems.length === 0}
+                                />
+                            </Box>
+
+                            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={transferToDocument}
+                                    disabled={selectedItems.length === 0}
+                                    sx={{ backgroundColor: '#ffc107', color: 'black' }}
+                                >
+                                    Перенести в документ
+                                </Button>
+                                <Button variant="outlined" onClick={clearSelectedItems} disabled={selectedItems.length === 0}>
+                                    Очистить
+                                </Button>
+                                <Button variant="outlined">
+                                    Показать в списке
+                                </Button>
+                            </Box>
+                        </Box>
+
+                        {/* Панель фильтров и поиска */}
+                        <Box sx={{ p: 2, borderBottom: '1px solid #ddd', backgroundColor: '#f9f9f9' }}>
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1 }}>
+                                <Button
+                                    variant="text"
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    sx={{ textTransform: 'none', color: 'black' }}
+                                >
+                                    {showFilters ? '▼' : '▶'} Фильтры
+                                </Button>
+                                <Button variant="outlined" size="small">Создать</Button>
+                                <Box sx={{ flex: 1 }} />
+                                <TextField
+                                    placeholder="Поиск (Ctrl+F)"
+                                    size="small"
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearchChange(e.target.value)}
+                                    sx={{ width: '300px' }}
+                                    InputProps={{
+                                        startAdornment: <span style={{ marginRight: '8px' }}>🔍</span>,
+                                        endAdornment: searchQuery && (
+                                            <IconButton size="small" onClick={() => handleSearchChange('')}>
+                                                ✕
+                                            </IconButton>
+                                        )
+                                    }}
+                                />
+                            </Box>
+
+                            {showFilters && (
+                                <Box sx={{ mt: 2, p: 2, backgroundColor: 'white', borderRadius: 1, border: '1px solid #ddd' }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Дополнительные фильтры будут здесь
+                                    </Typography>
                                 </Box>
-                            ) : (
-                                <TableContainer sx={{ height: '100%' }}>
-                                    <Table stickyHeader>
-                                        <TableHead>
-                                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                                <TableCell sx={{ fontWeight: 'bold', minWidth: '200px' }}>
-                                                    Наименование ↓
-                                                </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }}>Остаток</TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }}>Ед.изм</TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }}>Артикул</TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }}>Цена</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {nomenclatureItems.length === 0 ? (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
-                                                        <Typography color="text.secondary">
-                                                            {searchQuery ? 'Ничего не найдено' : 'Номенклатура не найдена'}
-                                                        </Typography>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ) : (
-                                                nomenclatureItems.map((item) => (
-                                                    <TableRow
-                                                        key={item.id}
-                                                        sx={{
-                                                            cursor: 'pointer',
-                                                            '&:hover': { backgroundColor: '#e3f2fd' },
-                                                            '&.selected': { backgroundColor: '#fff3cd' }
-                                                        }}
-                                                        onClick={() => handleItemSelection(item)}
-                                                        className={selectedItems.some(selected => selected.item.id === item.id) ? 'selected' : ''}
-                                                    >
-                                                        <TableCell>
-                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                                <span style={{ marginRight: '8px' }}>📦</span>
-                                                                {item.name}
-                                                            </Box>
-                                                        </TableCell>
-                                                        <TableCell>-</TableCell>
-                                                        <TableCell>шт</TableCell>
-                                                        <TableCell>{item.article || '-'}</TableCell>
-                                                        <TableCell>{item.price ? `${item.price.toLocaleString('ru-RU')} ₽` : '-'}</TableCell>
-                                                    </TableRow>
-                                                ))
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
                             )}
                         </Box>
 
-                        {/* Правая колонка - группы */}
+                        {/* Основное содержимое - две колонки */}
                         <Box
-                            sx={{ width: '250px', backgroundColor: '#f9f9f9' }}
+                            sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <Box sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
-                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Группы</Typography>
-                                    <IconButton size="small">
-                                        <span>⋮</span>
-                                    </IconButton>
-                                </Box>
+                            {/* Левая колонка - список номенклатуры */}
+                            <Box
+                                sx={{ flex: 1, borderRight: '1px solid #ddd' }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {nomenclatureLoading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                        <LinearProgress />
+                                    </Box>
+                                ) : (
+                                    <TableContainer sx={{ height: '100%' }}>
+                                        <Table stickyHeader>
+                                            <TableHead>
+                                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                                    <TableCell sx={{ fontWeight: 'bold', minWidth: '200px' }}>
+                                                        Наименование ↓
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold' }}>Остаток</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold' }}>Ед.изм</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold' }}>Артикул</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold' }}>Цена</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {nomenclatureItems.length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                                            <Typography color="text.secondary">
+                                                                {searchQuery ? 'Ничего не найдено' : 'Номенклатура не найдена'}
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    nomenclatureItems.map((item) => (
+                                                        <TableRow
+                                                            key={item.id}
+                                                            sx={{
+                                                                cursor: 'pointer',
+                                                                '&:hover': { backgroundColor: '#e3f2fd' },
+                                                                '&.selected': { backgroundColor: '#fff3cd' }
+                                                            }}
+                                                            onClick={() => handleItemSelection(item)}
+                                                            className={selectedItems.some(selected => selected.item.id === item.id) ? 'selected' : ''}
+                                                        >
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                    <span style={{ marginRight: '8px' }}>📦</span>
+                                                                    {item.name}
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>-</TableCell>
+                                                            <TableCell>шт</TableCell>
+                                                            <TableCell>{item.article || '-'}</TableCell>
+                                                            <TableCell>{item.price ? `${item.price.toLocaleString('ru-RU')} ₽` : '-'}</TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                )}
                             </Box>
 
-                            <Box sx={{ p: 1 }}>
-                                <Box
-                                    sx={{
-                                        p: 1,
-                                        cursor: 'pointer',
-                                        borderRadius: 1,
-                                        backgroundColor: selectedGroupId === null ? '#fff3cd' : 'transparent',
-                                        '&:hover': { backgroundColor: '#e3f2fd' }
-                                    }}
-                                    onClick={() => handleGroupSelection(null)}
-                                >
-                                    📁 Все группы
+                            {/* Правая колонка - группы */}
+                            <Box
+                                sx={{ width: '250px', backgroundColor: '#f9f9f9' }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <Box sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
+                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Группы</Typography>
+                                        <IconButton size="small">
+                                            <span>⋮</span>
+                                        </IconButton>
+                                    </Box>
                                 </Box>
 
-                                {groups.map((group) => (
+                                <Box sx={{ p: 1 }}>
                                     <Box
-                                        key={group.id}
                                         sx={{
                                             p: 1,
                                             cursor: 'pointer',
                                             borderRadius: 1,
-                                            backgroundColor: selectedGroupId === group.id ? '#fff3cd' : 'transparent',
+                                            backgroundColor: selectedGroupId === null ? '#fff3cd' : 'transparent',
                                             '&:hover': { backgroundColor: '#e3f2fd' }
                                         }}
-                                        onClick={() => handleGroupSelection(group.id)}
+                                        onClick={() => handleGroupSelection(null)}
                                     >
-                                        📁 {group.name}
+                                        📁 Все группы
                                     </Box>
-                                ))}
 
-                                <Box
-                                    sx={{
-                                        p: 1,
-                                        cursor: 'pointer',
-                                        borderRadius: 1,
-                                        backgroundColor: selectedGroupId === 'no-group' ? '#fff3cd' : 'transparent',
-                                        '&:hover': { backgroundColor: '#e3f2fd' }
-                                    }}
-                                    onClick={() => handleGroupSelection('no-group')}
-                                >
-                                    📁 Нет группы
+                                    {groups.map((group) => (
+                                        <Box
+                                            key={group.id}
+                                            sx={{
+                                                p: 1,
+                                                cursor: 'pointer',
+                                                borderRadius: 1,
+                                                backgroundColor: selectedGroupId === group.id ? '#fff3cd' : 'transparent',
+                                                '&:hover': { backgroundColor: '#e3f2fd' }
+                                            }}
+                                            onClick={() => handleGroupSelection(group.id)}
+                                        >
+                                            📁 {group.name}
+                                        </Box>
+                                    ))}
+
+                                    <Box
+                                        sx={{
+                                            p: 1,
+                                            cursor: 'pointer',
+                                            borderRadius: 1,
+                                            backgroundColor: selectedGroupId === 'no-group' ? '#fff3cd' : 'transparent',
+                                            '&:hover': { backgroundColor: '#e3f2fd' }
+                                        }}
+                                        onClick={() => handleGroupSelection('no-group')}
+                                    >
+                                        📁 Нет группы
+                                    </Box>
                                 </Box>
                             </Box>
                         </Box>
-                    </Box>
-                </DialogContent>
+                    </DialogContent>
 
-                <DialogActions
-                    sx={{ backgroundColor: '#f5f5f5', borderTop: '1px solid #ddd' }}
-                    onClick={(e) => e.stopPropagation()}
+                    <DialogActions
+                        sx={{ backgroundColor: '#f5f5f5', borderTop: '1px solid #ddd' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Button onClick={handleCloseNomenclatureDialog}>Отмена</Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Диалог создания/редактирования спецификации */}
+                <Dialog
+                    open={showCreateForm || showEditForm}
+                    onClose={handleCloseForms}
+                    maxWidth="sm"
+                    fullWidth
+                    hideBackdrop={true}
+                    disablePortal={true}
+                    disableScrollLock={true}
+                    keepMounted={false}
+                    disableEnforceFocus={true}
+                    disableAutoFocus={true}
+                    disableEscapeKeyDown={true}
                 >
-                    <Button onClick={handleCloseNomenclatureDialog}>Отмена</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Диалог создания/редактирования спецификации */}
-            <Dialog
-                open={showCreateForm || showEditForm}
-                onClose={handleCloseForms}
-                maxWidth="sm"
-                fullWidth
-                hideBackdrop={true}
-                disablePortal={true}
-                disableScrollLock={true}
-                keepMounted={false}
-                disableEnforceFocus={true}
-                disableAutoFocus={true}
-                disableEscapeKeyDown={true}
-            >
-                <DialogTitle>
-                    {editingSpecification ? 'Редактировать позицию' : 'Добавить позицию'}
-                </DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        fullWidth
-                        label="Наименование"
-                        value={specificationForm.name}
-                        onChange={(e) => setSpecificationForm({ ...specificationForm, name: e.target.value })}
-                        margin="normal"
-                        required
-                    />
-                    <Box sx={{ display: 'flex', gap: 2 }}>
+                    <DialogTitle>
+                        {editingSpecification ? 'Редактировать позицию' : 'Добавить позицию'}
+                    </DialogTitle>
+                    <DialogContent>
                         <TextField
+                            autoFocus
                             fullWidth
-                            label="Количество"
-                            type="number"
-                            value={specificationForm.quantity}
-                            onChange={(e) => setSpecificationForm({ ...specificationForm, quantity: parseInt(e.target.value) || 1 })}
+                            label="Наименование"
+                            value={specificationForm.name}
+                            onChange={(e) => setSpecificationForm({ ...specificationForm, name: e.target.value })}
                             margin="normal"
                             required
-                            inputProps={{ min: 1 }}
-                            sx={{
-                                '& .MuiInputBase-input': {
-                                    textAlign: 'right'
-                                }
-                            }}
                         />
-                        <TextField
-                            fullWidth
-                            label="Единица измерения"
-                            value={specificationForm.unit}
-                            margin="normal"
-                            InputProps={{ readOnly: true }}
-                            sx={{
-                                '& .MuiInputBase-input': {
-                                    backgroundColor: '#f5f5f5',
-                                    color: '#666'
-                                }
-                            }}
-                        />
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <TextField
-                            fullWidth
-                            label="Цена за единицу (руб)"
-                            type="number"
-                            value={specificationForm.price ? parseFloat(specificationForm.price).toFixed(2) : ''}
-                            onChange={(e) => setSpecificationForm({ ...specificationForm, price: e.target.value })}
-                            margin="normal"
-                            inputProps={{ min: 0, step: 0.01 }}
-                            sx={{
-                                '& .MuiInputBase-input': {
-                                    textAlign: 'right'
-                                }
-                            }}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Сумма (руб)"
-                            type="number"
-                            value={(() => {
-                                const quantity = Number(specificationForm.quantity) || 0;
-                                const price = Number(specificationForm.price) || 0;
-                                return (quantity * price).toFixed(2);
-                            })()}
-                            margin="normal"
-                            InputProps={{ readOnly: true }}
-                            sx={{
-                                '& .MuiInputBase-input': {
-                                    backgroundColor: '#f5f5f5',
-                                    color: '#666',
-                                    textAlign: 'right'
-                                }
-                            }}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseForms}>Отмена</Button>
-                    <Button onClick={handleSaveSpecification} variant="contained" sx={{ fontSize: '14px' }}>
-                        {editingSpecification ? 'Сохранить' : 'Создать'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Диалог удаления спецификации */}
-            <Dialog
-                open={showDeleteDialog}
-                onClose={() => setShowDeleteDialog(false)}
-                hideBackdrop={true}
-                disablePortal={true}
-                disableScrollLock={true}
-                keepMounted={false}
-                disableEnforceFocus={true}
-                disableAutoFocus={true}
-                disableEscapeKeyDown={true}
-            >
-                <DialogTitle>Удалить позицию</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Вы уверены, что хотите удалить позицию "{deletingSpecification?.name}"?
-                        Это действие нельзя отменить.
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setShowDeleteDialog(false)}>Отмена</Button>
-                    <Button onClick={confirmDeleteSpecification} color="error" variant="contained">
-                        Удалить
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Диалог сопоставления колонок */}
-            <Dialog
-                open={showColumnMapping}
-                maxWidth={false}
-                fullWidth
-                hideBackdrop={true}
-                disablePortal={true}
-                sx={{
-                    '& .MuiDialog-paper': {
-                        width: '100vw',
-                        height: 'calc(100vh - 48px)',
-                        margin: 0,
-                        marginTop: '48px',
-                        borderRadius: 0,
-                        maxWidth: 'none',
-                        overflow: 'hidden'
-                    },
-                    '& .MuiDialogContent-root': {
-                        overflow: 'hidden !important'
-                    },
-                    '& .MuiDialogContentText-root': {
-                        overflow: 'hidden !important'
-                    }
-                }}
-            >
-                <DialogTitle>Сопоставление колонок Excel</DialogTitle>
-                <DialogContent sx={{ overflow: 'hidden', paddingBottom: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                    {excelData.length > 0 && (
-                        <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            height: '100%',
-                            overflow: 'hidden'
-                        }}>
-                            <Box sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                mb: 2,
-                                flexShrink: 0,
-                                maxWidth: '1400px'
-                            }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Сопоставьте колонки из Excel файла с полями спецификации:
-                                </Typography>
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <Button
-                                        onClick={analyzeImportData}
-                                        variant="contained"
-                                        disabled={!Object.values(columnMapping).includes('name')}
-                                    >
-                                        Анализировать
-                                    </Button>
-                                    <Button onClick={() => setShowColumnMapping(false)}>
-                                        Отмена
-                                    </Button>
-                                </Box>
-                            </Box>
-                            {/* Контейнер с прокруткой для всей таблицы */}
-                            <TableContainer
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <TextField
+                                fullWidth
+                                label="Количество"
+                                type="number"
+                                value={specificationForm.quantity}
+                                onChange={(e) => setSpecificationForm({ ...specificationForm, quantity: parseInt(e.target.value) || 1 })}
+                                margin="normal"
+                                required
+                                inputProps={{ min: 1 }}
                                 sx={{
-                                    width: '100%',
-                                    maxWidth: '1400px',
-                                    maxHeight: '700px',
-                                    border: '1px solid #333',
-                                    borderRadius: '4px',
-                                    boxSizing: 'border-box',
-                                    overflow: 'auto',
-                                    scrollbarWidth: 'thin', // Сохраняем вертикальный скролл в Firefox
-                                    scrollbarColor: '#666666 #d6d6d6', // Настраиваем светлые цвета бегунка и дорожки для тонкого режима
-                                    '&::-webkit-scrollbar': {
-                                        width: '8px',
-                                        height: '0px', // Прячем горизонтальный скролл в WebKit-браузерах
-                                        backgroundColor: '#f7f7f7' // Светлый фон области скролла
-                                    },
-                                    '&::-webkit-scrollbar:horizontal': {
-                                        height: '0px' // Дополнительно скрываем горизонтальную дорожку
-                                    },
-                                    '&::-webkit-scrollbar-track': {
-                                        backgroundColor: '#fbfbfb', // Светлая дорожка
-                                        borderRadius: '4px',
-                                        border: '1px solid #eeeeee' // Тонкая граница для контраста
-                                    },
-                                    '&::-webkit-scrollbar-thumb': {
-                                        background: 'linear-gradient(180deg, #dcdcdc 0%, #d0d0d0 100%)', // Светлый градиент для бегунка
-                                        borderRadius: '4px',
-                                        border: '1px solid #e8e8e8',
-                                        '&:hover': {
-                                            background: 'linear-gradient(180deg, #d3d3d3 0%, #c7c7c7 100%)' // Чуть темнее при наведении
-                                        }
-                                    },
-                                    '&::-webkit-scrollbar-corner': {
-                                        backgroundColor: '#f7f7f7'
+                                    '& .MuiInputBase-input': {
+                                        textAlign: 'right'
                                     }
                                 }}
-                            >
-                                <Table
-                                    size="small"
-                                    data-table="second"
+                            />
+                            <TextField
+                                fullWidth
+                                label="Единица измерения"
+                                value={specificationForm.unit}
+                                margin="normal"
+                                InputProps={{ readOnly: true }}
+                                sx={{
+                                    '& .MuiInputBase-input': {
+                                        backgroundColor: '#f5f5f5',
+                                        color: '#666'
+                                    }
+                                }}
+                            />
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <TextField
+                                fullWidth
+                                label="Цена за единицу (руб)"
+                                type="number"
+                                value={specificationForm.price ? parseFloat(specificationForm.price).toFixed(2) : ''}
+                                onChange={(e) => setSpecificationForm({ ...specificationForm, price: e.target.value })}
+                                margin="normal"
+                                inputProps={{ min: 0, step: 0.01 }}
+                                sx={{
+                                    '& .MuiInputBase-input': {
+                                        textAlign: 'right'
+                                    }
+                                }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Сумма (руб)"
+                                type="number"
+                                value={(() => {
+                                    const quantity = Number(specificationForm.quantity) || 0;
+                                    const price = Number(specificationForm.price) || 0;
+                                    return (quantity * price).toFixed(2);
+                                })()}
+                                margin="normal"
+                                InputProps={{ readOnly: true }}
+                                sx={{
+                                    '& .MuiInputBase-input': {
+                                        backgroundColor: '#f5f5f5',
+                                        color: '#666',
+                                        textAlign: 'right'
+                                    }
+                                }}
+                            />
+                        </Box>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseForms}>Отмена</Button>
+                        <Button onClick={handleSaveSpecification} variant="contained" sx={{ fontSize: '14px' }}>
+                            {editingSpecification ? 'Сохранить' : 'Создать'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Диалог удаления спецификации */}
+                <Dialog
+                    open={showDeleteDialog}
+                    onClose={() => setShowDeleteDialog(false)}
+                    hideBackdrop={true}
+                    disablePortal={true}
+                    disableScrollLock={true}
+                    keepMounted={false}
+                    disableEnforceFocus={true}
+                    disableAutoFocus={true}
+                    disableEscapeKeyDown={true}
+                >
+                    <DialogTitle>Удалить позицию</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            Вы уверены, что хотите удалить позицию "{deletingSpecification?.name}"?
+                            Это действие нельзя отменить.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setShowDeleteDialog(false)}>Отмена</Button>
+                        <Button onClick={confirmDeleteSpecification} color="error" variant="contained">
+                            Удалить
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Диалог сопоставления колонок */}
+                <Dialog
+                    open={showColumnMapping}
+                    maxWidth={false}
+                    fullWidth
+                    hideBackdrop={true}
+                    disablePortal={true}
+                    sx={{
+                        '& .MuiDialog-paper': {
+                            width: '100vw',
+                            height: 'calc(100vh - 48px)',
+                            margin: 0,
+                            marginTop: '48px',
+                            borderRadius: 0,
+                            maxWidth: 'none',
+                            overflow: 'hidden'
+                        },
+                        '& .MuiDialogContent-root': {
+                            overflow: 'hidden !important'
+                        },
+                        '& .MuiDialogContentText-root': {
+                            overflow: 'hidden !important'
+                        }
+                    }}
+                >
+                    <DialogTitle>Сопоставление колонок Excel</DialogTitle>
+                    <DialogContent sx={{ overflow: 'hidden', paddingBottom: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        {excelData.length > 0 && (
+                            <Box sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: '100%',
+                                overflow: 'hidden'
+                            }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    mb: 2,
+                                    flexShrink: 0,
+                                    maxWidth: '1400px'
+                                }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Сопоставьте колонки из Excel файла с полями спецификации:
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <Button
+                                            onClick={analyzeImportData}
+                                            variant="contained"
+                                            disabled={!Object.values(columnMapping).includes('name')}
+                                        >
+                                            Анализировать
+                                        </Button>
+                                        <Button onClick={() => setShowColumnMapping(false)}>
+                                            Отмена
+                                        </Button>
+                                    </Box>
+                                </Box>
+                                {/* Контейнер с прокруткой для всей таблицы */}
+                                <TableContainer
                                     sx={{
-                                        tableLayout: 'auto',
                                         width: '100%',
-                                        '& .MuiTableCell-root': {
-                                            fontSize: '12px !important'
+                                        maxWidth: '1400px',
+                                        maxHeight: '700px',
+                                        border: '1px solid #333',
+                                        borderRadius: '4px',
+                                        boxSizing: 'border-box',
+                                        overflow: 'auto',
+                                        scrollbarWidth: 'thin', // Сохраняем вертикальный скролл в Firefox
+                                        scrollbarColor: '#666666 #d6d6d6', // Настраиваем светлые цвета бегунка и дорожки для тонкого режима
+                                        '&::-webkit-scrollbar': {
+                                            width: '8px',
+                                            height: '0px', // Прячем горизонтальный скролл в WebKit-браузерах
+                                            backgroundColor: '#f7f7f7' // Светлый фон области скролла
+                                        },
+                                        '&::-webkit-scrollbar:horizontal': {
+                                            height: '0px' // Дополнительно скрываем горизонтальную дорожку
+                                        },
+                                        '&::-webkit-scrollbar-track': {
+                                            backgroundColor: '#fbfbfb', // Светлая дорожка
+                                            borderRadius: '4px',
+                                            border: '1px solid #eeeeee' // Тонкая граница для контраста
+                                        },
+                                        '&::-webkit-scrollbar-thumb': {
+                                            background: 'linear-gradient(180deg, #dcdcdc 0%, #d0d0d0 100%)', // Светлый градиент для бегунка
+                                            borderRadius: '4px',
+                                            border: '1px solid #e8e8e8',
+                                            '&:hover': {
+                                                background: 'linear-gradient(180deg, #d3d3d3 0%, #c7c7c7 100%)' // Чуть темнее при наведении
+                                            }
+                                        },
+                                        '&::-webkit-scrollbar-corner': {
+                                            backgroundColor: '#f7f7f7'
                                         }
                                     }}
                                 >
+                                    <Table
+                                        size="small"
+                                        data-table="second"
+                                        sx={{
+                                            tableLayout: 'auto',
+                                            width: '100%',
+                                            '& .MuiTableCell-root': {
+                                                fontSize: '12px !important'
+                                            }
+                                        }}
+                                    >
                                         <TableBody>
                                             {/* Строка сопоставления колонок - закреплена сверху */}
                                             <TableRow sx={{
@@ -2365,16 +2404,16 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                             }}>
                                                 {excelData[0].map((_: any, index: number) => (
-                                                    <TableCell key={index} 
-                                                    sx={{
-                                                        textAlign: 'center',
-                                                        padding: '4px !important',
-                                                        backgroundColor: 'white',
-                                                        width: '100%',          // базовая ширина (опционально)
-                                                        maxWidth: '500px'       // ограничение сверху
-                                                    }}>
-                                                        <FormControl size="small" 
-                                                        sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
+                                                    <TableCell key={index}
+                                                        sx={{
+                                                            textAlign: 'center',
+                                                            padding: '4px !important',
+                                                            backgroundColor: 'white',
+                                                            width: '100%',          // базовая ширина (опционально)
+                                                            maxWidth: '500px'       // ограничение сверху
+                                                        }}>
+                                                        <FormControl size="small"
+                                                            sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
                                                             <Select
                                                                 value={columnMapping[index.toString()] || ''}
                                                                 onChange={(e) => {
@@ -2476,270 +2515,271 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 </TableRow>
                                             ))}
                                         </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Box>
-                    )}
-                </DialogContent>
-            </Dialog>
+                                    </Table>
+                                </TableContainer>
+                            </Box>
+                        )}
+                    </DialogContent>
+                </Dialog>
 
 
-            {/* Диалог загрузки данных из Excel в стиле 1С */}
-            <Dialog
-                open={showExcelImportDialog}
-                hideBackdrop={true}
-                disablePortal={true}
-                disableEscapeKeyDown={true}
-                sx={{
-                    '& .MuiDialog-paper': {
-                        width: '700px',
-                        maxWidth: '700px',
-                        borderRadius: 2,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
-                    }
-                }}
-            >
-                <DialogTitle sx={{
-                    backgroundColor: '#f5f5f5',
-                    borderBottom: '1px solid #ddd',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                }}>
-                    <span style={{ fontSize: '20px' }}>📊</span>
-                    Загрузка данных из Excel
-                </DialogTitle>
-
-                <DialogContent sx={{ p: 3 }}>
-                    {/* Индикатор загрузки */}
-                    {loading && (
-                        <Box sx={{ mb: 2 }}>
-                            <LinearProgress />
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
-                                Анализ данных...
-                            </Typography>
-                        </Box>
-                    )}
-
-                    {/* Информационный блок */}
-                    <Box sx={{
+                {/* Диалог загрузки данных из Excel в стиле 1С */}
+                <Dialog
+                    open={showExcelImportDialog}
+                    hideBackdrop={true}
+                    disablePortal={true}
+                    disableEscapeKeyDown={true}
+                    sx={{
+                        '& .MuiDialog-paper': {
+                            width: '700px',
+                            maxWidth: '700px',
+                            borderRadius: 2,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+                        }
+                    }}
+                >
+                    <DialogTitle sx={{
+                        backgroundColor: '#f5f5f5',
+                        borderBottom: '1px solid #ddd',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1,
-                        mb: 3,
-                        p: 2,
-                        backgroundColor: '#fff3cd',
-                        borderRadius: 1,
-                        border: '1px solid #ffeaa7'
+                        gap: 1
                     }}>
-                        <span style={{ fontSize: '16px' }}>ℹ️</span>
-                        <Typography variant="body2" color="text.secondary">
-                            Загрузка табличной части. Предварительный анализ и настройка.
-                        </Typography>
-                    </Box>
+                        <span style={{ fontSize: '20px' }}>📊</span>
+                        Загрузка данных из Excel
+                    </DialogTitle>
 
-                    {/* Статистика импорта */}
-                    <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
-                            <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.total}</span> строки получено
+                    <DialogContent sx={{ p: 3 }}>
+                        {/* Индикатор загрузки */}
+                        {loading && (
+                            <Box sx={{ mb: 2 }}>
+                                <LinearProgress />
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                                    Анализ данных...
+                                </Typography>
+                            </Box>
+                        )}
+
+                        {/* Информационный блок */}
+                        <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mb: 3,
+                            p: 2,
+                            backgroundColor: '#fff3cd',
+                            borderRadius: 1,
+                            border: '1px solid #ffeaa7'
+                        }}>
+                            <span style={{ fontSize: '16px' }}>ℹ️</span>
+                            <Typography variant="body2" color="text.secondary">
+                                Загрузка табличной части. Предварительный анализ и настройка.
                             </Typography>
-                            <Button
-                                size="small"
-                                variant="text"
-                                sx={{
-                                    textTransform: 'none',
-                                    fontSize: '14px',
-                                    textDecoration: 'underline',
-                                    border: 'none',
-                                    boxShadow: 'none',
-                                    '&:hover': {
+                        </Box>
+
+                        {/* Статистика импорта */}
+                        <Box sx={{ mb: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
+                                <Typography variant="body2">
+                                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.total}</span> строки получено
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    variant="text"
+                                    sx={{
+                                        textTransform: 'none',
+                                        fontSize: '14px',
+                                        textDecoration: 'underline',
                                         border: 'none',
                                         boxShadow: 'none',
-                                        backgroundColor: 'transparent'
-                                    },
-                                    '&:focus': {
+                                        '&:hover': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            backgroundColor: 'transparent'
+                                        },
+                                        '&:focus': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        },
+                                        '&:active': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        }
+                                    }}
+                                >
+                                    показать строки...
+                                </Button>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
+                                <Typography variant="body2">
+                                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.existing}</span> из них сопоставлены{importSettings.updateMatched ? ' и будут обновлены' : ''}
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    variant="text"
+                                    sx={{
+                                        textTransform: 'none',
+                                        fontSize: '14px',
+                                        textDecoration: 'underline',
                                         border: 'none',
                                         boxShadow: 'none',
-                                        outline: 'none'
-                                    },
-                                    '&:active': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        outline: 'none'
+                                        '&:hover': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            backgroundColor: 'transparent'
+                                        },
+                                        '&:focus': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        },
+                                        '&:active': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        }
+                                    }}
+                                >
+                                    показать строки...
+                                </Button>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={importSettings.updateMatched}
+                                            onChange={(e) => {
+                                                setImportSettings(prev => ({
+                                                    ...prev,
+                                                    updateMatched: e.target.checked
+                                                }));
+                                            }}
+                                        />
                                     }
-                                }}
-                            >
-                                показать строки...
-                            </Button>
-                        </Box>
+                                    label="Обновлять сопоставленные элементы полученными данными"
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                />
+                            </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
-                            <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.existing}</span> из них сопоставлены{importSettings.updateMatched ? ' и будут обновлены' : ''}
-                            </Typography>
-                            <Button
-                                size="small"
-                                variant="text"
-                                sx={{
-                                    textTransform: 'none',
-                                    fontSize: '14px',
-                                    textDecoration: 'underline',
-                                    border: 'none',
-                                    boxShadow: 'none',
-                                    '&:hover': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        backgroundColor: 'transparent'
-                                    },
-                                    '&:focus': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        outline: 'none'
-                                    },
-                                    '&:active': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        outline: 'none'
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={importSettings.createNew}
+                                            onChange={(e) => {
+                                                setImportSettings(prev => ({
+                                                    ...prev,
+                                                    createNew: e.target.checked
+                                                }));
+                                            }}
+                                        />
                                     }
-                                }}
-                            >
-                                показать строки...
-                            </Button>
+                                    label="Создавать новые элементы, если полученные данные не сопоставлены"
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                />
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
+                                <Typography variant="body2">
+                                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.new}</span> <span style={{ color: importSettings.createNew ? '#2e7d32' : '#d32f2f' }}>{importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}</span>
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    variant="text"
+                                    sx={{
+                                        textTransform: 'none',
+                                        fontSize: '14px',
+                                        textDecoration: 'underline',
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        '&:hover': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            backgroundColor: 'transparent'
+                                        },
+                                        '&:focus': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        },
+                                        '&:active': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        }
+                                    }}
+                                >
+                                    показать строки...
+                                </Button>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
+                                <Typography variant="body2">
+                                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>0</span> строк, которые невозможно загрузить
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    variant="text"
+                                    sx={{
+                                        textTransform: 'none',
+                                        fontSize: '14px',
+                                        textDecoration: 'underline',
+                                        border: 'none',
+                                        boxShadow: 'none',
+                                        '&:hover': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            backgroundColor: 'transparent'
+                                        },
+                                        '&:focus': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        },
+                                        '&:active': {
+                                            border: 'none',
+                                            boxShadow: 'none',
+                                            outline: 'none'
+                                        }
+                                    }}
+                                >
+                                    строк...
+                                </Button>
+                            </Box>
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={importSettings.updateMatched}
-                                        onChange={(e) => {
-                                            setImportSettings(prev => ({
-                                                ...prev,
-                                                updateMatched: e.target.checked
-                                            }));
-                                        }}
-                                    />
-                                }
-                                label="Обновлять сопоставленные элементы полученными данными"
-                                sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                            />
-                        </Box>
+                    </DialogContent>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={importSettings.createNew}
-                                        onChange={(e) => {
-                                            setImportSettings(prev => ({
-                                                ...prev,
-                                                createNew: e.target.checked
-                                            }));
-                                        }}
-                                    />
-                                }
-                                label="Создавать новые элементы, если полученные данные не сопоставлены"
-                                sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                            />
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
-                            <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{importStats.new}</span> <span style={{ color: importSettings.createNew ? '#2e7d32' : '#d32f2f' }}>{importSettings.createNew ? 'строк будет создано' : 'строк будет пропущено'}</span>
-                            </Typography>
-                            <Button
-                                size="small"
-                                variant="text"
-                                sx={{
-                                    textTransform: 'none',
-                                    fontSize: '14px',
-                                    textDecoration: 'underline',
-                                    border: 'none',
-                                    boxShadow: 'none',
-                                    '&:hover': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        backgroundColor: 'transparent'
-                                    },
-                                    '&:focus': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        outline: 'none'
-                                    },
-                                    '&:active': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        outline: 'none'
-                                    }
-                                }}
-                            >
-                                показать строки...
-                            </Button>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0 }}>
-                            <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold', fontSize: '16px' }}>0</span> строк, которые невозможно загрузить
-                            </Typography>
-                            <Button
-                                size="small"
-                                variant="text"
-                                sx={{
-                                    textTransform: 'none',
-                                    fontSize: '14px',
-                                    textDecoration: 'underline',
-                                    border: 'none',
-                                    boxShadow: 'none',
-                                    '&:hover': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        backgroundColor: 'transparent'
-                                    },
-                                    '&:focus': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        outline: 'none'
-                                    },
-                                    '&:active': {
-                                        border: 'none',
-                                        boxShadow: 'none',
-                                        outline: 'none'
-                                    }
-                                }}
-                            >
-                                строк...
-                            </Button>
-                        </Box>
-                    </Box>
-
-                </DialogContent>
-
-                <DialogActions sx={{
-                    backgroundColor: '#f5f5f5',
-                    borderTop: '1px solid #ddd',
-                    justifyContent: 'flex-end',
-                    p: 2,
-                    gap: 2
-                }}>
-                    <VolumeButton
-                        onClick={importFromExcel}
-                        color="blue"
-                    >
-                        Загрузить
-                    </VolumeButton>
-                    <VolumeButton
-                        onClick={() => {
-                            setShowExcelImportDialog(false);
-                            setShowColumnMapping(true);
-                        }}
-                        color="orange"
-                    >
-                        Назад
-                    </VolumeButton>
-                </DialogActions>
-            </Dialog>
-        </Box>
+                    <DialogActions sx={{
+                        backgroundColor: '#f5f5f5',
+                        borderTop: '1px solid #ddd',
+                        justifyContent: 'flex-end',
+                        p: 2,
+                        gap: 2
+                    }}>
+                        <VolumeButton
+                            onClick={importFromExcel}
+                            color="blue"
+                        >
+                            Загрузить
+                        </VolumeButton>
+                        <VolumeButton
+                            onClick={() => {
+                                setShowExcelImportDialog(false);
+                                setShowColumnMapping(true);
+                            }}
+                            color="orange"
+                        >
+                            Назад
+                        </VolumeButton>
+                    </DialogActions>
+                </Dialog>
+            </Box>
+        </>
     );
 };
 
