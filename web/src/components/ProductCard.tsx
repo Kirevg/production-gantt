@@ -1665,7 +1665,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             Добавить
                         </VolumeButton>
                     )}
-                    {activeTab === 1 && documentationTabKey === 'specs' && (
+                    {activeTab === 2 && documentationTabKey === 'specs' && (
                         <VolumeButton
                             variant="contained"
                             onClick={() => handleOpenSpecificationDialog()}
@@ -1785,6 +1785,219 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 />
                             ))}
                         </Tabs>
+                    </Box>
+                )}
+
+                {/* Секция спецификаций внутри документации */}
+                {activeTab === 2 && documentationTabKey === 'specs' && (
+                    <Box>
+                        {/* Таблица спецификаций */}
+                        <TableContainer component={Paper}>
+                            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
+                                <TableHead>
+                                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '300px' }}>Название</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '100px' }}>Версия</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Описание</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '140px' }}>Дата создания</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '100px' }}>Сумма</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', width: '40px' }}>
+                                            <DeleteIcon fontSize="small" sx={{ color: 'red' }} />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {specificationsLoading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                                                <LinearProgress />
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : specifications.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                                                <Typography variant="body1" color="text.secondary">
+                                                    Список спецификаций пуст
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        specifications.map((specification) => (
+                                            <TableRow
+                                                key={specification.id}
+                                                sx={{ height: '35px', cursor: 'pointer' }}
+                                                onDoubleClick={() => {
+                                                    // Разрешаем открытие заблокированных спецификаций для просмотра
+                                                    onOpenSpecification(specification.id, specification.name);
+                                                }}
+                                            >
+                                                <TableCell sx={{ py: 0.5, width: '300px' }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                                            {specification.name}
+                                                        </Typography>
+                                                        {specification.isLocked && (
+                                                            <Box
+                                                                sx={{
+                                                                    width: '16px',
+                                                                    height: '16px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    color: '#d32f2f',
+                                                                    fontSize: '12px'
+                                                                }}
+                                                                title="Спецификация заблокирована (есть дочерние копии)"
+                                                            >
+                                                                🔒
+                                                            </Box>
+                                                        )}
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '100px' }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                                        <Box
+                                                            onClick={() => {
+                                                                // Проверяем, не заблокирована ли спецификация
+                                                                if (specification.isLocked) {
+                                                                    alert('Эта спецификация заблокирована и не может быть скопирована');
+                                                                    return;
+                                                                }
+                                                                handleCreateSpecificationCopy(specification);
+                                                            }}
+                                                            sx={{
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                p: '2px 2px',
+                                                                cursor: specification.isLocked ? 'not-allowed' : 'pointer',
+                                                                backgroundColor: specification.isLocked ? '#ffebee' : '#f0f0f0',
+                                                                border: specification.isLocked ? '1px solid #f44336' : '1px solid #808080',
+                                                                fontFamily: 'Arial, sans-serif',
+                                                                fontSize: '11px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                opacity: specification.isLocked ? 0.6 : 1,
+                                                                '&:hover': {
+                                                                    backgroundColor: specification.isLocked ? '#ffebee' : '#e8e8e8'
+                                                                },
+                                                                '&:active': {
+                                                                    backgroundColor: specification.isLocked ? '#ffebee' : '#d8d8d8',
+                                                                    border: specification.isLocked ? '1px solid #f44336' : '1px solid #404040'
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Typography variant="body2" sx={{
+                                                                fontWeight: 'bold',
+                                                                color: '#000',
+                                                                fontFamily: 'Arial, sans-serif',
+                                                                fontSize: '12px',
+                                                                textAlign: 'center',
+                                                                lineHeight: 1
+                                                            }}>
+                                                                +
+                                                            </Typography>
+                                                        </Box>
+
+                                                        {/* Кнопка сравнения версий */}
+                                                        {specification.version && specification.version > 1 && (
+                                                            <Box
+                                                                onClick={() => handleOpenVersionCompare(specification)}
+                                                                sx={{
+                                                                    width: '20px',
+                                                                    height: '20px',
+                                                                    p: '2px 2px',
+                                                                    cursor: 'pointer',
+                                                                    backgroundColor: '#e3f2fd',
+                                                                    border: '1px solid #2196f3',
+                                                                    fontFamily: 'Arial, sans-serif',
+                                                                    fontSize: '12px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    '&:hover': {
+                                                                        backgroundColor: '#bbdefb'
+                                                                    },
+                                                                    '&:active': {
+                                                                        backgroundColor: '#90caf9',
+                                                                        border: '1px solid #1976d2'
+                                                                    }
+                                                                }}
+                                                                title="Сравнить с предыдущей версией"
+                                                            >
+                                                                <BalanceIcon sx={{ fontSize: '18px', color: '#1976d2' }} />
+                                                            </Box>
+                                                        )}
+
+                                                        <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                            {specification.version || '1'}
+                                                        </Typography>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell
+                                                    sx={{
+                                                        py: 0.5,
+                                                        cursor: canEdit() ? 'pointer' : 'default',
+                                                        position: 'relative'
+                                                    }}
+                                                    onDoubleClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDescriptionClick(specification.id, specification.description || '');
+                                                    }}
+                                                >
+                                                    {editingDescription === specification.id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={descriptionValue}
+                                                            onChange={handleDescriptionChange}
+                                                            onBlur={() => handleDescriptionSave(specification.id)}
+                                                            onKeyDown={(e) => handleDescriptionKeyDown(e, specification.id)}
+                                                            onFocus={(e) => e.target.select()}
+                                                            style={{
+                                                                width: '100%',
+                                                                border: 'none',
+                                                                outline: 'none',
+                                                                background: 'transparent',
+                                                                fontSize: '14px',
+                                                                fontFamily: 'inherit',
+                                                                color: 'inherit'
+                                                            }}
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {specification.description || ''}
+                                                        </Typography>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell sx={{ py: 0.5, textAlign: 'center', width: '140px' }}>
+                                                    {formatDate(specification.createdAt)}
+                                                </TableCell>
+                                                <TableCell sx={{ py: 0.5, textAlign: 'right', width: '100px' }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                        {specification.totalSum ? `${specification.totalSum.toLocaleString('ru-RU')} ₽` : '0,00'}
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell sx={{ textAlign: 'center', py: 0.5, width: '40px' }}>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                        {canDelete() && !specification.isLocked && (
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => handleDeleteSpecification(specification.id)}
+                                                                color="error"
+                                                                sx={{ minWidth: 'auto', padding: '4px' }}
+                                                            >
+                                                                <DeleteIcon fontSize="small" />
+                                                            </IconButton>
+                                                        )}
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                     </Box>
                 )}
 

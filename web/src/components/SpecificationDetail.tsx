@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/buttons.css';
 
 // Глобальный CSS для минимальной ширины ячеек
@@ -178,8 +178,7 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
     const [deletingSpecification, setDeletingSpecification] = useState<Specification | null>(null);
     const [showColumnMapping, setShowColumnMapping] = useState(false);
     const [excelData, setExcelData] = useState<any[][]>([]);
-    const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
-    const dataTableRef = useRef<HTMLTableElement>(null);
+    const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({}); // Состояние сопоставления индексов колонок и полей спецификации
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [importStats, setImportStats] = useState({ existing: 0, new: 0, total: 0, skipped: 0 });
     const [showExcelImportDialog, setShowExcelImportDialog] = useState(false);
@@ -191,18 +190,14 @@ const SpecificationDetail: React.FC<SpecificationsPageProps> = ({
 
     // Инжекция глобальных стилей
     useEffect(() => {
-        const style = document.createElement('style');
-        style.textContent = globalStyles;
-        document.head.appendChild(style);
+        const style = document.createElement('style'); // Создаём элемент стилей для глобальных классов
+        style.textContent = globalStyles; // Записываем текст CSS в элемент
+        document.head.appendChild(style); // Добавляем стиль в документ
 
         return () => {
-            document.head.removeChild(style);
+            document.head.removeChild(style); // Удаляем стиль при размонтировании компонента
         };
     }, []);
-
-
-
-
 
     // Функции для inline редактирования количества
     const handleQuantityClick = (specificationId: string, currentQuantity: number) => {
@@ -2312,41 +2307,53 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                 </Box>
                             </Box>
                             {/* Контейнер с прокруткой для всей таблицы */}
-                            <Box sx={{
-                                flex: 1,
-                                overflow: 'auto',
-                                maxWidth: '1400px',
-                                maxHeight: '700px',
-                                border: '2px solid #333',
-                                borderRadius: '4px',
-                                // Стили ползунка для горизонтальной и вертикальной прокрутки
-                                '&::-webkit-scrollbar': {
-                                    width: '8px',
-                                    height: '8px'
-                                },
-                                '&::-webkit-scrollbar-track': {
-                                    backgroundColor: '#f1f1f1',
-                                    borderRadius: '4px'
-                                },
-                                '&::-webkit-scrollbar-thumb': {
-                                    backgroundColor: '#c1c1c1',
+                            <TableContainer
+                                sx={{
+                                    width: '100%',
+                                    maxWidth: '1400px',
+                                    maxHeight: '700px',
+                                    border: '2px solid #333',
                                     borderRadius: '4px',
-                                    '&:hover': {
-                                        backgroundColor: '#a8a8a8'
+                                    boxSizing: 'border-box',
+                                    overflow: 'auto',
+                                    scrollbarWidth: 'thin', // Сохраняем вертикальный скролл в Firefox
+                                    '&::-webkit-scrollbar': {
+                                        width: '8px',
+                                        height: '0px', // Прячем горизонтальный скролл в WebKit-браузерах
+                                        backgroundColor: '#f7f7f7' // Светлый фон области скролла
+                                    },
+                                    '&::-webkit-scrollbar:horizontal': {
+                                        height: '0px' // Дополнительно скрываем горизонтальную дорожку
+                                    },
+                                    '&::-webkit-scrollbar-track': {
+                                        backgroundColor: '#fbfbfb', // Светлая дорожка
+                                        borderRadius: '4px',
+                                        border: '1px solid #eeeeee' // Тонкая граница для контраста
+                                    },
+                                    '&::-webkit-scrollbar-thumb': {
+                                        background: 'linear-gradient(180deg, #dcdcdc 0%, #d0d0d0 100%)', // Светлый градиент для бегунка
+                                        borderRadius: '4px',
+                                        border: '1px solid #e8e8e8',
+                                        '&:hover': {
+                                            background: 'linear-gradient(180deg, #d3d3d3 0%, #c7c7c7 100%)' // Чуть темнее при наведении
+                                        }
+                                    },
+                                    '&::-webkit-scrollbar-corner': {
+                                        backgroundColor: '#f7f7f7'
                                     }
-                                },
-                                '&::-webkit-scrollbar-corner': {
-                                    backgroundColor: '#f1f1f1'
-                                }
-                            }}>
-                                <TableContainer sx={{ width: '100%' }}>
-                                    <Table size="small" data-table="second" ref={dataTableRef} sx={{
+                                }}
+                            >
+                                <Table
+                                    size="small"
+                                    data-table="second"
+                                    sx={{
                                         tableLayout: 'auto',
                                         width: '100%',
                                         '& .MuiTableCell-root': {
                                             fontSize: '12px !important'
                                         }
-                                    }}>
+                                    }}
+                                >
                                         <TableBody>
                                             {/* Строка сопоставления колонок - закреплена сверху */}
                                             <TableRow sx={{
@@ -2357,12 +2364,16 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                             }}>
                                                 {excelData[0].map((_: any, index: number) => (
-                                                    <TableCell key={index} sx={{
+                                                    <TableCell key={index} 
+                                                    sx={{
                                                         textAlign: 'center',
                                                         padding: '4px !important',
-                                                        backgroundColor: 'white'
+                                                        backgroundColor: 'white',
+                                                        width: '100%',          // базовая ширина (опционально)
+                                                        maxWidth: '500px'       // ограничение сверху
                                                     }}>
-                                                        <FormControl size="small" sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
+                                                        <FormControl size="small" 
+                                                        sx={{ width: '100%', '& .MuiOutlinedInput-root': { height: '32px' }, '& .MuiSelect-select': { padding: '6px 14px', fontSize: '12px' } }}>
                                                             <Select
                                                                 value={columnMapping[index.toString()] || ''}
                                                                 onChange={(e) => {
@@ -2406,19 +2417,23 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                             }}>
                                                 {excelData[0].map((_: any, index: number) => (
-                                                    <TableCell key={index} sx={{
-                                                        fontWeight: 'bold',
-                                                        fontSize: '12px !important',
-                                                        textAlign: 'center',
-                                                        padding: '4px !important',
-                                                        whiteSpace: 'normal',
-                                                        border: '2px solid #333',
-                                                        borderTop: '2px solid #333',
-                                                        borderLeft: '2px solid #333',
-                                                        borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                        borderBottom: '2px solid #333',
-                                                        backgroundColor: 'white'
-                                                    }}>
+                                                    <TableCell
+                                                        key={index}
+                                                        sx={{
+                                                            fontWeight: 'bold',
+                                                            fontSize: '12px !important',
+                                                            textAlign: 'center',
+                                                            padding: '4px !important',
+                                                            whiteSpace: 'normal',
+                                                            border: '2px solid #333',
+                                                            borderTop: '2px solid #333',
+                                                            borderLeft: '2px solid #333',
+                                                            borderRight: index === excelData[0].length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                            borderBottom: '2px solid #333',
+                                                            backgroundColor: 'white',
+                                                            maxWidth: '300px' // Ограничиваем максимальную ширину заголовка при авто-вычислении ширины
+                                                        }}
+                                                    >
                                                         {excelData[0][index] || `Колонка ${index + 1}`}
                                                     </TableCell>
                                                 ))}
@@ -2430,17 +2445,24 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                         const isNumeric = isNumericColumn(cellIndex);
                                                         const cellValue = isNumeric ? formatNumber(cell) : (cell || '');
                                                         return (
-                                                            <TableCell key={cellIndex} className="excel-table-cell" sx={{
-                                                                fontSize: '12px !important',
-                                                                padding: '2px 4px !important',
-                                                                whiteSpace: 'nowrap',
-                                                                textAlign: isNumeric ? 'right' : 'left',
-                                                                border: '2px solid #333',
-                                                                borderTop: '1px solid #e0e0e0',
-                                                                borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                                borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
-                                                                borderBottom: '1px solid #e0e0e0'
-                                                            }}>
+                                                            <TableCell
+                                                                key={cellIndex}
+                                                                className="excel-table-cell"
+                                                                sx={{
+                                                                    fontSize: '12px !important',
+                                                                    padding: '2px 4px !important',
+                                                                    whiteSpace: 'nowrap',
+                                                                    textAlign: isNumeric ? 'right' : 'left',
+                                                                    border: '2px solid #333',
+                                                                    borderTop: '1px solid #e0e0e0',
+                                                                    borderLeft: cellIndex === 0 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                                    borderRight: cellIndex === row.length - 1 ? '2px solid #333' : '1px solid #e0e0e0',
+                                                                    borderBottom: '1px solid #e0e0e0',
+                                                                    maxWidth: '350px', // Ограничиваем максимальную ширину данных, оставляя авто-ширину
+                                                                    overflow: 'hidden', // Прячем лишний текст за пределами лимита
+                                                                    textOverflow: 'ellipsis' // Добавляем троеточие к длинным значениям
+                                                                }}
+                                                            >
                                                                 {cellValue}
                                                             </TableCell>
                                                         );
@@ -2448,9 +2470,8 @@ ${skippedCount > 0 ? '⚠️ Внимание: Некоторые позиции
                                                 </TableRow>
                                             ))}
                                         </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Box>
+                                </Table>
+                            </TableContainer>
                         </Box>
                     )}
                 </DialogContent>
