@@ -22,6 +22,12 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 import VolumeButton from './VolumeButton';
 
 // Интерфейс для единицы измерения
+interface UnitAlias {
+    id: string;
+    alias: string;
+    normalizedAlias: string;
+}
+
 interface Unit {
     id: string;
     code: string;
@@ -30,6 +36,7 @@ interface Unit {
     internationalCode?: string;
     createdAt: string;
     updatedAt: string;
+    aliases?: UnitAlias[];
 }
 
 interface UnitsPageProps {
@@ -49,6 +56,9 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
         fullName: '',
         internationalCode: ''
     });
+    const [openAliasesDialog, setOpenAliasesDialog] = useState(false);
+    const [aliasEditingUnit, setAliasEditingUnit] = useState<Unit | null>(null);
+    const [aliasInputValue, setAliasInputValue] = useState('');
 
     // Загрузка единиц измерения
     const fetchUnits = async () => {
@@ -113,6 +123,21 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
         });
     };
 
+    const handleOpenAliasesDialog = (unit: Unit) => {
+        if (!canEdit()) {
+            return;
+        }
+        setAliasEditingUnit(unit);
+        setAliasInputValue(unit.aliases?.map((alias) => alias.alias).join('\n') ?? '');
+        setOpenAliasesDialog(true);
+    };
+
+    const handleCloseAliasesDialog = () => {
+        setOpenAliasesDialog(false);
+        setAliasEditingUnit(null);
+        setAliasInputValue('');
+    };
+
     const handleSave = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -146,6 +171,43 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
             handleCloseDialog();
         } catch (error) {
 // console.('Ошибка сохранения единицы измерения:', error);
+        }
+    };
+
+    const handleSaveAliases = async () => {
+        if (!aliasEditingUnit) {
+            return;
+        }
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                return;
+            }
+
+            const aliases = aliasInputValue
+                .split('\n')
+                .map((alias) => alias.trim())
+                .filter((alias) => alias.length > 0);
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/units/${aliasEditingUnit.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    aliases
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await fetchUnits();
+            handleCloseAliasesDialog();
+        } catch (error) {
+// console.('Ошибка сохранения аналогов единицы измерения:', error);
         }
     };
 
@@ -228,7 +290,22 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
                                     <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{unit.code}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{unit.name}</TableCell>
                                     <TableCell sx={{ py: 0.5 }}>{unit.fullName || '-'}</TableCell>
-                                    <TableCell sx={{ py: 0.5 }}>{'-'}</TableCell>
+                                    <TableCell
+                                        sx={{
+                                            py: 0.5,
+                                            cursor: canEdit() ? 'pointer' : 'default',
+                                            color: (unit.aliases?.length ?? 0) ? 'inherit' : 'text.secondary'
+                                        }}
+                                        onDoubleClick={(event) => {
+                                            event.stopPropagation();
+                                            handleOpenAliasesDialog(unit);
+                                        }}
+                                        title={canEdit() ? 'Дважды кликните, чтобы отредактировать аналоги' : undefined}
+                                    >
+                                        {unit.aliases && unit.aliases.length > 0
+                                            ? unit.aliases.map((alias) => alias.alias).join(', ')
+                                            : '—'}
+                                    </TableCell>
                                     <TableCell sx={{ py: 0.5, textAlign: 'center' }}>{unit.internationalCode || '-'}</TableCell>
                                     <TableCell sx={{ textAlign: 'center', py: 0.5, width: '60px' }}>
                                         {canDelete() && (
@@ -302,6 +379,36 @@ const UnitsPage: React.FC<UnitsPageProps> = ({ canEdit, canCreate, canDelete }) 
                         Сохранить
                     </VolumeButton>
                     <VolumeButton onClick={handleCloseDialog} color="orange">
+                        Отмена
+                    </VolumeButton>
+                </DialogActions>
+            </Dialog>
+
+            {/* Диалог редактирования аналогов */}
+            <Dialog open={openAliasesDialog} onClose={() => { }} maxWidth="sm" fullWidth disableEscapeKeyDown>
+                <DialogTitle>
+                    {aliasEditingUnit ? `Аналоги для «${aliasEditingUnit.name}»` : 'Аналоги'}
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                        Введите аналоги наименования, по одному на строку. Эти значения будут использоваться при импорте для
+                        автоматического сопоставления единиц измерения.
+                    </Typography>
+                    <TextField
+                        multiline
+                        minRows={6}
+                        fullWidth
+                        value={aliasInputValue}
+                        onChange={(event) => setAliasInputValue(event.target.value)}
+                        placeholder={'шт\nштук\nшт.'}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <VolumeButton onClick={handleSaveAliases} color="blue">
+                        Сохранить аналоги
+                    </VolumeButton>
+                    <VolumeButton onClick={handleCloseAliasesDialog} color="orange">
                         Отмена
                     </VolumeButton>
                 </DialogActions>

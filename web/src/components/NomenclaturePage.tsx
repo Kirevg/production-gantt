@@ -49,12 +49,19 @@ import VolumeButton from './VolumeButton';
 import * as XLSX from 'xlsx';
 
 // Интерфейс для единицы измерения
+interface UnitAlias {
+    id: string;
+    alias: string;
+    normalizedAlias: string;
+}
+
 interface Unit {
     id: string;
     code: string;
     name: string;
     fullName?: string;
     internationalCode?: string;
+    aliases?: UnitAlias[];
 }
 
 // Интерфейс для вида номенклатуры

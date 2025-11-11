@@ -80,6 +80,19 @@ model Unit {
   @@index([code])
 }
 
+model UnitAlias {
+  id              String   @id @default(uuid())
+  unitId          String
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  unit            Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@unique([normalizedAlias])
+  @@index([unitId])
+}
+
 
 model Project {
   id               String           @id @default(uuid())
