@@ -1992,19 +1992,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         >
                 {/* 
                  * ===== КОНТЕЙНЕР КАНБАН-ДОСКИ (Paper) =====
-                 * ГДЕ НАСТРАИВАЕТСЯ: строка 1995
-                 * 
-                 * НАЗНАЧЕНИЕ: Основной контейнер канбан-доски с прокруткой
-                 * 
-                 * СТИЛИ:
-             *   - minWidth / maxWidth: '1400px' - фиксируем привычную ширину доски
-             *   - minHeight: '600px' - базовая высота
-             *   - minHeight: 'calc(100% - 80px)' - минимальная высота с учетом отступов
-                 *   - overflow: 'auto' - прокрутка при переполнении контента
-                 *   - position: 'relative' - для правильного позиционирования drag & drop элементов
-                 *   - width: '100%' - полная ширина родительского контейнера
-                 * 
-                 * КАК ИЗМЕНИТЬ: редактируйте значения здесь для изменения поведения прокрутки и размеров
+                 * НАЗНАЧЕНИЕ:
+                 *   • единый фон для заголовка с фильтрами, карточек проектов/изделий/этапов и сервисных диалогов
+                 *   • отвечает за вертикальную прокрутку области канбана, если карточек становится много
+                 *   • служит корневой плоскостью для drag & drop (position: 'relative')
+                 *
+                 * КЛЮЧЕВЫЕ НАСТРОЙКИ:
+                 *   • minWidth/maxWidth — прежние ограничения ширины (закомментированы, но можно вернуть при необходимости)
+                 *   • minHeight — либо 600px, либо вся высота окна минус отступы, чтобы доска занимала экран
+                 *   • overflow — можно включить для собственной прокрутки внутри Paper
+                 *   • width: '100%' — Paper растягивается по ширине центрального layout'а
                  */}
                 <Paper sx={{
                     minWidth: '1400px',
@@ -2051,6 +2048,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     ) : kanbanTasks.length > 0 ? (
                         <>
                             <Box sx={{ mb: 2 }}>
+                                {/* Верхняя панель: слева заголовок, справа фильтры по статусам и служебные кнопки */}
                                 <Box sx={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
@@ -2345,6 +2343,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                             items={sortedProjects.map(([projectId]) => `project-${projectId}`)}
                                             strategy={verticalListSortingStrategy}
                                         >
+                                            {/* Каждая запись ниже — карточка проекта с вложенными изделиями */}
                                             {sortedProjects.map(([projectId, tasks]) => {
                                                 const projectName = tasks[0]?.projectName || 'Без проекта';
 
@@ -2382,23 +2381,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                     <SortableProjectCard key={projectId} projectId={projectId}>
                                                         {/* 
                                                          * ===== КОНТЕЙНЕР ПРОЕКТА =====
-                                                         * ГДЕ НАСТРАИВАЕТСЯ: строка 2369
-                                                         * 
-                                                         * НАЗНАЧЕНИЕ: Контейнер для карточки проекта с рамкой
-                                                         * 
-                                                         * СТИЛИ:
-                                                         *   - display: 'flex' - flex-контейнер
-                                                         *   - flexDirection: 'column' - вертикальное направление элементов
-                                                         *   - border: '2px solid #3e5f8a' - рамка проекта (синий цвет)
-                                                         *   - borderRadius: '4px' - скругление углов
-                                                         *   - p: 0.5 - внутренний отступ
-                                                         *   - gap: 0 - расстояние между элементами
-                                                         * 
-                                                         * КАК ИЗМЕНИТЬ:
-                                                         *   - Цвет рамки: измените #3e5f8a на другой цвет
-                                                         *   - Толщину рамки: измените 2px
-                                                         *   - Скругление: измените 4px
-                                                         *   - Отступы: измените p: 0.5
+                                                         * Что внутри:
+                                                         *   • верхняя панель с кнопками: свернуть/развернуть проект, добавить изделие (+), быстрый переход к редактированию
+                                                         *   • цветной Chip со статусом проекта и выпадающим меню смены статуса
+                                                         *   • данные руководителя проекта (ФИО, телефон, почта)
+                                                         *   • ниже — вложенный список изделий и этапов (SortableProductCard)
+                                                         *
+                                                         * Основные стили:
+                                                         *   • display: 'flex', flexDirection: 'column' — вертикальная компоновка содержимого
+                                                         *   • border: '2px solid #3e5f8a' — визуальное отделение проекта (синяя рамка)
+                                                         *   • borderRadius / p — скругления и внутренние отступы карточки
                                                          */}
                                                         <Paper
                                                             sx={{
@@ -2690,6 +2682,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                     productOrderIndex={productOrderIndex}
                                                                                     projectId={projectId}
                                                                                 >
+                                                                                    {/* Карточка изделия: верхняя панель с кнопками (свернуть, добавить этап, сменить статус), описание и список этапов */}
                                                                                     {/* 
                                                                                      * ===== КОНТЕЙНЕР ИЗДЕЛИЯ =====
                                                                                      * ГДЕ НАСТРАИВАЕТСЯ: строка 2660
@@ -2988,6 +2981,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                                                                                          * ГДЕ НАСТРАИВАЕТСЯ: строка 2938
                                                                                                          * 
                                                                                                          * НАЗНАЧЕНИЕ: Контейнер для карточек этапов работ (колонка этапов)
+                                                                                                         *   внутри лежат SortableStageCard — по двойному клику открывают диалог редактирования,
+                                                                                                         *   по ПКМ вызывают контекстное меню с действиями
                                                                                                          * 
                                                                                                          * СТИЛИ:
                                                                                                          *   - display: 'flex' - flex-контейнер для размещения карточек этапов
@@ -3092,6 +3087,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                             flexDirection: 'column',
                             gap: 2
                         }}>
+                            {/* Сообщение для полностью пустого канбана (нет проектов/этапов) */}
                             <Typography variant="h6" color="text.secondary">
                                 Нет этапов для отображения
                             </Typography>
@@ -3102,7 +3098,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     )}
                 </Paper>
 
-                {/* Диалог редактирования этапа работ */}
+                {/* Диалог редактирования этапа работ: открывается по двойному клику или через контекстное меню карточки этапа */}
                 <EditStageDialog
                     open={openEditDialog}
                     editing={!!(editingTask && editingTask.id)}
@@ -3221,7 +3217,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     </MenuItem>
                 </Menu>
 
-                {/* Диалог создания/редактирования проекта */}
+                {/* Диалог создания/редактирования проекта: создаём карточку проекта, выбираем РП, сроки и описание */}
                 <ProjectDialog
                     open={openProjectDialog}
                     editing={!!editingProject}
@@ -3232,7 +3228,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     onChange={setProjectForm}
                 />
 
-                {/* Диалог создания/редактирования изделия */}
+                {/* Диалог создания/редактирования изделия: редактируем конкретное изделие проекта и его карточку */}
                 <ProductDialog
                     open={openProductDialog}
                     editing={!!(editingProduct && editingProduct.id && editingProduct.id.trim() !== '')}
