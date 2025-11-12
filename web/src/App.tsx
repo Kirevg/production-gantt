@@ -995,7 +995,10 @@ export default function App() {
               backgroundColor: 'transparent',
               borderBottom: 0
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ 
+                display: 'flex',
+                 alignItems: 'center',
+                   gap: 2 }}>
                 <IconButton
                   size="small"
                   sx={{
@@ -1112,9 +1115,9 @@ export default function App() {
                 backgroundColor: '#0E1720',
                 borderBottom: 0,
                 overflowX: 'auto',
-                width: 'calc(100% - 60px)',
-                marginLeft: '30px',
-                marginRight: '30px',
+                // width: 'calc(100% - 60px)',
+                marginLeft: '1px',
+                marginRight: '1px',
                 borderRadius: '4px',
                 // Стили горизонтального скроллбара
                 '&::-webkit-scrollbar': {
@@ -3134,12 +3137,17 @@ export default function App() {
   if (user) {
     return (
       <Box className="app" sx={{
-        minHeight: '100vh',        // Минимальная высота на весь экран
+        // minHeight: '100vh',        // Минимальная высота на весь экран
         display: 'flex',          // Flexbox для вертикальной компоновки
         flexDirection: 'column'   // Вертикальное направление
       }}>
         {/* Верхняя панель навигации */}
-        <AppBar position="static" className="header" sx={{ height: '56px', width: '100%', justifyContent: 'center', borderBottom: 'none' }}>
+        <AppBar position="static" className="header" sx={{
+           height: '56px',
+            width: '100%', 
+            justifyContent: 'center',
+             borderBottom: 'none'
+              }}>
           <Toolbar sx={{
             height: '56px',
             minHeight: '0 !important',

@@ -2004,12 +2004,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                  *   • width: '100%' — Paper растягивается по ширине центрального layout'а
                  */}
                 <Paper sx={{
-                    minWidth: '1400px',
-                    maxWidth: '1400px',
-                    minHeight: 'max(600px, calc(100% - 80px))',
-                    overflow: 'auto',
+                    // minWidth: '1400px',
+                    // maxWidth: '1400px',
+                    // minHeight: 'max(600px, calc(100% - 80px))',
+                    // overflow: 'auto',
                     position: 'relative', // Для правильного позиционирования drag & drop
                     width: '100%',
+                    border: '1px solid #25D366',
+                    padding: '10px',
+                    margin: 'auto 0',
                 }}>
                     {loading ? (
                         <Box sx={{

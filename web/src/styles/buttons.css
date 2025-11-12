@@ -37,9 +37,9 @@
     max-width: 1400px !important;
     margin-left: 30px !important;
     margin-right: 30px !important;
-    margin-bottom: 50px !important;
+    margin-bottom: 30px !important;
     /* min-height: none !important; */
-    max-height: 500px !important;
+    /* max-height: 500px !important; */
     /* align-items: left !important; */
     border: 1px solid red !important;
 }
@@ -75,10 +75,6 @@
     flex-direction: column !important;
 }
 
-/* Контейнер основного контента */
-.MuiBox-root.css-9bf5s1 {
-    min-height: 600px;
-}
 
 /* ============================================================================
  * УРОВЕНЬ 2: СТРАНИЦА - Контейнеры страниц
@@ -121,28 +117,28 @@
  *   // Со сложными стилями для особого случая
  *   <Box className="page-container" sx={{ overflow: 'hidden', display: 'flex' }}>
  */
-.page-container {
+/* .page-container {
     /* Минимальная ширина контейнера - обеспечивает единообразие на всех страницах */
-    min-width: 1400px !important;
+    /* min-width: 1400px !important; */
 
     /* Максимальная ширина контейнера - ограничивает ширину для удобства чтения */
-    max-width: 1400px !important;
+    /* max-width: 1400px !important; */
 
     /* ПРИМЕЧАНИЕ: margin-top НЕ задан здесь, т.к. не всем страницам нужен отступ сверху.
      * Если нужен отступ - используйте sx={{ mt: X }} в компоненте.
      * Если отступ нужен ВЕЗДЕ - добавьте margin-top: 24px здесь.
      */
-    margin-top: 16px !important;
-    margin-bottom: 30px !important;
+    /* margin-top: 16px !important;
+    margin-bottom: 30px !important; */
     /* margin-left: 30px !important; */
-}
+
 
 /* Контейнер содержимого страницы */
-.page-content-container {
+/* .page-content-container {
     width: 100% !important;
     max-width: none !important;
     margin: 0 auto !important;
-}
+} */
 
 /* Стиль для заголовков страниц */
 .css-q5wswh-MuiTypography-root {
