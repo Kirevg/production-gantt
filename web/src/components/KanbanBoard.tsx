@@ -2012,7 +2012,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     minHeight: 'max(600px, calc(100% - 80px))',
                     overflow: 'auto',
                     position: 'relative', // Для правильного позиционирования drag & drop
-                    width: '100%'
+                    width: '100%',
                 }}>
                     {loading ? (
                         <Box sx={{
@@ -2050,21 +2050,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                         </Box>
                     ) : kanbanTasks.length > 0 ? (
                         <>
-                            {/* 
-                             * ===== КОНТЕЙНЕР СОДЕРЖИМОГО КАНБАНА =====
-                             * ГДЕ НАСТРАИВАЕТСЯ: строка 2036
-                             * 
-                             * НАЗНАЧЕНИЕ: Контейнер для всего содержимого канбана (проекты, изделия, этапы)
-                             * 
-                             * СТИЛИ:
-                             *   - pt: 2 - отступ сверху (padding-top)
-                             *   - pb: 2 - отступ снизу (padding-bottom)
-                             *   - paddingLeft: '30px' - отступ слева
-                             *   - paddingRight: '30px' - отступ справа
-                             * 
-                             * КАК ИЗМЕНИТЬ ОТСТУПЫ: редактируйте значения pt, pb, paddingLeft, paddingRight здесь
-                             */}
-                            <Box sx={{ pt: 2, pb: 2, paddingLeft: '30px', paddingRight: '30px' }}>
                             <Box sx={{ mb: 2 }}>
                                 <Box sx={{
                                     display: 'flex',
@@ -2320,7 +2305,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                                         </Tooltip>
                                     </Box>
                                 </Box>
-                            </Box>
                             {/* Группируем задачи по проектам и изделиям */}
                             {(() => {
                                 // Сначала группируем задачи по projectId
