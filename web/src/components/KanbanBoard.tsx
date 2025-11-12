@@ -1990,20 +1990,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
         // Отключаем автоматическое возвращение карточек в исходное положение
         // Теперь мы сами управляем позициями через состояние
         >
-            {/* 
-             * ===== ГЛАВНЫЙ КОНТЕЙНЕР КАНБАНА =====
-             * ГДЕ НАСТРАИВАЕТСЯ: строка 1993
-             * 
-             * НАЗНАЧЕНИЕ: Внешний контейнер для всего канбана
-             * 
-             * СТИЛИ:
-             *   - minHeight: '600px' - минимальная высота канбана
-             *   - minWidth: '1400px' - минимальная ширина канбана
-             *   - maxWidth: '1400px' - максимальная ширина канбана (ограничивает ширину)
-             * 
-             * КАК ИЗМЕНИТЬ РАЗМЕРЫ: редактируйте значения minHeight, minWidth, maxWidth здесь
-             */}
-            <Box sx={{ minHeight: '600px', minWidth: '1400px', maxWidth: '1400px' }}>
                 {/* 
                  * ===== КОНТЕЙНЕР КАНБАН-ДОСКИ (Paper) =====
                  * ГДЕ НАСТРАИВАЕТСЯ: строка 1995
@@ -2011,7 +1997,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                  * НАЗНАЧЕНИЕ: Основной контейнер канбан-доски с прокруткой
                  * 
                  * СТИЛИ:
-                 *   - minHeight: 'calc(100% - 80px)' - минимальная высота с учетом отступов
+             *   - minWidth / maxWidth: '1400px' - фиксируем привычную ширину доски
+             *   - minHeight: '600px' - базовая высота
+             *   - minHeight: 'calc(100% - 80px)' - минимальная высота с учетом отступов
                  *   - overflow: 'auto' - прокрутка при переполнении контента
                  *   - position: 'relative' - для правильного позиционирования drag & drop элементов
                  *   - width: '100%' - полная ширина родительского контейнера
@@ -2019,7 +2007,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                  * КАК ИЗМЕНИТЬ: редактируйте значения здесь для изменения поведения прокрутки и размеров
                  */}
                 <Paper sx={{
-                    minHeight: 'calc(100% - 80px)',
+                    minWidth: '1400px',
+                    maxWidth: '1400px',
+                    minHeight: 'max(600px, calc(100% - 80px))',
                     overflow: 'auto',
                     position: 'relative', // Для правильного позиционирования drag & drop
                     width: '100%'
@@ -3269,7 +3259,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = () => {
                     onSave={handleSaveProduct}
                     onChange={setProductForm}
                 />
-            </Box>
         </DndContext>
     );
 };

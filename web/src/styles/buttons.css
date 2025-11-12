@@ -35,8 +35,12 @@
     min-width: 1400px !important;
     /* width: 100% !important; */
     max-width: 1400px !important;
-    margin: 0 auto !important;
-    align-items: left !important;
+    margin-left: 30px !important;
+    margin-right: 30px !important;
+    margin-bottom: 50px !important;
+    /* min-height: none !important; */
+    max-height: 500px !important;
+    /* align-items: left !important; */
     border: 1px solid red !important;
 }
 
@@ -119,10 +123,10 @@
  */
 .page-container {
     /* Минимальная ширина контейнера - обеспечивает единообразие на всех страницах */
-    min-width: 1200px !important;
+    min-width: 1400px !important;
 
     /* Максимальная ширина контейнера - ограничивает ширину для удобства чтения */
-    max-width: 1200px !important;
+    max-width: 1400px !important;
 
     /* ПРИМЕЧАНИЕ: margin-top НЕ задан здесь, т.к. не всем страницам нужен отступ сверху.
      * Если нужен отступ - используйте sx={{ mt: X }} в компоненте.
